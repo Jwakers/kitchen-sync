@@ -1,7 +1,8 @@
+import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Lexend } from "next/font/google";
 import "./globals.css";
-import { ConvexClientProvider } from "./providers/convex-client-provider";
+import ConvexClientProvider from "./providers/convex-client-provider";
 
 const lexendSans = Lexend({
   variable: "--font-lexend-sans",
@@ -21,7 +22,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${lexendSans.variable} antialiased`}>
-        <ConvexClientProvider>{children}</ConvexClientProvider>
+        <ClerkProvider>
+          <ConvexClientProvider>{children}</ConvexClientProvider>
+        </ClerkProvider>
       </body>
     </html>
   );

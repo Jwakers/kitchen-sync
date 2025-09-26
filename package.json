@@ -9,10 +9,13 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@clerk/backend": "^2.15.0",
+    "@clerk/nextjs": "^6.32.2",
     "convex": "^1.27.3",
     "next": "15.5.4",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "svix": "^1.76.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
