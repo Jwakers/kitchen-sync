@@ -136,39 +136,56 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
       case "basic":
         return (
           <div className="space-y-4">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Recipe Title *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter recipe title" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+            >
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Recipe Title *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter recipe title" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </motion.div>
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <textarea
-                      {...field}
-                      className="w-full p-2 border border-input rounded-md bg-background h-20 resize-none"
-                      placeholder="Describe your recipe"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+            >
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <textarea
+                        {...field}
+                        className="w-full p-2 border border-input rounded-md bg-background h-20 resize-none"
+                        placeholder="Describe your recipe"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </motion.div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <motion.div
+              className="grid grid-cols-2 gap-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.3 }}
+            >
               <FormField
                 control={form.control}
                 name="prepTime"
@@ -209,28 +226,34 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
                   </FormItem>
                 )}
               />
-            </div>
+            </motion.div>
 
-            <FormField
-              control={form.control}
-              name="serves"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Serves *</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="4"
-                      {...field}
-                      onChange={(e) =>
-                        field.onChange(parseInt(e.target.value) || 0)
-                      }
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.4 }}
+            >
+              <FormField
+                control={form.control}
+                name="serves"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Serves *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="4"
+                        {...field}
+                        onChange={(e) =>
+                          field.onChange(parseInt(e.target.value) || 0)
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </motion.div>
           </div>
         );
 
