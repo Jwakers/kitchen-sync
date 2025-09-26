@@ -156,4 +156,11 @@
   * {
     @apply border-border outline-ring/50;}
   body {
-    @apply bg-background text-foreground;}}
+    @apply bg-background text-foreground;}
+  }
+
+  @utility container {
+    padding-inline: 1rem;
+    margin-inline: auto;
+    max-width: 1920px;
+  }
