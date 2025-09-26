@@ -28,7 +28,7 @@ export default function Home() {
   return (
     <div className="flex flex-col">
       {/* Hero Section - Split Layout */}
-      <section className="min-h-screen flex">
+      <section className="min-h-screen flex flex-col md:flex-row">
         {/* Left Side - Dark Background */}
         <div className="flex-1 bg-primary text-primary-foreground flex items-center justify-center p-8 lg:p-16">
           <div className="max-w-lg space-y-8">
@@ -44,8 +44,8 @@ export default function Home() {
                 EASIEST. MEAL PLANNING. EVER.
               </h1>
               <p className="text-xl text-primary-foreground/90 max-w-lg">
-                This is what you need to get exactly what you need to plan your
-                family&apos;s meals.
+                Plan meals, create shopping lists, and keep your family in
+                sync—all in one simple platform that actually works.
               </p>
             </div>
 
