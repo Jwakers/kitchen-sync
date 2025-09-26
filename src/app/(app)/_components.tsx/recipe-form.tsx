@@ -597,10 +597,10 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="h-full flex flex-col"
+        className="h-full flex flex-col overflow-auto"
       >
         {/* Step content */}
-        <div className="flex-1 overflow-hidden p-4">
+        <div className="flex-1 p-4">
           <AnimatePresence mode="popLayout" custom={slideDirection}>
             <motion.div
               key={currentStep}
@@ -631,97 +631,107 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
                 damping: 25,
                 mass: 0.6,
               }}
-              className="h-full overflow-y-auto"
+              className="h-full"
             >
               {renderStepContent()}
             </motion.div>
           </AnimatePresence>
         </div>
 
-        {/* Progress indicator */}
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
-            <span>
-              Step {currentStepIndex + 1} of {steps.length}
-            </span>
-            <span>{steps[currentStepIndex].title}</span>
+        <div className="sticky bottom-0 from-background/20 to-background bg-linear-to-b backdrop-blur-sm">
+          {/* Progress indicator */}
+          <div className="px-4 py-3 border-t">
+            <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
+              <span>
+                Step {currentStepIndex + 1} of {steps.length}
+              </span>
+              <span>{steps[currentStepIndex].title}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {/* Individual step indicators with individual progress */}
+              {steps.map((_, index) => (
+                <div
+                  key={index}
+                  className="relative h-2 flex-grow overflow-hidden rounded"
+                >
+                  {/* Background for each section */}
+                  <div className="absolute inset-0 bg-secondary" />
+                  {/* Progress fill for completed sections - always rendered for smooth animation */}
+                  <motion.div
+                    className="absolute inset-0 bg-primary"
+                    initial={{ width: "0%" }}
+                    animate={{
+                      width: index <= currentStepIndex ? "100%" : "0%",
+                    }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 200,
+                      damping: 25,
+                      duration: 0.6,
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            {/* Individual step indicators with individual progress */}
-            {steps.map((_, index) => (
-              <div
-                key={index}
-                className="relative h-2 flex-grow overflow-hidden rounded"
-              >
-                {/* Background for each section */}
-                <div className="absolute inset-0 bg-secondary" />
-                {/* Progress fill for completed sections - always rendered for smooth animation */}
+
+          {/* Navigation */}
+          <div className="p-4 border-t">
+            <div className="flex gap-2">
+              {currentStepIndex > 0 ? (
                 <motion.div
-                  className="absolute inset-0 bg-primary"
-                  initial={{ width: "0%" }}
-                  animate={{
-                    width: index <= currentStepIndex ? "100%" : "0%",
-                  }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 200,
-                    damping: 25,
-                    duration: 0.6,
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
+                  className="flex-1"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Button
+                    onClick={prevStep}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-1" />
+                    Back
+                  </Button>
+                </motion.div>
+              ) : (
+                <motion.div
+                  className="flex-1"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Button
+                    onClick={onClose}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    Cancel
+                  </Button>
+                </motion.div>
+              )}
 
-        {/* Navigation */}
-        <div className="p-4 border-t">
-          <div className="flex gap-2">
-            {currentStepIndex > 0 ? (
-              <motion.div
-                className="flex-1"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Button onClick={prevStep} variant="outline" className="w-full">
-                  <ArrowLeft className="h-4 w-4 mr-1" />
-                  Back
-                </Button>
-              </motion.div>
-            ) : (
-              <motion.div
-                className="flex-1"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Button onClick={onClose} variant="outline" className="w-full">
-                  Cancel
-                </Button>
-              </motion.div>
-            )}
-
-            {currentStepIndex < steps.length - 1 ? (
-              <motion.div
-                className="flex-1"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Button type="button" onClick={nextStep} className="w-full">
-                  Next
-                  <ArrowRight className="h-4 w-4 ml-1" />
-                </Button>
-              </motion.div>
-            ) : (
-              <motion.div
-                className="flex-1"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Button type="submit" className="w-full">
-                  Save Recipe
-                </Button>
-              </motion.div>
-            )}
+              {currentStepIndex < steps.length - 1 ? (
+                <motion.div
+                  className="flex-1"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Button type="button" onClick={nextStep} className="w-full">
+                    Next
+                    <ArrowRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </motion.div>
+              ) : (
+                <motion.div
+                  className="flex-1"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Button type="submit" className="w-full">
+                    Save Recipe
+                  </Button>
+                </motion.div>
+              )}
+            </div>
           </div>
         </div>
       </form>

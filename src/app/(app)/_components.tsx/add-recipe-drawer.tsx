@@ -34,7 +34,7 @@ export function AddRecipeDrawer({ open, onOpenChange }: AddRecipeDrawerProps) {
   if (showForm) {
     return (
       <DrawerNested open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="h-[85vh]">
+        <DrawerContent>
           <DrawerHeader>
             <div className="flex items-center gap-2">
               <Button

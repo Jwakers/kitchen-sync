@@ -3,7 +3,7 @@
 import { ModeToggle } from "@/components/mode-toggle";
 import { UserButton } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
-import { Authenticated, AuthLoading } from "convex/react";
+import { AuthLoading } from "convex/react";
 import { Utensils } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
@@ -23,19 +23,20 @@ export function Header() {
         {/* Right side - Theme toggle and User button */}
         <div className="flex items-center space-x-4">
           <ModeToggle />
-          <AuthLoading>
-            <div
-              className="size-7 bg-gray-200 rounded-full animate-pulse"
-              aria-hidden
-            />
-          </AuthLoading>
-          <Authenticated>
+
+          <div className="size-7 relative">
+            <AuthLoading>
+              <div
+                className="size-full absolute inset-0 bg-primary/50 rounded-full animate-pulse"
+                aria-hidden
+              />
+            </AuthLoading>
             <UserButton
               appearance={{
                 baseTheme: theme !== "light" ? dark : undefined,
               }}
             />
-          </Authenticated>
+          </div>
         </div>
       </div>
     </header>
