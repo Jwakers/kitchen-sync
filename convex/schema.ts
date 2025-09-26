@@ -17,6 +17,7 @@ export default defineSchema({
     userId: v.id("users"),
     title: v.string(),
     description: v.optional(v.string()),
+    image: v.optional(v.id("_storage")),
     prepTime: v.number(),
     cookTime: v.number(),
     serves: v.number(),

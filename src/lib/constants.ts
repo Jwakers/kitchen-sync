@@ -8,7 +8,7 @@ export const RECIPE_CATEGORIES = [
   "breakfast",
   "lunch",
   "dinner",
-];
+] as const;
 
 export const PREPARATION_OPTIONS = [
   "chopped",
@@ -46,6 +46,21 @@ export const PREPARATION_OPTIONS = [
   "seeded",
   "cored",
   "stemmed",
-];
+] as const;
 
-export const UNITS = ["cups", "tsp", "tbsp", "fl oz", "gal", "lbs", "oz"];
+export const UNITS = [
+  "cups",
+  "tsp",
+  "tbsp",
+  "fl oz",
+  "gal",
+  "lbs",
+  "oz",
+  "ml",
+  "l",
+  "g",
+  "kg",
+  "pinch",
+  "dash",
+  "handful",
+] as const;

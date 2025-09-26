@@ -1,0 +1,107 @@
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerNested,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import { ArrowLeft, Globe, PenTool } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { RecipeForm } from "./recipe-form";
+
+type AddRecipeDrawerProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+};
+
+export function AddRecipeDrawer({ open, onOpenChange }: AddRecipeDrawerProps) {
+  const [showForm, setShowForm] = useState(false);
+
+  const handleCreateOwn = () => {
+    setShowForm(true);
+  };
+
+  const handleBack = () => {
+    setShowForm(false);
+  };
+
+  if (showForm) {
+    return (
+      <DrawerNested open={open} onOpenChange={onOpenChange}>
+        <DrawerContent className="h-[85vh]">
+          <DrawerHeader>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleBack}
+                className="h-8 w-8"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <DrawerTitle>Create Recipe</DrawerTitle>
+            </div>
+            <DrawerDescription>
+              Fill in the details to create your recipe
+            </DrawerDescription>
+          </DrawerHeader>
+          <RecipeForm onClose={() => onOpenChange(false)} />
+        </DrawerContent>
+      </DrawerNested>
+    );
+  }
+
+  return (
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>Add Recipe</DrawerTitle>
+          <DrawerDescription>
+            Choose how you&apos;d like to add a new recipe
+          </DrawerDescription>
+        </DrawerHeader>
+
+        <div className="flex flex-col gap-4 p-4">
+          <Card
+            className="p-6 cursor-pointer hover:bg-accent transition-colors"
+            onClick={handleCreateOwn}
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-primary rounded-lg">
+                <PenTool className="h-6 w-6 text-primary-foreground" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-lg">Create Your Own</h3>
+                <p className="text-muted-foreground text-sm">
+                  Start from scratch and build your perfect recipe
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          <Link href="/dashboard">
+            <Card className="p-6 cursor-pointer hover:bg-accent transition-colors">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-secondary rounded-lg">
+                  <Globe className="h-6 w-6 text-secondary-foreground" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg">Get Recipe from URL</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Import a recipe from any website (coming soon)
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </Link>
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
+}
