@@ -1,5 +1,6 @@
 "use client";
 
+import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -9,11 +10,15 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { dark } from "@clerk/themes";
 import { Authenticated, Unauthenticated } from "convex/react";
 import { Menu, Utensils } from "lucide-react";
+import { useTheme } from "next-themes";
 import Link from "next/link";
 
 export function Header() {
+  const { theme } = useTheme();
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
@@ -61,8 +66,14 @@ export function Header() {
 
         {/* Desktop Auth Buttons */}
         <div className="hidden md:flex items-center space-x-4">
+          <ModeToggle />
           <Authenticated>
-            <UserButton afterSignOutUrl="/" />
+            <UserButton
+              afterSignOutUrl="/"
+              appearance={{
+                baseTheme: theme === "dark" ? dark : undefined,
+              }}
+            />
           </Authenticated>
           <Unauthenticated>
             <SignInButton mode="modal">
@@ -94,8 +105,16 @@ export function Header() {
                 About
               </Link>
               <div className="pt-4 border-t">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm font-medium">Theme</span>
+                  <ModeToggle />
+                </div>
                 <Authenticated>
-                  <UserButton />
+                  <UserButton
+                    appearance={{
+                      baseTheme: theme === "dark" ? dark : undefined,
+                    }}
+                  />
                 </Authenticated>
                 <Unauthenticated>
                   <div className="flex flex-col space-y-2">
