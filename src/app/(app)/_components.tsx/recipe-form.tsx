@@ -1,8 +1,8 @@
 "use client";
 
+import { PreparationSelector } from "@/components/preparation-selector";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Combobox } from "@/components/ui/combobox";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -19,9 +19,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PREPARATION_OPTIONS, UNITS } from "@/lib/constants";
+import { Textarea } from "@/components/ui/textarea";
+import { UnitSelector } from "@/components/unit-selector";
 import { recipeSchema, type RecipeFormData } from "@/lib/schemas/recipe";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { RECIPE_CATEGORIES } from "convex/lib/constants";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Plus, X } from "lucide-react";
 import { useState } from "react";
@@ -37,16 +39,6 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
   const [currentStep, setCurrentStep] = useState<FormStep>("basic");
   const [slideDirection, setSlideDirection] = useState<"next" | "prev">("next");
 
-  // Options for dropdowns
-  const unitOptions = UNITS.map((unit: string) => ({
-    value: unit,
-    label: unit,
-  }));
-  const preparationOptions = PREPARATION_OPTIONS.map((prep: string) => ({
-    value: prep,
-    label: prep,
-  }));
-
   const form = useForm<RecipeFormData>({
     resolver: zodResolver(recipeSchema),
     defaultValues: {
@@ -56,6 +48,7 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
       cookTime: 0,
       serves: 1,
       category: "main",
+      image: undefined,
       ingredients: [],
       method: [],
     },
@@ -120,8 +113,9 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
 
   const addMethodStep = () => {
     appendMethodStep({
-      id: Date.now().toString(),
-      step: "",
+      title: "",
+      description: "",
+      image: undefined,
     });
   };
 
@@ -135,126 +129,187 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
     switch (currentStep) {
       case "basic":
         return (
-          <div className="space-y-4">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-            >
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Recipe Title *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter recipe title" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </motion.div>
+          <Card>
+            <CardContent>
+              <div className="space-y-4">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.1 }}
+                >
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Recipe Title *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter recipe title" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-            >
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <textarea
-                        {...field}
-                        className="w-full p-2 border border-input rounded-md bg-background h-20 resize-none"
-                        placeholder="Describe your recipe"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.2 }}
+                >
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            {...field}
+                            placeholder="Describe your recipe"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </motion.div>
 
-            <motion.div
-              className="grid grid-cols-2 gap-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.3 }}
-            >
-              <FormField
-                control={form.control}
-                name="prepTime"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Prep Time (min) *</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="15"
-                        {...field}
-                        onChange={(e) =>
-                          field.onChange(parseInt(e.target.value) || 0)
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="cookTime"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cook Time (min) *</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="30"
-                        {...field}
-                        onChange={(e) =>
-                          field.onChange(parseInt(e.target.value) || 0)
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </motion.div>
+                <motion.div
+                  className="grid grid-cols-2 gap-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.3 }}
+                >
+                  <FormField
+                    control={form.control}
+                    name="prepTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Prep Time (min) *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="15"
+                            {...field}
+                            onChange={(e) =>
+                              field.onChange(parseInt(e.target.value) || 0)
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="cookTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Cook Time (min) *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="30"
+                            {...field}
+                            onChange={(e) =>
+                              field.onChange(parseInt(e.target.value) || 0)
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.4 }}
-            >
-              <FormField
-                control={form.control}
-                name="serves"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Serves *</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="4"
-                        {...field}
-                        onChange={(e) =>
-                          field.onChange(parseInt(e.target.value) || 0)
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </motion.div>
-          </div>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.4 }}
+                >
+                  <FormField
+                    control={form.control}
+                    name="serves"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Serves *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="4"
+                            {...field}
+                            onChange={(e) =>
+                              field.onChange(parseInt(e.target.value) || 0)
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.5 }}
+                >
+                  <FormField
+                    control={form.control}
+                    name="image"
+                    render={({ field: { onChange } }) => (
+                      <FormItem>
+                        <FormLabel>Recipe Image (Optional)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              onChange(file);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.5 }}
+                >
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Category</FormLabel>
+                        <FormControl>
+                          <Select {...field}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select a category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {RECIPE_CATEGORIES.map((category) => (
+                                <SelectItem key={category} value={category}>
+                                  {category.charAt(0).toUpperCase() +
+                                    category.slice(1)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </motion.div>
+              </div>
+            </CardContent>
+          </Card>
         );
 
       case "ingredients":
@@ -335,29 +390,11 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
                               render={({ field }) => (
                                 <FormItem>
                                   <FormControl>
-                                    <Select
+                                    <UnitSelector
+                                      value={field.value || ""}
                                       onValueChange={field.onChange}
-                                      value={field.value}
-                                    >
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Unit" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {unitOptions.map(
-                                          (option: {
-                                            value: string;
-                                            label: string;
-                                          }) => (
-                                            <SelectItem
-                                              key={option.value}
-                                              value={option.value}
-                                            >
-                                              {option.label}
-                                            </SelectItem>
-                                          )
-                                        )}
-                                      </SelectContent>
-                                    </Select>
+                                      placeholder="Unit"
+                                    />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -369,8 +406,7 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
                               render={({ field }) => (
                                 <FormItem>
                                   <FormControl>
-                                    <Combobox
-                                      options={preparationOptions}
+                                    <PreparationSelector
                                       value={field.value}
                                       onValueChange={field.onChange}
                                       placeholder="Preparation"
@@ -467,27 +503,63 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
                           {index + 1}.
                         </motion.span>
                         <motion.div
-                          className="flex-1"
+                          className="flex-1 space-y-3"
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.2 }}
                         >
                           <FormField
                             control={form.control}
-                            name={`method.${index}.step`}
+                            name={`method.${index}.title`}
                             render={({ field }) => (
                               <FormItem>
                                 <FormControl>
-                                  <textarea
+                                  <Input placeholder="Title..." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`method.${index}.description`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Textarea
                                     {...field}
                                     placeholder="Describe this step..."
-                                    className="w-full p-2 border border-input rounded-md bg-background h-20 resize-none"
                                   />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                          >
+                            <FormField
+                              control={form.control}
+                              name={`method.${index}.image`}
+                              render={({ field: { onChange } }) => (
+                                <FormItem>
+                                  <FormControl>
+                                    <Input
+                                      type="file"
+                                      accept="image/*"
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        onChange(file);
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </motion.div>
                         </motion.div>
                         <motion.div
                           initial={{ opacity: 0, scale: 0.8 }}
@@ -599,8 +671,8 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
                     </h5>
                     <ol className="space-y-1 text-sm">
                       {formValues.method.map((step, index) => (
-                        <li key={step.id}>
-                          {index + 1}. {step.step}
+                        <li key={step.title}>
+                          {index + 1}. {step.title}
                         </li>
                       ))}
                     </ol>

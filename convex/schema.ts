@@ -1,10 +1,14 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
-import { PREPARATION_OPTIONS, RECIPE_CATEGORIES, UNITS } from "./lib/constants";
+import {
+  PREPARATION_OPTIONS,
+  RECIPE_CATEGORIES,
+  UNITS_FLAT,
+} from "./lib/constants";
 
 const categoriesUnion = v.union(...RECIPE_CATEGORIES.map(v.literal));
 const preparationUnion = v.union(...PREPARATION_OPTIONS.map(v.literal));
-const unitsUnion = v.union(...UNITS.map(v.literal));
+const unitsUnion = v.union(...UNITS_FLAT.map(v.literal));
 
 export default defineSchema({
   users: defineTable({

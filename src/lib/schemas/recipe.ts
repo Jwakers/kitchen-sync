@@ -17,6 +17,7 @@ export const recipeSchema = z.object({
     "lunch",
     "dinner",
   ]),
+  image: z.instanceof(File).optional(),
   ingredients: z
     .array(
       z.object({
@@ -31,8 +32,9 @@ export const recipeSchema = z.object({
   method: z
     .array(
       z.object({
-        id: z.string(),
-        step: z.string().min(1, "Step description is required"),
+        title: z.string().min(1, "Step title is required"),
+        description: z.string().optional(),
+        image: z.instanceof(File).optional(),
       })
     )
     .min(1, "At least one method step is required"),

@@ -1,3 +1,8 @@
+// ============================================================================
+// RECIPE CONSTANTS
+// ============================================================================
+
+// Recipe Categories
 export const RECIPE_CATEGORIES = [
   "main",
   "dessert",
@@ -8,8 +13,9 @@ export const RECIPE_CATEGORIES = [
   "breakfast",
   "lunch",
   "dinner",
-];
+] as const;
 
+// Preparation Options
 export const PREPARATION_OPTIONS = [
   "chopped",
   "diced",
@@ -46,6 +52,23 @@ export const PREPARATION_OPTIONS = [
   "seeded",
   "cored",
   "stemmed",
-];
+] as const;
 
-export const UNITS = ["cups", "tsp", "tbsp", "fl oz", "gal", "lbs", "oz"];
+// Units - organized by category for better maintainability
+export const UNITS = {
+  volume: ["cups", "tsp", "tbsp", "fl oz", "gal", "ml", "l"],
+  weight: ["lbs", "oz", "g", "kg"],
+  count: ["pinch", "dash", "handful"],
+} as const;
+
+// Flattened units array for schema compatibility
+export const UNITS_FLAT = [
+  ...UNITS.volume,
+  ...UNITS.weight,
+  ...UNITS.count,
+] as const;
+
+// TypeScript types
+export type RecipeCategory = (typeof RECIPE_CATEGORIES)[number];
+export type PreparationOption = (typeof PREPARATION_OPTIONS)[number];
+export type Unit = (typeof UNITS_FLAT)[number];

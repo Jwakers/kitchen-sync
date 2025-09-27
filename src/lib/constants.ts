@@ -1,66 +1,7 @@
-export const RECIPE_CATEGORIES = [
-  "main",
-  "dessert",
-  "snack",
-  "appetizer",
-  "side",
-  "beverage",
-  "breakfast",
-  "lunch",
-  "dinner",
-] as const;
+// ============================================================================
+// FRONTEND CONSTANTS - Re-exports from Convex with frontend-specific helpers
+// ============================================================================
 
-export const PREPARATION_OPTIONS = [
-  "chopped",
-  "diced",
-  "rough chop",
-  "sliced",
-  "julienned",
-  "brunoise",
-  "minced",
-  "grated",
-  "shredded",
-  "cubed",
-  "quartered",
-  "halved",
-  "whole",
-  "crushed",
-  "mashed",
-  "pureed",
-  "at room temperature",
-  "chilled",
-  "warmed",
-  "softened",
-  "melted",
-  "beaten",
-  "whipped",
-  "folded",
-  "kneaded",
-  "rolled",
-  "pressed",
-  "strained",
-  "drained",
-  "rinsed",
-  "peeled",
-  "trimmed",
-  "seeded",
-  "cored",
-  "stemmed",
-] as const;
+// Import all constants from Convex (single source of truth)
 
-export const UNITS = [
-  "cups",
-  "tsp",
-  "tbsp",
-  "fl oz",
-  "gal",
-  "lbs",
-  "oz",
-  "ml",
-  "l",
-  "g",
-  "kg",
-  "pinch",
-  "dash",
-  "handful",
-] as const;
+// Frontend-specific: Unit categories for better UX
