@@ -40,7 +40,6 @@ export function UnitSelector({
       searchPlaceholder="Search units..."
       emptyText="No unit found."
       disabled={disabled}
-      allowClear={true}
       clearText="Clear unit"
     />
   );

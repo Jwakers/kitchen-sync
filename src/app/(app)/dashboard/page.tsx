@@ -1,3 +1,7 @@
+export const metadata = {
+  title: "Dashboard | Kitchen Sync",
+};
+
 export default function DashboardPage() {
   return (
     <div className="min-h-screen">

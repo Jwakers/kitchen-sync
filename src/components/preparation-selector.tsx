@@ -1,6 +1,7 @@
 "use client";
 
 import { Combobox } from "@/components/search-box";
+import { titleCase } from "@/lib/utils";
 import { PREPARATION_OPTIONS } from "convex/lib/constants";
 
 type PreparationSelectorProps = {
@@ -15,7 +16,7 @@ type PreparationSelectorProps = {
 
 const preparationOptions = PREPARATION_OPTIONS.map((option) => ({
   value: option,
-  label: option,
+  label: titleCase(option),
 }));
 
 export function PreparationSelector({
@@ -37,7 +38,6 @@ export function PreparationSelector({
       emptyText={emptyText}
       className={className}
       disabled={disabled}
-      allowClear={true}
       clearText="Clear preparation"
     />
   );

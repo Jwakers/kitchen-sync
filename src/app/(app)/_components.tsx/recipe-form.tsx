@@ -22,6 +22,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { UnitSelector } from "@/components/unit-selector";
 import { recipeSchema, type RecipeFormData } from "@/lib/schemas/recipe";
+import { titleCase } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RECIPE_CATEGORIES } from "convex/lib/constants";
 import { AnimatePresence, motion } from "framer-motion";
@@ -295,8 +296,7 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
                             <SelectContent>
                               {RECIPE_CATEGORIES.map((category) => (
                                 <SelectItem key={category} value={category}>
-                                  {category.charAt(0).toUpperCase() +
-                                    category.slice(1)}
+                                  {titleCase(category)}
                                 </SelectItem>
                               ))}
                             </SelectContent>
