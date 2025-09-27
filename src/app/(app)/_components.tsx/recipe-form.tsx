@@ -611,7 +611,7 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
           </div>
         );
 
-      case "review":
+      case "review": {
         const formValues = form.getValues();
         return (
           <div className="space-y-6">
@@ -682,6 +682,7 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
             </div>
           </div>
         );
+      }
 
       default:
         return null;

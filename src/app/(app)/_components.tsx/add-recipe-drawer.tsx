@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/drawer";
 import { ArrowLeft, Globe, PenTool } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { RecipeForm } from "./recipe-form";
 
 type AddRecipeDrawerProps = {
@@ -30,6 +30,12 @@ export function AddRecipeDrawer({ open, onOpenChange }: AddRecipeDrawerProps) {
   const handleBack = () => {
     setShowForm(false);
   };
+
+  useEffect(() => {
+    if (open) return;
+
+    setShowForm(false);
+  }, [open]);
 
   if (showForm) {
     return (
@@ -68,22 +74,26 @@ export function AddRecipeDrawer({ open, onOpenChange }: AddRecipeDrawerProps) {
         </DrawerHeader>
 
         <div className="flex flex-col gap-4 p-4">
-          <Card
-            className="p-6 cursor-pointer hover:bg-accent transition-colors"
+          <button
             onClick={handleCreateOwn}
+            type="button"
+            className="cursor-pointer"
+            aria-label="Create Your Own"
           >
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary rounded-lg">
-                <PenTool className="h-6 w-6 text-primary-foreground" />
+            <Card className="py-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-primary rounded-lg">
+                  <PenTool className="h-6 w-6 text-primary-foreground" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg">Create Your Own</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Start from scratch and build your perfect recipe
+                  </p>
+                </div>
               </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg">Create Your Own</h3>
-                <p className="text-muted-foreground text-sm">
-                  Start from scratch and build your perfect recipe
-                </p>
-              </div>
-            </div>
-          </Card>
+            </Card>
+          </button>
 
           <Link href="/dashboard">
             <Card className="p-6 cursor-pointer hover:bg-accent transition-colors">

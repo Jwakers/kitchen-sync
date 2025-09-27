@@ -9,7 +9,7 @@ import { useTheme } from "next-themes";
 import Link from "next/link";
 
 export function Header() {
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -33,7 +33,7 @@ export function Header() {
             </AuthLoading>
             <UserButton
               appearance={{
-                baseTheme: theme !== "light" ? dark : undefined,
+                baseTheme: resolvedTheme === "dark" ? dark : undefined,
               }}
             />
           </div>

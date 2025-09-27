@@ -35,7 +35,6 @@ type ComboboxProps = {
   emptyText?: string;
   className?: string;
   disabled?: boolean;
-  allowClear?: boolean;
   clearText?: string;
 };
 
@@ -49,7 +48,6 @@ export function Combobox({
   emptyText = "No option found.",
   className,
   disabled = false,
-  allowClear = false,
   clearText = "Clear",
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
@@ -83,7 +81,7 @@ export function Combobox({
           <CommandInput placeholder={searchPlaceholder} />
           <CommandList>
             <CommandEmpty>{emptyText}</CommandEmpty>
-            {allowClear && value && (
+            {value && (
               <CommandGroup>
                 <CommandItem
                   value=""
