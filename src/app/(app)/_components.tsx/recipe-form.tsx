@@ -693,7 +693,7 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="h-full flex flex-col overflow-auto"
+        className="h-full flex flex-col overflow-auto overflow-x-hidden"
       >
         {/* Step content */}
         <div className="flex-1 p-4">

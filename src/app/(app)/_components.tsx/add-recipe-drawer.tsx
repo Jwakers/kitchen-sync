@@ -80,7 +80,7 @@ export function AddRecipeDrawer({ open, onOpenChange }: AddRecipeDrawerProps) {
             className="cursor-pointer"
             aria-label="Create Your Own"
           >
-            <Card className="py-6">
+            <Card className="p-6 text-left">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-primary rounded-lg">
                   <PenTool className="h-6 w-6 text-primary-foreground" />
@@ -96,7 +96,7 @@ export function AddRecipeDrawer({ open, onOpenChange }: AddRecipeDrawerProps) {
           </button>
 
           <Link href="/dashboard">
-            <Card className="p-6 cursor-pointer hover:bg-accent transition-colors">
+            <Card className="p-6">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-secondary rounded-lg">
                   <Globe className="h-6 w-6 text-secondary-foreground" />
