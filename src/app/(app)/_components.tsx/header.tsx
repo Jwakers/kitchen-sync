@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "@/app/constants";
 import { ModeToggle } from "@/components/mode-toggle";
 import { UserButton } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
@@ -15,7 +16,7 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4">
         {/* Logo */}
-        <Link href="/dashboard" className="flex items-center space-x-2">
+        <Link href={ROUTES.DASHBOARD} className="flex items-center space-x-2">
           <Utensils className="h-6 w-6 text-primary" />
           <span className="font-bold text-xl">Kitchen Sync</span>
         </Link>

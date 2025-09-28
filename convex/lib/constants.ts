@@ -33,7 +33,7 @@ export const PREPARATION_OPTIONS = [
   "crushed",
   "mashed",
   "pureed",
-  "at room temperature",
+  "room temperature",
   "chilled",
   "warmed",
   "softened",

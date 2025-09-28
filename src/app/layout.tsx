@@ -2,6 +2,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Lexend } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 import ConvexClientProvider from "./providers/convex-client-provider";
 
@@ -33,6 +34,7 @@ export default function RootLayout({
               disableTransitionOnChange
             >
               {children}
+              <Toaster richColors className="pointer-events-auto" />
             </ThemeProvider>
           </ConvexClientProvider>
         </ClerkProvider>

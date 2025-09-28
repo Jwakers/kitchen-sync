@@ -18,26 +18,21 @@ export const recipeSchema = z.object({
     "dinner",
   ]),
   image: z.instanceof(File).optional(),
-  ingredients: z
-    .array(
-      z.object({
-        id: z.string(),
-        name: z.string().min(1, "Ingredient name is required"),
-        amount: z.string().optional(),
-        unit: z.string().optional(),
-        preparation: z.string().optional(),
-      })
-    )
-    .min(1, "At least one ingredient is required"),
-  method: z
-    .array(
-      z.object({
-        title: z.string().min(1, "Step title is required"),
-        description: z.string().optional(),
-        image: z.instanceof(File).optional(),
-      })
-    )
-    .min(1, "At least one method step is required"),
+  ingredients: z.array(
+    z.object({
+      name: z.string().min(1, "Ingredient name is required"),
+      amount: z.string().optional(),
+      unit: z.string().optional(),
+      preparation: z.string().optional(),
+    })
+  ),
+  method: z.array(
+    z.object({
+      title: z.string().min(1, "Step title is required"),
+      description: z.string().optional(),
+      image: z.instanceof(File).optional(),
+    })
+  ),
 });
 
 export type RecipeFormData = z.infer<typeof recipeSchema>;
