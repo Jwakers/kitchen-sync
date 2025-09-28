@@ -24,34 +24,55 @@ import { UnitSelector } from "@/components/unit-selector";
 import { recipeSchema, type RecipeFormData } from "@/lib/schemas/recipe";
 import { titleCase } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { api } from "convex/_generated/api";
+import { Id } from "convex/_generated/dataModel";
 import { RECIPE_CATEGORIES } from "convex/lib/constants";
+import { useMutation, useQuery } from "convex/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Plus, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 type RecipeFormProps = {
-  onClose: () => void;
+  selectedRecipeId: Id<"recipes"> | null;
+  closeDrawer: () => void;
 };
 
 type FormStep = "basic" | "ingredients" | "method" | "review";
 
-export function RecipeForm({ onClose }: RecipeFormProps) {
+export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
   const [currentStep, setCurrentStep] = useState<FormStep>("basic");
   const [slideDirection, setSlideDirection] = useState<"next" | "prev">("next");
+  const [recipeId, setRecipeId] = useState<Id<"recipes"> | null>(
+    selectedRecipeId
+  );
+  const creatingRecipe = useRef(false);
+
+  const createRecipeMutation = useMutation(api.recipes.createRecipe);
+  const updateRecipeMutation = useMutation(api.recipes.updateRecipe);
+  const publishRecipeMutation = useMutation(api.recipes.publishRecipe);
+  const recipe = useQuery(
+    api.recipes.getRecipe,
+    recipeId
+      ? {
+          recipeId,
+        }
+      : "skip"
+  );
 
   const form = useForm<RecipeFormData>({
     resolver: zodResolver(recipeSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      prepTime: 0,
-      cookTime: 0,
-      serves: 1,
-      category: "main",
-      image: undefined,
-      ingredients: [],
-      method: [],
+      category: recipe?.category || "main",
+      title: recipe?.title || "",
+      description: recipe?.description || "",
+      prepTime: recipe?.prepTime || 0,
+      cookTime: recipe?.cookTime || 0,
+      serves: recipe?.serves || 0,
+      image: undefined, // TODO: Set to recipe image
+      ingredients: [], // TODO: Set to recipe ingredients
+      method: [], // TODO: Set to recipe method
     },
   });
 
@@ -104,7 +125,6 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
 
   const addIngredient = () => {
     appendIngredient({
-      id: Date.now().toString(),
       name: "",
       amount: "",
       unit: "",
@@ -120,11 +140,118 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
     });
   };
 
-  const onSubmit = (data: RecipeFormData) => {
-    console.log("Recipe data:", data);
-    // TODO: Save to database
-    onClose();
+  const onSubmit = async (values: RecipeFormData) => {
+    if (!recipeId) return;
+
+    try {
+      await updateRecipeMutation({
+        recipeId,
+        title: values.title,
+        description: values.description,
+        prepTime: values.prepTime,
+        cookTime: values.cookTime,
+        serves: values.serves,
+        category: values.category,
+      });
+
+      const { errors } = await publishRecipeMutation({ recipeId });
+
+      if (errors?.length) {
+        errors.forEach((error) => {
+          form.setError(error.field, { message: error.message });
+        });
+        toast.info("Unable to save recipe", {
+          description: "Please check the form for errors and try again",
+        });
+        return;
+      }
+
+      closeDrawer();
+      toast.success("Recipe saved successfully");
+    } catch (error) {
+      console.error(error);
+      toast.error("Unexpected error. Unable to save recipe", {
+        description: "Please try again",
+      });
+    }
   };
+
+  useEffect(() => {
+    if (!recipe) return;
+    form.setValue("title", recipe.title);
+    form.setValue("description", recipe.description);
+    form.setValue("prepTime", recipe.prepTime);
+    form.setValue("cookTime", recipe.cookTime);
+    form.setValue("serves", recipe.serves);
+    form.setValue("category", recipe.category);
+
+    // TODO: set from recipe data
+    // form.setValue("image", recipe.image);
+    // form.setValue("ingredients", recipe.ingredients);
+    // form.setValue("method", recipe.method);
+  }, [recipe, form]);
+
+  useEffect(() => {
+    if (recipeId || creatingRecipe.current) return;
+    creatingRecipe.current = true;
+    // Create a draft recipe and then update as we go
+    createRecipeMutation({
+      title: "",
+      category: "main",
+      cookTime: 0,
+      prepTime: 0,
+      serves: 0,
+    })
+      .then(({ recipeId, error }) => {
+        if (error) {
+          toast.error(error);
+          closeDrawer();
+          return;
+        }
+        setRecipeId(recipeId);
+      })
+      .catch((error) => {
+        console.error(error);
+        toast.error("Unexpected error. Unable to create recipe", {
+          description: "Please try again",
+        });
+        closeDrawer();
+      })
+      .finally(() => {
+        creatingRecipe.current = false;
+      });
+  }, [closeDrawer, createRecipeMutation, recipeId]);
+
+  useEffect(() => {
+    // Update the recipe at each step
+    if (!recipeId) return;
+    const formValues = form.getValues();
+    const { ingredients, method, ...valuesToUpdate } = formValues;
+
+    updateRecipeMutation({
+      recipeId,
+      ...valuesToUpdate,
+    }).catch((error) => {
+      console.error(error);
+    });
+  }, [createRecipeMutation, currentStep, form, recipeId, updateRecipeMutation]);
+
+  useEffect(() => {
+    // Update the recipe on unmount
+    return () => {
+      console.log("unmounting", form.formState.isValid, recipeId);
+      if (!recipeId) return;
+      const formValues = form.getValues();
+      const { ingredients, method, ...valuesToUpdate } = formValues;
+
+      updateRecipeMutation({
+        recipeId,
+        ...valuesToUpdate,
+      }).catch((error) => {
+        console.error(error);
+      });
+    };
+  }, [form, recipeId, updateRecipeMutation]);
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -194,7 +321,7 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
                             placeholder="15"
                             {...field}
                             onChange={(e) =>
-                              field.onChange(parseInt(e.target.value) || 0)
+                              field.onChange(Number(e.target.value))
                             }
                           />
                         </FormControl>
@@ -214,7 +341,7 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
                             placeholder="30"
                             {...field}
                             onChange={(e) =>
-                              field.onChange(parseInt(e.target.value) || 0)
+                              field.onChange(Number(e.target.value))
                             }
                           />
                         </FormControl>
@@ -241,7 +368,7 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
                             placeholder="4"
                             {...field}
                             onChange={(e) =>
-                              field.onChange(parseInt(e.target.value) || 0)
+                              field.onChange(Number(e.target.value))
                             }
                           />
                         </FormControl>
@@ -289,7 +416,11 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
                       <FormItem>
                         <FormLabel>Category</FormLabel>
                         <FormControl>
-                          <Select {...field}>
+                          <Select
+                            {...field}
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
                             <SelectTrigger className="w-full">
                               <SelectValue placeholder="Select a category" />
                             </SelectTrigger>
@@ -320,128 +451,126 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
             </div>
 
             <div className="space-y-3">
-              <AnimatePresence>
-                {ingredientFields.map((ingredient, index) => (
-                  <motion.div
-                    key={ingredient.id}
-                    initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -20, scale: 0.9 }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 300,
-                      damping: 25,
-                    }}
-                    layout
-                  >
-                    <Card className="p-4">
-                      <div className="flex items-start gap-2">
-                        <motion.span
-                          className="text-sm text-muted-foreground mt-2"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: 0.1 }}
-                        >
-                          {index + 1}.
-                        </motion.span>
-                        <div className="flex-1 space-y-2">
-                          <motion.div
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.2 }}
-                          >
-                            <FormField
-                              control={form.control}
-                              name={`ingredients.${index}.name`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormControl>
-                                    <Input
-                                      placeholder="Ingredient name"
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </motion.div>
-                          <motion.div
-                            className="grid grid-cols-3 gap-2"
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.3 }}
-                          >
-                            <FormField
-                              control={form.control}
-                              name={`ingredients.${index}.amount`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormControl>
-                                    <Input placeholder="Amount" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name={`ingredients.${index}.unit`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormControl>
-                                    <UnitSelector
-                                      value={field.value || ""}
-                                      onValueChange={field.onChange}
-                                      placeholder="Unit"
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name={`ingredients.${index}.preparation`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormControl>
-                                    <PreparationSelector
-                                      value={field.value}
-                                      onValueChange={field.onChange}
-                                      placeholder="Preparation"
-                                      searchPlaceholder="Search preparation..."
-                                      emptyText="No preparation found."
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </motion.div>
-                        </div>
+              {ingredientFields.map((ingredient, index) => (
+                <motion.div
+                  key={ingredient.id}
+                  initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -20, scale: 0.9 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 25,
+                  }}
+                  layout
+                >
+                  <Card className="p-4">
+                    <div className="flex items-start gap-2">
+                      <motion.span
+                        className="text-sm text-muted-foreground mt-2"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.1 }}
+                      >
+                        {index + 1}.
+                      </motion.span>
+                      <div className="flex-1 space-y-2">
                         <motion.div
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.4 }}
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.2 }}
                         >
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeIngredient(index)}
-                            className="h-8 w-8"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
+                          <FormField
+                            control={form.control}
+                            name={`ingredients.${index}.name`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input
+                                    placeholder="Ingredient name"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </motion.div>
+                        <motion.div
+                          className="grid grid-cols-3 gap-2"
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.3 }}
+                        >
+                          <FormField
+                            control={form.control}
+                            name={`ingredients.${index}.amount`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input placeholder="Amount" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`ingredients.${index}.unit`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <UnitSelector
+                                    value={field.value || ""}
+                                    onValueChange={field.onChange}
+                                    placeholder="Unit"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`ingredients.${index}.preparation`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <PreparationSelector
+                                    value={field.value}
+                                    onValueChange={field.onChange}
+                                    placeholder="Preparation"
+                                    searchPlaceholder="Search preparation..."
+                                    emptyText="No preparation found."
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
                         </motion.div>
                       </div>
-                    </Card>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.4 }}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeIngredient(index)}
+                          className="h-8 w-8"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </motion.div>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
 
               {ingredientFields.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
@@ -478,111 +607,109 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
             </div>
 
             <div className="space-y-3">
-              <AnimatePresence>
-                {methodFields.map((step, index) => (
-                  <motion.div
-                    key={step.id}
-                    initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -20, scale: 0.9 }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 300,
-                      damping: 25,
-                    }}
-                    layout
-                  >
-                    <Card className="p-4">
-                      <div className="flex items-start gap-2">
-                        <motion.span
-                          className="text-sm text-muted-foreground mt-2"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: 0.1 }}
-                        >
-                          {index + 1}.
-                        </motion.span>
+              {methodFields.map((step, index) => (
+                <motion.div
+                  key={step.id}
+                  initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -20, scale: 0.9 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 25,
+                  }}
+                  layout
+                >
+                  <Card className="p-4">
+                    <div className="flex items-start gap-2">
+                      <motion.span
+                        className="text-sm text-muted-foreground mt-2"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.1 }}
+                      >
+                        {index + 1}.
+                      </motion.span>
+                      <motion.div
+                        className="flex-1 space-y-3"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.2 }}
+                      >
+                        <FormField
+                          control={form.control}
+                          name={`method.${index}.title`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input placeholder="Title..." {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`method.${index}.description`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Textarea
+                                  {...field}
+                                  placeholder="Describe this step..."
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                         <motion.div
-                          className="flex-1 space-y-3"
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.2 }}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.3 }}
                         >
                           <FormField
                             control={form.control}
-                            name={`method.${index}.title`}
-                            render={({ field }) => (
+                            name={`method.${index}.image`}
+                            render={({ field: { onChange } }) => (
                               <FormItem>
                                 <FormControl>
-                                  <Input placeholder="Title..." {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name={`method.${index}.description`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormControl>
-                                  <Textarea
-                                    {...field}
-                                    placeholder="Describe this step..."
+                                  <Input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      onChange(file);
+                                    }}
                                   />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
-                          <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 }}
-                          >
-                            <FormField
-                              control={form.control}
-                              name={`method.${index}.image`}
-                              render={({ field: { onChange } }) => (
-                                <FormItem>
-                                  <FormControl>
-                                    <Input
-                                      type="file"
-                                      accept="image/*"
-                                      onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        onChange(file);
-                                      }}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </motion.div>
                         </motion.div>
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.3 }}
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
+                      </motion.div>
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.3 }}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeMethodStep(index)}
+                          className="h-8 w-8"
                         >
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeMethodStep(index)}
-                            className="h-8 w-8"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </motion.div>
-                      </div>
-                    </Card>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </motion.div>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
 
               {methodFields.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
@@ -652,7 +779,7 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
                     </h5>
                     <ul className="space-y-1 text-sm">
                       {formValues.ingredients.map((ing, index) => (
-                        <li key={ing.id}>
+                        <li key={ing.name}>
                           {index + 1}. {ing.name}{" "}
                           {ing.amount &&
                             ing.unit &&
@@ -693,7 +820,7 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="h-full flex flex-col overflow-auto"
+        className="h-full flex flex-col overflow-auto overflow-x-hidden"
       >
         {/* Step content */}
         <div className="flex-1 p-4">
@@ -781,6 +908,7 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
                   whileTap={{ scale: 0.98 }}
                 >
                   <Button
+                    type="button"
                     onClick={prevStep}
                     variant="outline"
                     className="w-full"
@@ -796,11 +924,12 @@ export function RecipeForm({ onClose }: RecipeFormProps) {
                   whileTap={{ scale: 0.98 }}
                 >
                   <Button
-                    onClick={onClose}
+                    type="button"
+                    onClick={closeDrawer}
                     variant="outline"
                     className="w-full"
                   >
-                    Cancel
+                    Close
                   </Button>
                 </motion.div>
               )}

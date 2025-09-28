@@ -23,6 +23,7 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
+import { ROUTES } from "../constants";
 
 export default function Home() {
   return (
@@ -57,7 +58,7 @@ export default function Home() {
                   variant="secondary"
                   className="text-lg px-8"
                 >
-                  <Link href="/dashboard">
+                  <Link href={ROUTES.DASHBOARD}>
                     Go to Dashboard
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
@@ -313,7 +314,7 @@ export default function Home() {
                 <div className="pt-4">
                   <Authenticated>
                     <Button asChild size="lg" className="text-lg px-8">
-                      <Link href="/dashboard">
+                      <Link href={ROUTES.DASHBOARD}>
                         Go to Dashboard
                         <ArrowRight className="ml-2 h-5 w-5" />
                       </Link>
@@ -480,7 +481,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Authenticated>
                 <Button asChild size="lg" className="text-lg px-8">
-                  <Link href="/dashboard">
+                  <Link href={ROUTES.DASHBOARD}>
                     Go to Dashboard
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
