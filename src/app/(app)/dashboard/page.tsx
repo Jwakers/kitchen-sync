@@ -20,9 +20,10 @@ export default function DashboardPage() {
               Start by adding your first recipe using the + button below.
             </p>
           </div>
-          <Link href={ROUTES.MY_RECIPES}>
-            <Button>My Recipes</Button>
-          </Link>
+
+          <Button asChild>
+            <Link href={ROUTES.MY_RECIPES}>My Recipes</Link>
+          </Button>
         </div>
       </div>
     </div>

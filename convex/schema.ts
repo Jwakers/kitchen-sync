@@ -56,8 +56,8 @@ export default defineSchema({
 
   ingredients: defineTable({
     name: v.string(),
-    foodGroup: v.string(),
-    foodSubGroup: v.string(),
+    foodGroup: v.optional(v.string()),
+    foodSubGroup: v.optional(v.string()),
     isCustom: v.boolean(),
   }),
 });

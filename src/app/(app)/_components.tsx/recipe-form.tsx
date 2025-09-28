@@ -140,33 +140,40 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
     });
   };
 
-  const onSubmit = () => {
-    // TODO: Save to database
-    // onClose();
+  const onSubmit = async (values: RecipeFormData) => {
     if (!recipeId) return;
 
-    publishRecipeMutation({
-      recipeId,
-    })
-      .then(({ errors }) => {
-        if (errors?.length) {
-          errors.forEach((error) => {
-            form.setError(error.field, { message: error.message });
-          });
-          toast.info("Unable to save recipe", {
-            description: "Please check the form for errors and try again",
-          });
-          return;
-        }
-        closeDrawer();
-        toast.success("Recipe saved successfully");
-      })
-      .catch((error) => {
-        console.error(error);
-        toast.error("Unexpected error. Unable to save recipe", {
-          description: "Please try again",
-        });
+    try {
+      await updateRecipeMutation({
+        recipeId,
+        title: values.title,
+        description: values.description,
+        prepTime: values.prepTime,
+        cookTime: values.cookTime,
+        serves: values.serves,
+        category: values.category,
       });
+
+      const { errors } = await publishRecipeMutation({ recipeId });
+
+      if (errors?.length) {
+        errors.forEach((error) => {
+          form.setError(error.field, { message: error.message });
+        });
+        toast.info("Unable to save recipe", {
+          description: "Please check the form for errors and try again",
+        });
+        return;
+      }
+
+      closeDrawer();
+      toast.success("Recipe saved successfully");
+    } catch (error) {
+      console.error(error);
+      toast.error("Unexpected error. Unable to save recipe", {
+        description: "Please try again",
+      });
+    }
   };
 
   useEffect(() => {
@@ -217,7 +224,7 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
 
   useEffect(() => {
     // Update the recipe at each step
-    if (!form.formState.isValid || !recipeId) return;
+    if (!recipeId) return;
     const formValues = form.getValues();
     const { ingredients, method, ...valuesToUpdate } = formValues;
 
@@ -233,7 +240,7 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
     // Update the recipe on unmount
     return () => {
       console.log("unmounting", form.formState.isValid, recipeId);
-      if (!form.formState.isValid || !recipeId) return;
+      if (!recipeId) return;
       const formValues = form.getValues();
       const { ingredients, method, ...valuesToUpdate } = formValues;
 

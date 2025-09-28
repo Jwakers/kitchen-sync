@@ -219,14 +219,14 @@ export const publishRecipe = mutation({
       });
     }
 
-    if (recipe.ingredients && recipe.ingredients.length === 0) {
+    if (!recipe.ingredients || recipe.ingredients.length === 0) {
       errors.push({
         field: "ingredients",
         message: "Must have at least 1 ingredient",
       });
     }
 
-    if (recipe.method && recipe.method.length === 0) {
+    if (!recipe.method || recipe.method.length === 0) {
       errors.push({
         field: "method",
         message: "Must have at least 1 method step",

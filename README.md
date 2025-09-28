@@ -2,8 +2,8 @@
 
 ### Next Immediate Steps
 
-- [ ] **Connect Recipe Form**: Submit recipe data to Convex
-- [ ] **Build Recipe List**: Display user recipes in dashboard
+- [x] **Connect Recipe Form**: Submit recipe data to Convex
+- [ ] **Build Recipe List**: Display user recipes in dashboard (with CRUD features)
 - [ ] **Ingredient Categories**: Add categorization to ingredients (meat, poultry, vegetable, spice etc) (or extract from an existing external ingredient DB while still allowing custom ingredients)
 - [ ] **Recipe Tags**: Auto-detect dietary tags like plant-based, coeliac friendly, gluten free from ingredients
 
