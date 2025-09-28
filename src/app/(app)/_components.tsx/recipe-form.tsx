@@ -189,7 +189,7 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
     // form.setValue("image", recipe.image);
     // form.setValue("ingredients", recipe.ingredients);
     // form.setValue("method", recipe.method);
-  }, [recipe]);
+  }, [recipe, form]);
 
   useEffect(() => {
     if (recipeId || creatingRecipe.current) return;
@@ -220,7 +220,7 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
       .finally(() => {
         creatingRecipe.current = false;
       });
-  }, [createRecipeMutation, recipeId]);
+  }, [closeDrawer, createRecipeMutation, recipeId]);
 
   useEffect(() => {
     // Update the recipe at each step
