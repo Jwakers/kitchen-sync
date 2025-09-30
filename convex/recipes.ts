@@ -1,18 +1,19 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { categoriesUnion, preparationUnion, unitsUnion } from "./schema";
-import { getCurrentUserOrThrow } from "./users";
+import { getCurrentUser, getCurrentUserOrThrow } from "./users";
 
 export const getRecipe = query({
   args: {
     recipeId: v.id("recipes"),
   },
   handler: async (ctx, args) => {
-    const user = await getCurrentUserOrThrow(ctx);
+    const user = await getCurrentUser(ctx);
+    if (!user) throw new ConvexError("User not found");
     const recipe = await ctx.db.get(args.recipeId);
 
-    if (!recipe) throw new Error("Recipe not found");
-    if (recipe.userId !== user._id) throw new Error("Unauthorized");
+    if (!recipe) return null;
+    if (recipe.userId !== user._id) throw new ConvexError("Unauthorized");
 
     return recipe;
   },
@@ -27,6 +28,32 @@ export const getDraftRecipes = query({
       .withIndex("by_user_and_status", (q) =>
         q.eq("userId", user._id).eq("status", "draft")
       )
+      .collect();
+  },
+});
+
+export const getPublishedRecipes = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUserOrThrow(ctx);
+    return await ctx.db
+      .query("recipes")
+      .withIndex("by_user_and_status", (q) =>
+        q.eq("userId", user._id).eq("status", "published")
+      )
+      .order("desc")
+      .collect();
+  },
+});
+
+export const getAllUserRecipes = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUserOrThrow(ctx);
+    return await ctx.db
+      .query("recipes")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .order("desc")
       .collect();
   },
 });
@@ -240,5 +267,24 @@ export const publishRecipe = mutation({
     });
 
     return { errors: null, success: true };
+  },
+});
+
+export const deleteRecipe = mutation({
+  args: {
+    recipeId: v.id("recipes"),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+
+    const recipe = await ctx.db.get(args.recipeId);
+    if (!recipe) {
+      throw new ConvexError("Recipe not found");
+    }
+    if (recipe.userId !== user._id) {
+      throw new ConvexError("Unauthorized");
+    }
+
+    await ctx.db.delete(args.recipeId);
   },
 });
