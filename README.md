@@ -4,24 +4,20 @@
 
 - [x] **Connect Recipe Form**: Submit recipe data to Convex
 - [ ] **Build Recipe List**: Display user recipes in dashboard (with CRUD features)
+  - [x] View recipe page
+  - [x] Action dropdown, edit, delete etc
+  - [ ] Image upload, storage and edit
 - [ ] **Ingredient Categories**: Add categorization to ingredients (meat, poultry, vegetable, spice etc) (or extract from an existing external ingredient DB while still allowing custom ingredients)
 - [ ] **Recipe Tags**: Auto-detect dietary tags like plant-based, coeliac friendly, gluten free from ingredients
-
-### FORM ISSUES
-
-- Change how the form works, use three independent forms. Each updating the recipe in the DB (in a draft state) then, confirm sets it to active.
-- Before starting a new recipe, warn of any draft ones and offer to continue with those instead
-- ALL form data is lost when the drawer closes
 
 ## 🐛 Bug Tracking
 
 <!-- Add bugs here as you encounter them -->
 
-- [ ] **Bug**: [Description] - [Date found]
-
 ## Minor updates
 
 - [ ] When a recipe is saved from the create recipe form, give the users a link in the toast to the new recipe page
+- [ ] Handle my-recipe pagination (limit to 20 per page)
 
 ---
 
@@ -29,7 +25,7 @@
 
 ### ✅ COMPLETED (Foundation)
 
-- [x] **Project Setup**: Next.js 14 with App Router, Tailwind CSS, shadcn/ui
+- [x] **Project Setup**: Next.js 15 with App Router, Tailwind CSS, shadcn/ui
 - [x] **Authentication**: Clerk integration with Google + Email login
 - [x] **Database Schema**: Convex setup with users, recipes, and ingredients tables
 - [x] **UI Components**: Complete component library with forms, buttons, cards, etc.

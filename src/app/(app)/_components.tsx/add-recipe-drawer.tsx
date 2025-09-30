@@ -28,7 +28,9 @@ export function AddRecipeDrawer({ open, onOpenChange }: AddRecipeDrawerProps) {
   const [selectedRecipeId, setSelectedRecipeId] =
     useState<Id<"recipes"> | null>(null);
 
-  const draftRecipes = useQuery(api.recipes.getDraftRecipes);
+  const draftRecipes = useQuery(api.recipes.getDraftRecipes, {
+    cursor: undefined,
+  });
 
   const handleCreateOwn = () => {
     setSelectedRecipeId(null);
