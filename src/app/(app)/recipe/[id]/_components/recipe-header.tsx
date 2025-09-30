@@ -1,6 +1,6 @@
 "use client";
 
-import { CATEGORY_COLORS } from "@/app/constants";
+import { CATEGORY_COLORS, ROUTES } from "@/app/constants";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -55,13 +55,12 @@ export function RecipeHeader({
   return (
     <div className="mb-8">
       {/* Back Button */}
-      <Link href="/dashboard/my-recipes">
-        <Button variant="ghost" className="mb-6 gap-2">
-          <ArrowLeft className="h-4 w-4" />
+      <Button asChild variant="ghost" className="mb-6 gap-2">
+        <Link href={ROUTES.MY_RECIPES}>
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           Back to My Recipes
-        </Button>
-      </Link>
-
+        </Link>
+      </Button>
       {/* Recipe Image Placeholder */}
       <div className="aspect-[16/9] bg-gradient-to-br from-primary/20 to-primary/5 relative overflow-hidden rounded-lg mb-6">
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
@@ -124,12 +123,14 @@ export function RecipeHeader({
           )}
         </div>
       </div>
-
       {/* Recipe Meta */}
       <div className="flex flex-wrap items-center gap-6 mb-6">
         <div className="flex items-center gap-2 text-muted-foreground">
           <Clock className="h-5 w-5" />
-          <span className="font-medium">{totalTime} minutes total</span>
+          <span className="font-medium">
+            {Math.max(0, totalTime)}{" "}
+            {Math.max(0, totalTime) === 1 ? "minute" : "minutes"} total
+          </span>
           <span className="text-sm">
             ({recipe.prepTime} prep + {recipe.cookTime} cook)
           </span>
@@ -141,7 +142,9 @@ export function RecipeHeader({
         <div className="flex items-center gap-2 text-muted-foreground">
           <Calendar className="h-5 w-5" />
           <span className="font-medium">
-            {new Date(recipe.updatedAt).toLocaleDateString()}
+            {new Date(
+              recipe.updatedAt ?? recipe._creationTime
+            ).toLocaleDateString()}
           </span>
         </div>
         <Badge
@@ -151,7 +154,6 @@ export function RecipeHeader({
           {recipe.status === "published" ? "Published" : "Draft"}
         </Badge>
       </div>
-
       {/* Action Buttons */}
       <div className="flex items-center gap-3">
         {isEditMode ? (

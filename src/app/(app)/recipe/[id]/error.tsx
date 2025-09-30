@@ -32,8 +32,12 @@ export default function RecipeError({ error, reset }: ErrorProps) {
           We encountered an error while loading this recipe.
         </p>
 
-        {error.message && (
-          <p className="text-sm text-muted-foreground/80 mb-6 font-mono bg-muted/50 p-3 rounded-md">
+        {process.env.NODE_ENV !== "production" && error.message && (
+          <p
+            role="alert"
+            aria-live="polite"
+            className="text-sm text-muted-foreground/80 mb-6 font-mono bg-muted/50 p-3 rounded-md"
+          >
             {error.message}
           </p>
         )}

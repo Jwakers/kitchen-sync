@@ -3,8 +3,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function RecipeLoading() {
   return (
-    <div className="min-h-screen bg-background">
+    <div
+      className="min-h-screen bg-background"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
       <div className="container mx-auto px-4 py-8">
+        <span className="sr-only">Loading recipe…</span>
         {/* Back Button Skeleton */}
         <Skeleton className="h-10 w-48 mb-6" />
 

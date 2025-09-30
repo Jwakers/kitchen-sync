@@ -12,7 +12,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
   const recipeId = (await params).id as Id<"recipes"> | undefined;
 
   if (!recipeId) {
-    return notFound();
+    notFound();
   }
 
   return <RecipeClient recipeId={recipeId} />;

@@ -13,22 +13,27 @@ export const getRecipe = query({
     const recipe = await ctx.db.get(args.recipeId);
 
     if (!recipe) return null;
-    if (recipe.userId !== user._id) throw new ConvexError("Unauthorized");
+    if (recipe.userId !== user._id) return null;
 
     return recipe;
   },
 });
 
 export const getDraftRecipes = query({
-  args: {},
-  handler: async (ctx) => {
+  args: {
+    cursor: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
     return await ctx.db
       .query("recipes")
       .withIndex("by_user_and_status", (q) =>
         q.eq("userId", user._id).eq("status", "draft")
       )
-      .collect();
+      .paginate({
+        numItems: 20,
+        cursor: args.cursor ?? null,
+      });
   },
 });
 
@@ -165,10 +170,10 @@ export const updateRecipe = mutation({
 
     const recipe = await ctx.db.get(args.recipeId);
     if (!recipe) {
-      throw new Error("Recipe not found");
+      throw new ConvexError("Recipe not found");
     }
     if (recipe.userId !== user._id) {
-      throw new Error("Unauthorized");
+      throw new ConvexError("Unauthorized");
     }
 
     await ctx.db.patch(args.recipeId, {
@@ -193,10 +198,10 @@ export const publishRecipe = mutation({
 
     const recipe = await ctx.db.get(args.recipeId);
     if (!recipe) {
-      throw new Error("Recipe not found");
+      throw new ConvexError("Recipe not found");
     }
     if (recipe.userId !== user._id) {
-      throw new Error("Unauthorized");
+      throw new ConvexError("Unauthorized");
     }
 
     const errors: {

@@ -143,10 +143,8 @@ function LoadingState() {
 }
 
 function EmptyState({
-  addRecipeDrawerOpen,
   setAddRecipeDrawerOpen,
 }: {
-  addRecipeDrawerOpen: boolean;
   setAddRecipeDrawerOpen: Dispatch<SetStateAction<boolean>>;
 }) {
   return (
@@ -169,10 +167,6 @@ function EmptyState({
         <Plus className="h-5 w-5" />
         Create Your First Recipe
       </Button>
-      <AddRecipeDrawer
-        open={addRecipeDrawerOpen}
-        onOpenChange={setAddRecipeDrawerOpen}
-      />
     </div>
   );
 }
@@ -284,10 +278,25 @@ export default function RecipeListing() {
         {recipes === undefined ? (
           <LoadingState />
         ) : filteredRecipes.length === 0 ? (
-          <EmptyState
-            addRecipeDrawerOpen={showAddRecipeDrawer}
-            setAddRecipeDrawerOpen={setShowAddRecipeDrawer}
-          />
+          recipes && recipes.length > 0 ? (
+            <div className="text-center py-16">
+              <p className="text-muted-foreground">
+                No recipes match your search or selected category.
+              </p>
+              <Button
+                className="mt-4"
+                variant="outline"
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedCategory("all");
+                }}
+              >
+                Clear filters
+              </Button>
+            </div>
+          ) : (
+            <EmptyState setAddRecipeDrawerOpen={setShowAddRecipeDrawer} />
+          )
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredRecipes.map((recipe) => (

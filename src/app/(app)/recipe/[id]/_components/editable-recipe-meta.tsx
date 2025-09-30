@@ -22,7 +22,7 @@ import { Doc } from "convex/_generated/dataModel";
 import { RECIPE_CATEGORIES } from "convex/lib/constants";
 import { Calendar, Clock, Save, X } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
-import z from "zod";
+import { RecipeEditFormData } from "./schema";
 
 interface EditableRecipeMetaProps {
   recipe: Doc<"recipes">;
@@ -30,27 +30,6 @@ interface EditableRecipeMetaProps {
   onSave: (data: RecipeEditFormData) => void;
   onCancel: () => void;
 }
-
-const recipeEditSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().optional(),
-  prepTime: z.number().min(0, "Prep time must be 0 or greater"),
-  cookTime: z.number().min(0, "Cook time must be 0 or greater"),
-  serves: z.number().min(1, "Must serve at least 1 person"),
-  category: z.enum([
-    "main",
-    "dessert",
-    "snack",
-    "appetizer",
-    "side",
-    "beverage",
-    "breakfast",
-    "lunch",
-    "dinner",
-  ]),
-});
-
-type RecipeEditFormData = z.infer<typeof recipeEditSchema>;
 
 export function EditableRecipeMeta({
   recipe,
@@ -61,7 +40,7 @@ export function EditableRecipeMeta({
   const prepTime = form.watch("prepTime");
   const cookTime = form.watch("cookTime");
   const totalTime =
-    (prepTime || recipe.prepTime) + (cookTime || recipe.cookTime);
+    (prepTime ?? recipe.prepTime) + (cookTime ?? recipe.cookTime);
 
   return (
     <Card className="mb-6">
@@ -181,11 +160,7 @@ export function EditableRecipeMeta({
             <X className="h-4 w-4" />
             Cancel
           </Button>
-          <Button
-            type="submit"
-            className="gap-2"
-            onClick={form.handleSubmit(onSave)}
-          >
+          <Button type="submit" className="gap-2">
             <Save className="h-4 w-4" />
             Save Changes
           </Button>

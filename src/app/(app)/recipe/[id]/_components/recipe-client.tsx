@@ -7,7 +7,7 @@ import { api } from "convex/_generated/api";
 import { Doc, Id } from "convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { DeleteRecipeDialog } from "./delete-recipe-dialog";
@@ -47,9 +47,14 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
     },
   });
 
-  // Reset form when recipe loads or edit mode changes
-  useEffect(() => {
-    if (recipe && isEditMode) {
+  const handleToggleEditMode = () => {
+    if (isEditMode) {
+      form.reset();
+      setIsEditMode(false);
+      return;
+    }
+
+    if (recipe) {
       form.reset({
         title: recipe.title,
         description: recipe.description || "",
@@ -59,14 +64,7 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
         category: recipe.category,
       });
     }
-  }, [recipe, isEditMode, form]);
-
-  const handleToggleEditMode = () => {
-    if (isEditMode) {
-      // Cancel edit mode - reset form
-      form.reset();
-    }
-    setIsEditMode(!isEditMode);
+    setIsEditMode(true);
   };
 
   const handleCancelEdit = () => {
@@ -105,7 +103,7 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
 
     try {
       await deleteRecipeMutation({ recipeId: recipeToDelete._id });
-      router.push(ROUTES.MY_RECIPES);
+      router.replace(ROUTES.MY_RECIPES);
       toast.success("Recipe deleted successfully");
     } catch (error) {
       console.error(error);
@@ -125,27 +123,29 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <Form {...form}>
-          <RecipeHeader
-            recipe={recipe}
-            isEditMode={isEditMode}
-            onToggleEditMode={handleToggleEditMode}
-            onDelete={handleDelete}
-            form={form}
-          />
-
-          {isEditMode && (
-            <EditableRecipeMeta
+          <form onSubmit={form.handleSubmit(handleSave)}>
+            <RecipeHeader
               recipe={recipe}
+              isEditMode={isEditMode}
+              onToggleEditMode={handleToggleEditMode}
+              onDelete={handleDelete}
               form={form}
-              onSave={handleSave}
-              onCancel={handleCancelEdit}
             />
-          )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <IngredientsSection recipe={recipe} isEditMode={isEditMode} />
-            <MethodSection recipe={recipe} isEditMode={isEditMode} />
-          </div>
+            {isEditMode && (
+              <EditableRecipeMeta
+                recipe={recipe}
+                form={form}
+                onSave={handleSave}
+                onCancel={handleCancelEdit}
+              />
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <IngredientsSection recipe={recipe} isEditMode={isEditMode} />
+              <MethodSection recipe={recipe} isEditMode={isEditMode} />
+            </div>
+          </form>
         </Form>
 
         {/* Delete Confirmation Dialog */}

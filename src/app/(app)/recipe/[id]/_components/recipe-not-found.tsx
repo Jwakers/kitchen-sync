@@ -1,3 +1,4 @@
+import { ROUTES } from "@/app/constants";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -13,12 +14,12 @@ export function RecipeNotFound() {
           The recipe you&apos;re looking for doesn&apos;t exist or you
           don&apos;t have permission to view it.
         </p>
-        <Link href="/dashboard/my-recipes">
-          <Button size="lg" className="gap-2">
+        <Button size="lg" className="gap-2" asChild>
+          <Link href={ROUTES.MY_RECIPES}>
             <ArrowLeft className="h-4 w-4" />
             Back to My Recipes
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </div>
     </div>
   );
