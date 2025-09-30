@@ -79,7 +79,9 @@ function RecipeCard({ recipe }: { recipe: Doc<"recipes"> }) {
                 {recipe.status === "published" ? "Published" : "Draft"}
               </Badge>
               <span className="text-xs text-muted-foreground">
-                {new Date(recipe.updatedAt).toLocaleDateString()}
+                {new Date(
+                  recipe.updatedAt ?? recipe._creationTime
+                ).toLocaleDateString()}
               </span>
             </div>
           </div>

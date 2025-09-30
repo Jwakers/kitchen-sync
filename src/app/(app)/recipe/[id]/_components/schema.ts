@@ -2,7 +2,7 @@ import { RECIPE_CATEGORIES } from "convex/lib/constants";
 import { z } from "zod";
 
 export const recipeEditSchema = z.object({
-  title: z.string().min(1, "Title is required"),
+  title: z.string().trim().min(1, "Title is required"),
   description: z.string().optional(),
   prepTime: z.number().int().min(0, "Prep time must be 0 or greater"),
   cookTime: z.number().int().min(0, "Cook time must be 0 or greater"),

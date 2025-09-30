@@ -17,7 +17,7 @@
 ## Minor updates
 
 - [ ] When a recipe is saved from the create recipe form, give the users a link in the toast to the new recipe page
-- [ ] Handle my-recipe pagination client side (server is already equip for pagination)
+- [ ] Handle my-recipe pagination (limit to 20 per page)
 
 ---
 
@@ -25,7 +25,7 @@
 
 ### ✅ COMPLETED (Foundation)
 
-- [x] **Project Setup**: Next.js 14 with App Router, Tailwind CSS, shadcn/ui
+- [x] **Project Setup**: Next.js 15 with App Router, Tailwind CSS, shadcn/ui
 - [x] **Authentication**: Clerk integration with Google + Email login
 - [x] **Database Schema**: Convex setup with users, recipes, and ingredients tables
 - [x] **UI Components**: Complete component library with forms, buttons, cards, etc.

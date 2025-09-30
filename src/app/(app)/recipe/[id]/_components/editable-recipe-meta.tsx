@@ -58,10 +58,14 @@ export function EditableRecipeMeta({
                 <FormControl>
                   <Input
                     type="number"
+                    inputMode="numeric"
+                    min={0}
+                    step={1}
                     {...field}
-                    onChange={(e) =>
-                      field.onChange(parseInt(e.target.value) || 0)
-                    }
+                    onChange={(e) => {
+                      const v = e.currentTarget.value;
+                      field.onChange(v === "" ? undefined : parseInt(v, 10));
+                    }}
                     placeholder="15"
                   />
                 </FormControl>
@@ -78,10 +82,14 @@ export function EditableRecipeMeta({
                 <FormControl>
                   <Input
                     type="number"
+                    inputMode="numeric"
+                    min={0}
+                    step={1}
                     {...field}
-                    onChange={(e) =>
-                      field.onChange(parseInt(e.target.value) || 0)
-                    }
+                    onChange={(e) => {
+                      const v = e.currentTarget.value;
+                      field.onChange(v === "" ? undefined : parseInt(v, 10));
+                    }}
                     placeholder="30"
                   />
                 </FormControl>
@@ -98,10 +106,14 @@ export function EditableRecipeMeta({
                 <FormControl>
                   <Input
                     type="number"
+                    inputMode="numeric"
+                    min={1}
+                    step={1}
                     {...field}
-                    onChange={(e) =>
-                      field.onChange(parseInt(e.target.value) || 0)
-                    }
+                    onChange={(e) => {
+                      const v = e.currentTarget.value;
+                      field.onChange(v === "" ? undefined : parseInt(v, 10));
+                    }}
                     placeholder="4"
                   />
                 </FormControl>
@@ -144,7 +156,9 @@ export function EditableRecipeMeta({
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             <span className="font-medium">
-              {new Date(recipe.updatedAt).toLocaleDateString()}
+              {new Date(
+                recipe.updatedAt ?? recipe._creationTime
+              ).toLocaleDateString()}
             </span>
           </div>
         </div>

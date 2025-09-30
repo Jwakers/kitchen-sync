@@ -48,7 +48,9 @@ export function RecipeHeader({
   onDelete,
   form,
 }: RecipeHeaderProps) {
-  const totalTime = recipe.prepTime + recipe.cookTime;
+  const prepMinutes = recipe.prepTime ?? 0;
+  const cookMinutes = recipe.cookTime ?? 0;
+  const totalTime = prepMinutes + cookMinutes;
   const categoryLabel = titleCase(recipe.category);
   const categoryColor = CATEGORY_COLORS[recipe.category];
 
@@ -132,7 +134,7 @@ export function RecipeHeader({
             {Math.max(0, totalTime) === 1 ? "minute" : "minutes"} total
           </span>
           <span className="text-sm">
-            ({recipe.prepTime} prep + {recipe.cookTime} cook)
+            ({prepMinutes} prep + {cookMinutes} cook)
           </span>
         </div>
         <div className="flex items-center gap-2 text-muted-foreground">

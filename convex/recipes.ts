@@ -30,10 +30,7 @@ export const getDraftRecipes = query({
       .withIndex("by_user_and_status", (q) =>
         q.eq("userId", user._id).eq("status", "draft")
       )
-      .paginate({
-        numItems: 20,
-        cursor: args.cursor ?? null,
-      });
+      .take(20);
   },
 });
 
