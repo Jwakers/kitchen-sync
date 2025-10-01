@@ -147,7 +147,6 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
   };
 
   const onSubmit = async (values: RecipeFormData) => {
-    console.log("onSubmit", { values, recipeId });
     if (!recipeId) return;
 
     try {

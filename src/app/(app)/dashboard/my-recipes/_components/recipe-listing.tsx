@@ -17,7 +17,7 @@ import { titleCase } from "@/lib/utils";
 import { api } from "convex/_generated/api";
 import { RECIPE_CATEGORIES } from "convex/lib/constants";
 import { useQuery } from "convex/react";
-import { FunctionReturnType } from "convex/server";
+import type { FunctionReturnType } from "convex/server";
 import { Clock, Filter, Plus, Search, Users } from "lucide-react";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";

@@ -14,7 +14,7 @@ import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
 import { useMutation } from "convex/react";
 import { Loader2, Upload } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 interface ChangeImageModalProps {
@@ -54,6 +54,10 @@ export function ChangeImageModal({
       return;
     }
 
+    // Revoke any existing preview URL
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
     setSelectedFile(file);
     // Create preview URL
     const url = URL.createObjectURL(file);
@@ -140,6 +144,13 @@ export function ChangeImageModal({
     setIsUploading(false);
     onClose();
   };
+
+  // Revoke preview URL on unmount
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>

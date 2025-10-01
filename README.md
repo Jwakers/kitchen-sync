@@ -6,7 +6,11 @@
 - [ ] **Build Recipe List**: Display user recipes in dashboard (with CRUD features)
   - [x] View recipe page
   - [x] Action dropdown, edit, delete etc
-  - [ ] Image upload, storage and edit (from form and page)
+  - [x] Image upload, storage and edit (from form and page)
+  - [ ] Method image upload and edit
+- [ ] Recipe main page
+  - [ ] Display ingredients and methods
+  - [ ] Edit ingredients and methods
 - [ ] **Ingredient Categories**: Add categorization to ingredients (meat, poultry, vegetable, spice etc) (or extract from an existing external ingredient DB while still allowing custom ingredients)
 - [ ] **Recipe Tags**: Auto-detect dietary tags like plant-based, coeliac friendly, gluten free from ingredients
 

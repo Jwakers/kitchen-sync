@@ -18,8 +18,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { titleCase } from "@/lib/utils";
-import { api } from "convex/_generated/api";
-import { FunctionReturnType } from "convex/server";
+import type { api } from "convex/_generated/api";
+import type { FunctionReturnType } from "convex/server";
 import {
   ArrowLeft,
   Calendar,

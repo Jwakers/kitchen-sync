@@ -323,6 +323,13 @@ export const deleteRecipe = mutation({
     }
 
     await ctx.db.delete(args.recipeId);
+    if (recipe.image) {
+      try {
+        await ctx.storage.delete(recipe.image);
+      } catch (e) {
+        console.warn("Failed to delete image for recipe", args.recipeId, e);
+      }
+    }
   },
 });
 
@@ -357,9 +364,17 @@ export const updateRecipeImageAndDeleteOld = mutation({
       image: args.newStorageId,
     });
 
-    // Delete the old image from storage if it exists
+    // Best-effort delete of the old image
     if (oldImageId) {
-      await ctx.storage.delete(oldImageId);
+      try {
+        await ctx.storage.delete(oldImageId);
+      } catch (e) {
+        console.warn("Old image delete failed", {
+          recipeId: args.recipeId,
+          oldImageId,
+          e,
+        });
+      }
     }
   },
 });
