@@ -100,15 +100,16 @@ export function ChangeImageModal({
     setIsUploading(true);
 
     try {
-      // Step 1: Get upload URL
       const postUrl = await generateUploadUrl();
 
-      // Step 2: Upload the file
+      const ac = new AbortController();
+      const t = setTimeout(() => ac.abort(), 30_000);
       const result = await fetch(postUrl, {
         method: "POST",
         headers: { "Content-Type": selectedFile.type },
         body: selectedFile,
-      });
+        signal: ac.signal,
+      }).finally(() => clearTimeout(t));
 
       if (!result.ok) {
         throw new Error("Failed to upload image");
@@ -116,7 +117,6 @@ export function ChangeImageModal({
 
       const { storageId } = await result.json();
 
-      // Step 3: Update recipe and delete old image
       await updateRecipeImage({
         recipeId,
         newStorageId: storageId,

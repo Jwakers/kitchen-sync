@@ -166,11 +166,15 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
 
       if (image) {
         try {
+          const ac = new AbortController();
+          const t = setTimeout(() => ac.abort(), 30_000);
           const result = await fetch(postUrl, {
             method: "POST",
             headers: { "Content-Type": image.type },
             body: image,
-          });
+            signal: ac.signal,
+          }).finally(() => clearTimeout(t));
+
           const { storageId } = await result.json();
           // Step 3: Save the newly allocated storage id to the database
           await updateRecipeImageMutation({ recipeId, storageId });
@@ -435,12 +439,25 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
                                 if (file) {
                                   // Check file size (5MB limit)
                                   const maxSizeInBytes = 5 * 1024 * 1024; // 5MB
+                                  if (!file.type?.startsWith("image/")) {
+                                    toast.error("Invalid file type", {
+                                      description:
+                                        "Please select an image file",
+                                    });
+                                    e.target.value = "";
+                                    onChange(undefined);
+                                    setSelectedImageName(null);
+                                    return;
+                                  }
+
                                   if (file.size > maxSizeInBytes) {
                                     toast.error("Image too large", {
                                       description:
                                         "Please select an image smaller than 5MB",
                                     });
                                     e.target.value = ""; // Reset the input
+                                    onChange(undefined);
+                                    setSelectedImageName(null);
                                     return;
                                   }
                                   onChange(file);
@@ -460,6 +477,7 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
                                     setSelectedImageName(null);
                                   }}
                                   className="h-6 px-2"
+                                  aria-label="Remove selected image"
                                 >
                                   <X className="h-3 w-3" />
                                 </Button>
@@ -749,12 +767,24 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
                                       if (file) {
                                         // Check file size (5MB limit)
                                         const maxSizeInBytes = 5 * 1024 * 1024; // 5MB
+                                        if (!file.type?.startsWith("image/")) {
+                                          toast.error("Invalid file type", {
+                                            description:
+                                              "Please select an image file",
+                                          });
+                                          e.target.value = "";
+                                          onChange(undefined);
+                                          setSelectedImageName(null);
+                                          return;
+                                        }
                                         if (file.size > maxSizeInBytes) {
                                           toast.error("Image too large", {
                                             description:
                                               "Please select an image smaller than 5MB",
                                           });
                                           e.target.value = ""; // Reset the input
+                                          onChange(undefined);
+                                          setSelectedImageName(null);
                                           return;
                                         }
                                         onChange(file);
@@ -1013,7 +1043,11 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
                 </motion.div>
               ) : (
                 <motion.div className="flex-1" whileTap={{ scale: 0.98 }}>
-                  <Button type="submit" className="w-full">
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={form.formState.isSubmitting}
+                  >
                     Save Recipe
                   </Button>
                 </motion.div>

@@ -19,6 +19,7 @@ import { RECIPE_CATEGORIES } from "convex/lib/constants";
 import { useQuery } from "convex/react";
 import type { FunctionReturnType } from "convex/server";
 import { Clock, Filter, Plus, Search, Users } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
 import { AddRecipeDrawer } from "../../../_components.tsx/add-recipe-drawer";
@@ -39,7 +40,14 @@ function RecipeCard({
         <div className="aspect-[4/3] bg-gradient-to-br from-primary/20 to-primary/5 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
           {recipe.image && (
-            <img src={recipe.image} alt="" className="object-cover size-full" />
+            <Image
+              src={recipe.image}
+              alt={recipe.title}
+              width={100}
+              height={100}
+              className="object-cover size-full"
+              unoptimized
+            />
           )}
           <div className="absolute top-4 right-4">
             <Badge

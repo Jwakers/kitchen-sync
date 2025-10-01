@@ -78,7 +78,7 @@ export function RecipeHeader({
         {recipe.image && (
           <Image
             src={recipe.image}
-            alt=""
+            alt={recipe.title}
             width={100}
             height={100}
             className="object-cover size-full"
