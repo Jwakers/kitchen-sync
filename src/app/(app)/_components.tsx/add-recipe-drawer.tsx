@@ -45,6 +45,7 @@ export function AddRecipeDrawer({ open, onOpenChange }: AddRecipeDrawerProps) {
     if (open) return;
 
     setShowForm(false);
+    setSelectedRecipeId(null);
   }, [open]);
 
   useEffect(() => {

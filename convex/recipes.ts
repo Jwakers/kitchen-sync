@@ -15,7 +15,12 @@ export const getRecipe = query({
     if (!recipe) return null;
     if (recipe.userId !== user._id) return null;
 
-    return recipe;
+    let image = null;
+    if (recipe.image) {
+      image = await ctx.storage.getUrl(recipe.image);
+    }
+
+    return { ...recipe, image };
   },
 });
 
@@ -23,7 +28,7 @@ export const getDraftRecipes = query({
   args: {
     cursor: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx) => {
     const user = await getCurrentUserOrThrow(ctx);
     return await ctx.db
       .query("recipes")
@@ -52,11 +57,18 @@ export const getAllUserRecipes = query({
   args: {},
   handler: async (ctx) => {
     const user = await getCurrentUserOrThrow(ctx);
-    return await ctx.db
+    const recipes = await ctx.db
       .query("recipes")
       .withIndex("by_user", (q) => q.eq("userId", user._id))
       .order("desc")
       .collect();
+
+    return await Promise.all(
+      recipes.map(async (recipe) => ({
+        ...recipe,
+        image: recipe.image ? await ctx.storage.getUrl(recipe.image) : null,
+      }))
+    );
   },
 });
 
@@ -277,6 +289,7 @@ export const deleteRecipe = mutation({
     recipeId: v.id("recipes"),
   },
   handler: async (ctx, args) => {
+    // TODO: delete recipe image from storage
     const user = await getCurrentUserOrThrow(ctx);
 
     const recipe = await ctx.db.get(args.recipeId);
@@ -288,5 +301,59 @@ export const deleteRecipe = mutation({
     }
 
     await ctx.db.delete(args.recipeId);
+    if (recipe.image) {
+      try {
+        await ctx.storage.delete(recipe.image);
+      } catch (e) {
+        console.warn("Failed to delete image for recipe", args.recipeId, e);
+      }
+    }
+  },
+});
+
+export const generateUploadUrl = mutation({
+  handler: async (ctx) => {
+    await getCurrentUserOrThrow(ctx);
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+export const updateRecipeImageAndDeleteOld = mutation({
+  args: {
+    recipeId: v.id("recipes"),
+    storageId: v.id("_storage"),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+
+    const recipe = await ctx.db.get(args.recipeId);
+    if (!recipe) {
+      throw new ConvexError("Recipe not found");
+    }
+    if (recipe.userId !== user._id) {
+      throw new ConvexError("Unauthorized");
+    }
+
+    // Store the old image ID before updating
+    const oldImageId = recipe.image;
+
+    // Update recipe with new image
+    await ctx.db.patch(args.recipeId, {
+      image: args.storageId,
+      updatedAt: Date.now(),
+    });
+
+    // Best-effort delete of the old image
+    if (oldImageId) {
+      try {
+        await ctx.storage.delete(oldImageId);
+      } catch (e) {
+        console.warn("Old image delete failed", {
+          recipeId: args.recipeId,
+          oldImageId,
+          e,
+        });
+      }
+    }
   },
 });

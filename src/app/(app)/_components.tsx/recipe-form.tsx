@@ -28,6 +28,7 @@ import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
 import { RECIPE_CATEGORIES } from "convex/lib/constants";
 import { useMutation, useQuery } from "convex/react";
+import { ConvexError } from "convex/values";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Plus, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -47,11 +48,18 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
   const [recipeId, setRecipeId] = useState<Id<"recipes"> | null>(
     selectedRecipeId
   );
+  const [selectedImageName, setSelectedImageName] = useState<string | null>(
+    null
+  );
   const creatingRecipe = useRef(false);
 
   const createRecipeMutation = useMutation(api.recipes.createRecipe);
   const updateRecipeMutation = useMutation(api.recipes.updateRecipe);
   const publishRecipeMutation = useMutation(api.recipes.publishRecipe);
+  const generateUploadUrl = useMutation(api.recipes.generateUploadUrl);
+  const updateRecipeImageAndDeleteOld = useMutation(
+    api.recipes.updateRecipeImageAndDeleteOld
+  );
   const recipe = useQuery(
     api.recipes.getRecipe,
     recipeId
@@ -154,14 +162,48 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
         category: values.category,
       });
 
+      // Step 1: Get a short-lived upload URL
+      const postUrl = await generateUploadUrl();
+      const image = values.image;
+
+      if (image) {
+        try {
+          const ac = new AbortController();
+          const t = setTimeout(() => ac.abort(), 30_000);
+          const result = await fetch(postUrl, {
+            method: "POST",
+            headers: { "Content-Type": image.type },
+            body: image,
+            signal: ac.signal,
+          }).finally(() => clearTimeout(t));
+
+          const { storageId } = await result.json();
+          // Step 3: Save the newly allocated storage id to the database
+          await updateRecipeImageAndDeleteOld({ recipeId, storageId });
+
+          form.setValue("image", undefined);
+          setSelectedImageName(null);
+        } catch (error) {
+          const message =
+            error instanceof ConvexError
+              ? error.message
+              : "Unexpected error. Unable to upload image";
+
+          toast.error(message, {
+            description: "Please try again",
+          });
+        }
+      }
+
       const { errors } = await publishRecipeMutation({ recipeId });
 
       if (errors?.length) {
         errors.forEach((error) => {
           form.setError(error.field, { message: error.message });
         });
-        toast.info("Unable to save recipe", {
-          description: "Please check the form for errors and try again",
+        toast.info("Recipe saved as draft", {
+          description:
+            "This recipe has been saved to your drafts as it is not fully completed",
         });
         return;
       }
@@ -226,7 +268,7 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
     // Update the recipe at each step
     if (!recipeId) return;
     const formValues = form.getValues();
-    const { ingredients, method, ...valuesToUpdate } = formValues;
+    const { ingredients, method, image, ...valuesToUpdate } = formValues;
 
     updateRecipeMutation({
       recipeId,
@@ -239,10 +281,9 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
   useEffect(() => {
     // Update the recipe on unmount
     return () => {
-      console.log("unmounting", form.formState.isValid, recipeId);
       if (!recipeId) return;
       const formValues = form.getValues();
-      const { ingredients, method, ...valuesToUpdate } = formValues;
+      const { ingredients, method, image, ...valuesToUpdate } = formValues;
 
       updateRecipeMutation({
         recipeId,
@@ -390,14 +431,60 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
                       <FormItem>
                         <FormLabel>Recipe Image (Optional)</FormLabel>
                         <FormControl>
-                          <Input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              onChange(file);
-                            }}
-                          />
+                          <div className="space-y-2">
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  // Check file size (5MB limit)
+                                  const maxSizeInBytes = 5 * 1024 * 1024; // 5MB
+                                  if (!file.type?.startsWith("image/")) {
+                                    toast.error("Invalid file type", {
+                                      description:
+                                        "Please select an image file",
+                                    });
+                                    e.target.value = "";
+                                    onChange(undefined);
+                                    setSelectedImageName(null);
+                                    return;
+                                  }
+
+                                  if (file.size > maxSizeInBytes) {
+                                    toast.error("Image too large", {
+                                      description:
+                                        "Please select an image smaller than 5MB",
+                                    });
+                                    e.target.value = ""; // Reset the input
+                                    onChange(undefined);
+                                    setSelectedImageName(null);
+                                    return;
+                                  }
+                                  onChange(file);
+                                  setSelectedImageName(file.name);
+                                }
+                              }}
+                            />
+                            {selectedImageName && (
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <span>Selected: {selectedImageName}</span>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    onChange(undefined);
+                                    setSelectedImageName(null);
+                                  }}
+                                  className="h-6 px-2"
+                                  aria-label="Remove selected image"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -583,7 +670,6 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
 
               {/* Add Ingredient Card */}
               <motion.div
-                whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="cursor-pointer"
                 onClick={addIngredient}
@@ -679,7 +765,31 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
                                     accept="image/*"
                                     onChange={(e) => {
                                       const file = e.target.files?.[0];
-                                      onChange(file);
+                                      if (file) {
+                                        // Check file size (5MB limit)
+                                        const maxSizeInBytes = 5 * 1024 * 1024; // 5MB
+                                        if (!file.type?.startsWith("image/")) {
+                                          toast.error("Invalid file type", {
+                                            description:
+                                              "Please select an image file",
+                                          });
+                                          e.target.value = "";
+                                          onChange(undefined);
+
+                                          return;
+                                        }
+                                        if (file.size > maxSizeInBytes) {
+                                          toast.error("Image too large", {
+                                            description:
+                                              "Please select an image smaller than 5MB",
+                                          });
+                                          e.target.value = ""; // Reset the input
+                                          onChange(undefined);
+
+                                          return;
+                                        }
+                                        onChange(file);
+                                      }
                                     }}
                                   />
                                 </FormControl>
@@ -722,7 +832,6 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
 
               {/* Add Method Step Card */}
               <motion.div
-                whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="cursor-pointer"
                 onClick={addMethodStep}
@@ -902,11 +1011,7 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
           <div className="p-4 border-t">
             <div className="flex gap-2">
               {currentStepIndex > 0 ? (
-                <motion.div
-                  className="flex-1"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
+                <motion.div className="flex-1" whileTap={{ scale: 0.98 }}>
                   <Button
                     type="button"
                     onClick={prevStep}
@@ -918,11 +1023,7 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
                   </Button>
                 </motion.div>
               ) : (
-                <motion.div
-                  className="flex-1"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
+                <motion.div className="flex-1" whileTap={{ scale: 0.98 }}>
                   <Button
                     type="button"
                     onClick={closeDrawer}
@@ -935,23 +1036,19 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
               )}
 
               {currentStepIndex < steps.length - 1 ? (
-                <motion.div
-                  className="flex-1"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
+                <motion.div className="flex-1" whileTap={{ scale: 0.98 }}>
                   <Button type="button" onClick={nextStep} className="w-full">
                     Next
                     <ArrowRight className="h-4 w-4 ml-1" />
                   </Button>
                 </motion.div>
               ) : (
-                <motion.div
-                  className="flex-1"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Button type="submit" className="w-full">
+                <motion.div className="flex-1" whileTap={{ scale: 0.98 }}>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={form.formState.isSubmitting}
+                  >
                     Save Recipe
                   </Button>
                 </motion.div>

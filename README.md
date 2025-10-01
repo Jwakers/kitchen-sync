@@ -6,7 +6,11 @@
 - [ ] **Build Recipe List**: Display user recipes in dashboard (with CRUD features)
   - [x] View recipe page
   - [x] Action dropdown, edit, delete etc
-  - [ ] Image upload, storage and edit
+  - [x] Image upload, storage and edit (from form and page)
+  - [ ] Method image upload and edit
+- [ ] Recipe main page
+  - [ ] Display ingredients and methods
+  - [ ] Edit ingredients and methods
 - [ ] **Ingredient Categories**: Add categorization to ingredients (meat, poultry, vegetable, spice etc) (or extract from an existing external ingredient DB while still allowing custom ingredients)
 - [ ] **Recipe Tags**: Auto-detect dietary tags like plant-based, coeliac friendly, gluten free from ingredients
 
@@ -18,6 +22,13 @@
 
 - [ ] When a recipe is saved from the create recipe form, give the users a link in the toast to the new recipe page
 - [ ] Handle my-recipe pagination (limit to 20 per page)
+- [ ] Add client side compression to before uploading images using browser-image-compression
+- [ ] Add a utility function to output image sizes string
+
+## Major updates
+
+- [ ] Using sharp JS. Set up an endpoint in convex where I can transform images and render them at more appropriate sizes using a custom image loader in next image.
+- [ ] Custom convex endpoint to handle image uploads so I can more readily enforce image upload limits.
 
 ---
 
