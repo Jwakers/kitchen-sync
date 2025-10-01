@@ -57,7 +57,9 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
   const updateRecipeMutation = useMutation(api.recipes.updateRecipe);
   const publishRecipeMutation = useMutation(api.recipes.publishRecipe);
   const generateUploadUrl = useMutation(api.recipes.generateUploadUrl);
-  const updateRecipeImageMutation = useMutation(api.recipes.updateRecipeImage);
+  const updateRecipeImageAndDeleteOld = useMutation(
+    api.recipes.updateRecipeImageAndDeleteOld
+  );
   const recipe = useQuery(
     api.recipes.getRecipe,
     recipeId
@@ -177,7 +179,7 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
 
           const { storageId } = await result.json();
           // Step 3: Save the newly allocated storage id to the database
-          await updateRecipeImageMutation({ recipeId, storageId });
+          await updateRecipeImageAndDeleteOld({ recipeId, storageId });
 
           form.setValue("image", undefined);
           setSelectedImageName(null);
@@ -279,7 +281,6 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
   useEffect(() => {
     // Update the recipe on unmount
     return () => {
-      console.log("unmounting", form.formState.isValid, recipeId);
       if (!recipeId) return;
       const formValues = form.getValues();
       const { ingredients, method, image, ...valuesToUpdate } = formValues;
@@ -774,7 +775,7 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
                                           });
                                           e.target.value = "";
                                           onChange(undefined);
-                                          setSelectedImageName(null);
+
                                           return;
                                         }
                                         if (file.size > maxSizeInBytes) {
@@ -784,7 +785,7 @@ export function RecipeForm({ selectedRecipeId, closeDrawer }: RecipeFormProps) {
                                           });
                                           e.target.value = ""; // Reset the input
                                           onChange(undefined);
-                                          setSelectedImageName(null);
+
                                           return;
                                         }
                                         onChange(file);

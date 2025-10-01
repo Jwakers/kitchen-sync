@@ -43,8 +43,8 @@ function RecipeCard({
             <Image
               src={recipe.image}
               alt={recipe.title}
-              width={100}
-              height={100}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, (max-width: 1440px) 25vw, 450px"
               className="object-cover size-full"
               unoptimized
             />

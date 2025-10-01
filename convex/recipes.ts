@@ -198,28 +198,6 @@ export const updateRecipe = mutation({
   },
 });
 
-export const updateRecipeImage = mutation({
-  args: {
-    recipeId: v.id("recipes"),
-    storageId: v.id("_storage"),
-  },
-  handler: async (ctx, args) => {
-    const user = await getCurrentUserOrThrow(ctx);
-
-    const recipe = await ctx.db.get(args.recipeId);
-    if (!recipe) {
-      throw new ConvexError("Recipe not found");
-    }
-    if (recipe.userId !== user._id) {
-      throw new ConvexError("Unauthorized");
-    }
-
-    await ctx.db.patch(args.recipeId, {
-      image: args.storageId,
-    });
-  },
-});
-
 export const publishRecipe = mutation({
   args: {
     recipeId: v.id("recipes"),
@@ -343,7 +321,7 @@ export const generateUploadUrl = mutation({
 export const updateRecipeImageAndDeleteOld = mutation({
   args: {
     recipeId: v.id("recipes"),
-    newStorageId: v.id("_storage"),
+    storageId: v.id("_storage"),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
@@ -361,7 +339,8 @@ export const updateRecipeImageAndDeleteOld = mutation({
 
     // Update recipe with new image
     await ctx.db.patch(args.recipeId, {
-      image: args.newStorageId,
+      image: args.storageId,
+      updatedAt: Date.now(),
     });
 
     // Best-effort delete of the old image

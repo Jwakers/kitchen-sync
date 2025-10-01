@@ -18,7 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { titleCase } from "@/lib/utils";
-import type { api } from "convex/_generated/api";
+import { api } from "convex/_generated/api";
 import type { FunctionReturnType } from "convex/server";
 import {
   ArrowLeft,
@@ -79,8 +79,8 @@ export function RecipeHeader({
           <Image
             src={recipe.image}
             alt={recipe.title}
-            width={100}
-            height={100}
+            fill
+            sizes="(max-width: 1024px) 100vw, 1200px"
             className="object-cover size-full"
             unoptimized
           />

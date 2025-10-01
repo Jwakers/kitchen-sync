@@ -119,7 +119,7 @@ export function ChangeImageModal({
 
       await updateRecipeImage({
         recipeId,
-        newStorageId: storageId,
+        storageId,
       });
 
       toast.success("Image updated successfully");

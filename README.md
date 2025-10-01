@@ -23,6 +23,7 @@
 - [ ] When a recipe is saved from the create recipe form, give the users a link in the toast to the new recipe page
 - [ ] Handle my-recipe pagination (limit to 20 per page)
 - [ ] Add client side compression to before uploading images using browser-image-compression
+- [ ] Add a utility function to output image sizes string
 
 ## Major updates
 
