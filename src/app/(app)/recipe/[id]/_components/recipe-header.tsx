@@ -18,26 +18,33 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { titleCase } from "@/lib/utils";
-import { Doc } from "convex/_generated/dataModel";
+import { api } from "convex/_generated/api";
+import { FunctionReturnType } from "convex/server";
 import {
   ArrowLeft,
   Calendar,
   Clock,
   Edit,
+  ImageIcon,
   MoreVertical,
   Trash2,
   Users,
   X,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
+import { ChangeImageModal } from "./change-image-modal";
 import { RecipeEditFormData } from "./schema";
 
+type Recipe = NonNullable<FunctionReturnType<typeof api.recipes.getRecipe>>;
+
 interface RecipeHeaderProps {
-  recipe: Doc<"recipes">;
+  recipe: Recipe;
   isEditMode: boolean;
   onToggleEditMode: () => void;
-  onDelete: (recipe: Doc<"recipes">) => void;
+  onDelete: (recipe: Recipe) => void;
   form: UseFormReturn<RecipeEditFormData>;
 }
 
@@ -48,6 +55,8 @@ export function RecipeHeader({
   onDelete,
   form,
 }: RecipeHeaderProps) {
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+
   const prepMinutes = recipe.prepTime ?? 0;
   const cookMinutes = recipe.cookTime ?? 0;
   const totalTime = prepMinutes + cookMinutes;
@@ -64,9 +73,20 @@ export function RecipeHeader({
         </Link>
       </Button>
       {/* Recipe Image Placeholder */}
-      <div className="aspect-[16/9] bg-gradient-to-br from-primary/20 to-primary/5 relative overflow-hidden rounded-lg mb-6">
+      <div className="aspect-[16/9] bg-gradient-to-br from-primary/20 to-primary/5 relative overflow-hidden rounded-lg mb-6 group">
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-        <div className="absolute top-6 right-6">
+        {recipe.image && (
+          <Image
+            src={recipe.image}
+            alt=""
+            width={100}
+            height={100}
+            className="object-cover size-full"
+            unoptimized
+          />
+        )}
+
+        <div className="absolute top-6 right-6 z-10">
           <Badge
             variant="secondary"
             className={`${categoryColor} border-0 font-medium text-sm px-3 py-1`}
@@ -74,7 +94,24 @@ export function RecipeHeader({
             {categoryLabel}
           </Badge>
         </div>
-        <div className="absolute bottom-6 left-6 right-6">
+
+        {/* Change Image Button - Only visible in edit mode */}
+        {isEditMode && (
+          <div className="absolute top-6 left-6 z-10">
+            <Button
+              type="button"
+              size="default"
+              variant="secondary"
+              onClick={() => setIsImageModalOpen(true)}
+              className="gap-2 shadow-lg"
+            >
+              <ImageIcon className="h-4 w-4" />
+              Change Image
+            </Button>
+          </div>
+        )}
+
+        <div className="absolute bottom-6 left-6 right-6 z-10">
           {isEditMode ? (
             <div className="space-y-4">
               <FormField
@@ -161,6 +198,7 @@ export function RecipeHeader({
         {isEditMode ? (
           <>
             <Button
+              type="button"
               size="lg"
               variant="outline"
               className="gap-2"
@@ -172,13 +210,23 @@ export function RecipeHeader({
           </>
         ) : (
           <>
-            <Button size="lg" className="gap-2" onClick={onToggleEditMode}>
+            <Button
+              type="button"
+              size="lg"
+              className="gap-2"
+              onClick={onToggleEditMode}
+            >
               <Edit className="h-4 w-4" />
               Edit Recipe
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="lg" variant="outline" className="gap-2">
+                <Button
+                  type="button"
+                  size="lg"
+                  variant="outline"
+                  className="gap-2"
+                >
                   <MoreVertical className="h-4 w-4" />
                   More Actions
                 </Button>
@@ -197,6 +245,13 @@ export function RecipeHeader({
           </>
         )}
       </div>
+
+      {/* Change Image Modal */}
+      <ChangeImageModal
+        recipeId={recipe._id}
+        isOpen={isImageModalOpen}
+        onClose={() => setIsImageModalOpen(false)}
+      />
     </div>
   );
 }

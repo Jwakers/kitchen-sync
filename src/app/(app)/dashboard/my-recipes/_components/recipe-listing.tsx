@@ -15,25 +15,32 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { titleCase } from "@/lib/utils";
 import { api } from "convex/_generated/api";
-import { Doc } from "convex/_generated/dataModel";
 import { RECIPE_CATEGORIES } from "convex/lib/constants";
 import { useQuery } from "convex/react";
+import { FunctionReturnType } from "convex/server";
 import { Clock, Filter, Plus, Search, Users } from "lucide-react";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
 import { AddRecipeDrawer } from "../../../_components.tsx/add-recipe-drawer";
 
-function RecipeCard({ recipe }: { recipe: Doc<"recipes"> }) {
+function RecipeCard({
+  recipe,
+}: {
+  recipe: FunctionReturnType<typeof api.recipes.getAllUserRecipes>[number];
+}) {
   const totalTime = recipe.prepTime + recipe.cookTime;
   const categoryLabel = titleCase(recipe.category);
   const categoryColor = CATEGORY_COLORS[recipe.category];
 
   return (
     <Link href={`${ROUTES.RECIPE}/${recipe._id}`}>
-      <Card className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+      <Card className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 pt-0">
         {/* Recipe Image Placeholder */}
         <div className="aspect-[4/3] bg-gradient-to-br from-primary/20 to-primary/5 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+          {recipe.image && (
+            <img src={recipe.image} alt="" className="object-cover size-full" />
+          )}
           <div className="absolute top-4 right-4">
             <Badge
               variant="secondary"
