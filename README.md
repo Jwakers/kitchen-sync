@@ -11,9 +11,11 @@
 - [x] Recipe main page
   - [x] Display ingredients and methods
   - [x] Edit ingredients and methods
-- [ ] Generate a recipe with copy and pasting
+- [ ] Generate a recipe with recipe schema (parsed with AI)
+  - [ ] Save recipe
+  - [ ] Edit before saving
 - [ ] Generate a recipe with scraping
-- [ ] Generate a recipe with recipe schema
+- [ ] Generate a recipe with copy and pasting
 - [ ] **Ingredient Categories**: Add categorization to ingredients (meat, poultry, vegetable, spice etc) (or extract from an existing external ingredient DB while still allowing custom ingredients)
 - [ ] **Recipe Tags**: Auto-detect dietary tags like plant-based, coeliac friendly, gluten free from ingredients
 
@@ -32,6 +34,7 @@
 
 - [ ] Using sharp JS. Set up an endpoint in convex where I can transform images and render them at more appropriate sizes using a custom image loader in next image.
 - [ ] Custom convex endpoint to handle image uploads so I can more readily enforce image upload limits.
+- [ ] Add macros to recipe schema, add a generate macros button that AI does for you. Go back into teh schema scraper and get nutrition data if available
 
 ---
 

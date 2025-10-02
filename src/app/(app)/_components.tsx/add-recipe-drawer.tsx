@@ -94,7 +94,7 @@ export function AddRecipeDrawer({ open, onOpenChange }: AddRecipeDrawerProps) {
             </Card>
           </button>
 
-          <Link href={ROUTES.DASHBOARD}>
+          <Link href={ROUTES.IMPORT_RECIPE} onClick={() => onOpenChange(false)}>
             <Card className="p-6">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-secondary rounded-lg">
@@ -103,7 +103,7 @@ export function AddRecipeDrawer({ open, onOpenChange }: AddRecipeDrawerProps) {
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg">Get Recipe from URL</h3>
                   <p className="text-muted-foreground text-sm">
-                    Import a recipe from any website (coming soon)
+                    Import a recipe from any website
                   </p>
                 </div>
               </div>

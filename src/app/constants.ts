@@ -4,6 +4,7 @@ export const ROUTES = {
   DASHBOARD: "/dashboard",
   MY_RECIPES: "/dashboard/my-recipes",
   RECIPE: "/recipe",
+  IMPORT_RECIPE: "/dashboard/import-recipe",
 } as const;
 
 export const CATEGORY_COLORS: Record<
