@@ -18,14 +18,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { titleCase } from "@/lib/utils";
-import { Doc } from "convex/_generated/dataModel";
 import { RECIPE_CATEGORIES } from "convex/lib/constants";
 import { Calendar, Clock, Save, X } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
+import { Recipe } from "./recipe-client";
 import { RecipeEditFormData } from "./schema";
 
 interface EditableRecipeMetaProps {
-  recipe: Doc<"recipes">;
+  recipe: NonNullable<Recipe>;
   form: UseFormReturn<RecipeEditFormData>;
   onSave: (data: RecipeEditFormData) => void;
   onCancel: () => void;

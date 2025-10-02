@@ -4,8 +4,9 @@ import { ROUTES } from "@/app/constants";
 import { Form } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "convex/_generated/api";
-import { Doc, Id } from "convex/_generated/dataModel";
+import { Id } from "convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
+import { FunctionReturnType } from "convex/server";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -19,17 +20,17 @@ import { RecipeLoading } from "./recipe-loading";
 import { RecipeNotFound } from "./recipe-not-found";
 import { RecipeEditFormData, recipeEditSchema } from "./schema";
 
-interface RecipeClientProps {
+type RecipeClientProps = {
   recipeId: Id<"recipes">;
-}
+};
+
+export type Recipe = FunctionReturnType<typeof api.recipes.getRecipe>;
 
 export function RecipeClient({ recipeId }: RecipeClientProps) {
   const router = useRouter();
 
   const [isEditMode, setIsEditMode] = useState(false);
-  const [recipeToDelete, setRecipeToDelete] = useState<Doc<"recipes"> | null>(
-    null
-  );
+  const [recipeToDelete, setRecipeToDelete] = useState<Recipe | null>(null);
 
   const recipe = useQuery(api.recipes.getRecipe, { recipeId });
   const updateRecipeMutation = useMutation(api.recipes.updateRecipe);
@@ -44,6 +45,8 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
       cookTime: 0,
       serves: 0,
       category: "main",
+      ingredients: [],
+      method: [],
     },
   });
 
@@ -62,6 +65,8 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
         cookTime: recipe.cookTime,
         serves: recipe.serves,
         category: recipe.category,
+        ingredients: recipe.ingredients || [],
+        method: recipe.method || [],
       });
     }
     setIsEditMode(true);
@@ -84,6 +89,8 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
         cookTime: data.cookTime,
         serves: data.serves,
         category: data.category,
+        ingredients: data.ingredients,
+        method: data.method,
       });
 
       toast.success("Recipe updated successfully");
@@ -94,7 +101,7 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
     }
   };
 
-  const handleDelete = (recipe: Doc<"recipes">) => {
+  const handleDelete = (recipe: Recipe) => {
     setRecipeToDelete(recipe);
   };
 
@@ -142,8 +149,16 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <IngredientsSection recipe={recipe} isEditMode={isEditMode} />
-              <MethodSection recipe={recipe} isEditMode={isEditMode} />
+              <IngredientsSection
+                recipe={recipe}
+                isEditMode={isEditMode}
+                form={form}
+              />
+              <MethodSection
+                recipe={recipe}
+                isEditMode={isEditMode}
+                form={form}
+              />
             </div>
           </form>
         </Form>

@@ -9,10 +9,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Doc } from "convex/_generated/dataModel";
+import { Recipe } from "./recipe-client";
 
 interface DeleteRecipeDialogProps {
-  recipe: Doc<"recipes"> | null;
+  recipe: Recipe;
   onClose: () => void;
   onConfirm: () => void;
 }

@@ -31,7 +31,8 @@ export default defineSchema({
     ingredients: v.optional(
       v.array(
         v.object({
-          ingredientId: v.id("ingredients"),
+          ingredientId: v.optional(v.id("ingredients")),
+          name: v.optional(v.string()),
           amount: v.number(),
           unit: v.optional(unitsUnion),
           preparation: v.optional(preparationUnion),
@@ -41,13 +42,28 @@ export default defineSchema({
     method: v.optional(
       v.array(
         v.object({
-          step: v.string(),
+          title: v.string(),
+          description: v.optional(v.string()),
           image: v.optional(v.id("_storage")),
         })
       )
     ),
     updatedAt: v.number(),
     status: v.union(v.literal("draft"), v.literal("published")),
+    // Attribution & Source Information
+    originalUrl: v.optional(v.string()), // URL where recipe was imported from
+    originalAuthor: v.optional(v.string()), // Original recipe author/creator
+    importedAt: v.optional(v.number()), // Timestamp when recipe was imported
+    originalPublishedDate: v.optional(v.string()), // Original publication date from source
+    // Additional metadata from source
+    nutrition: v.optional(
+      v.object({
+        calories: v.optional(v.string()),
+        protein: v.optional(v.string()),
+        fat: v.optional(v.string()),
+        carbohydrates: v.optional(v.string()),
+      })
+    ),
   })
     .index("by_user", ["userId"])
     .index("by_category", ["category"])
@@ -56,6 +72,7 @@ export default defineSchema({
 
   ingredients: defineTable({
     name: v.string(),
+    displayName: v.optional(v.string()),
     foodGroup: v.optional(v.string()),
     foodSubGroup: v.optional(v.string()),
     isCustom: v.boolean(),

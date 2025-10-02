@@ -20,7 +20,18 @@ export const getRecipe = query({
       image = await ctx.storage.getUrl(recipe.image);
     }
 
-    return { ...recipe, image };
+    // Convert method step images from storage IDs to URLs
+    const methodWithUrls = await Promise.all(
+      (recipe.method ?? []).map(async (step) => {
+        if (step.image) {
+          const stepImageUrl = await ctx.storage.getUrl(step.image);
+          return { ...step, imageUrl: stepImageUrl };
+        }
+        return { ...step, imageUrl: undefined };
+      })
+    );
+
+    return { ...recipe, image, method: methodWithUrls };
   },
 });
 
@@ -72,51 +83,18 @@ export const getAllUserRecipes = query({
   },
 });
 
-export const createRecipe = mutation({
-  args: {
-    title: v.string(),
-    description: v.optional(v.string()),
-    // image: v.id("_storage"),
-    prepTime: v.number(),
-    cookTime: v.number(),
-    serves: v.number(),
-    category: categoriesUnion,
-    ingredients: v.optional(
-      v.array(
-        v.object({
-          name: v.string(),
-          amount: v.number(),
-          unit: v.optional(unitsUnion),
-          preparation: v.optional(preparationUnion),
-        })
-      )
-    ),
-    method: v.optional(
-      v.array(
-        v.object({
-          step: v.string(),
-          // image: v.id("_storage"),
-        })
-      )
-    ),
-  },
-  handler: async (ctx, args) => {
+export const createDraftRecipe = mutation({
+  args: {},
+  handler: async (ctx) => {
     const user = await getCurrentUserOrThrow(ctx);
 
-    const allUserRecipes = await ctx.db
+    const draftRecipes = await ctx.db
       .query("recipes")
-      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .withIndex("by_user_and_status", (q) =>
+        q.eq("userId", user._id).eq("status", "draft")
+      )
       .collect();
-    const recipeTitles = allUserRecipes.map((recipe) => recipe.title);
-    const draftRecipes = allUserRecipes.filter(
-      (recipe) => recipe.status === "draft"
-    );
 
-    // TODO:
-    // Does this name already exist for this user
-    if (args.title !== "" && recipeTitles.includes(args.title)) {
-      return { error: "This recipe title already exists", recipeId: null };
-    }
     // Does this user have too many draft recipes
     if (draftRecipes.length >= 3) {
       return {
@@ -124,19 +102,16 @@ export const createRecipe = mutation({
         recipeId: null,
       };
     }
-    // Does this user have too many recipes total (USE CLERK FEATURES FOR THIS)
+
+    // TODO: Does this user have too many recipes total (USE CLERK FEATURES FOR THIS)
 
     const recipeId = await ctx.db.insert("recipes", {
       userId: user._id,
-      title: args.title,
-      description: args.description,
-      // image: args.image,
-      prepTime: args.prepTime,
-      cookTime: args.cookTime,
-      serves: args.serves,
-      category: args.category,
-      //   ingredients: undefined,
-      //   method: undefined,
+      title: "",
+      prepTime: 0,
+      cookTime: 0,
+      serves: 0,
+      category: "main",
       updatedAt: Date.now(),
       status: "draft",
     });
@@ -150,29 +125,29 @@ export const updateRecipe = mutation({
     recipeId: v.id("recipes"),
     title: v.optional(v.string()),
     description: v.optional(v.string()),
-    // image: v.id("_storage"),
     prepTime: v.optional(v.number()),
     cookTime: v.optional(v.number()),
     serves: v.optional(v.number()),
     category: v.optional(categoriesUnion),
-    // ingredients: v.optional(
-    //   v.array(
-    //     v.object({
-    //       name: v.string(),
-    //       amount: v.number(),
-    //       unit: v.optional(unitsUnion),
-    //       preparation: v.optional(preparationUnion),
-    //     })
-    //   )
-    // ),
-    // method: v.optional(
-    //   v.array(
-    //     v.object({
-    //       step: v.string(),
-    //       image: v.id("_storage"),
-    //     })
-    //   )
-    // ),
+    ingredients: v.optional(
+      v.array(
+        v.object({
+          name: v.string(),
+          amount: v.number(),
+          unit: v.optional(unitsUnion),
+          preparation: v.optional(preparationUnion),
+        })
+      )
+    ),
+    method: v.optional(
+      v.array(
+        v.object({
+          title: v.string(),
+          description: v.optional(v.string()),
+          image: v.optional(v.id("_storage")),
+        })
+      )
+    ),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
@@ -185,6 +160,56 @@ export const updateRecipe = mutation({
       throw new ConvexError("Unauthorized");
     }
 
+    let ingredients = recipe.ingredients;
+    // Map ingredients to database ingredients if possible
+    if (args.ingredients?.length) {
+      const allIngredients = await ctx.db.query("ingredients").collect();
+      const ingredientMap = new Map(
+        allIngredients.map((ing) => [ing.name.trim().toLowerCase(), ing._id])
+      );
+
+      ingredients = await Promise.all(
+        args.ingredients.map((ing) => {
+          const ingredientId = ingredientMap.get(ing.name.trim().toLowerCase());
+
+          return {
+            ...ing,
+            ingredientId,
+          };
+        })
+      );
+    }
+
+    // Clean up orphaned method step images when method is updated
+    if (args.method && recipe.method) {
+      const oldImageIds = new Set(
+        recipe.method.map((step) => step.image).filter((img) => !!img)
+      );
+
+      const newImageIds = new Set(
+        args.method.map((step) => step.image).filter((img) => !!img)
+      );
+
+      // Delete images that are no longer referenced
+      const imagesToDelete = [...oldImageIds].filter(
+        (id) => id && !newImageIds.has(id)
+      );
+
+      for (const imageId of imagesToDelete) {
+        if (imageId) {
+          try {
+            await ctx.storage.delete(imageId);
+          } catch (e) {
+            console.error("Failed to delete orphaned method step image", {
+              recipeId: args.recipeId,
+              imageId,
+              error: e,
+            });
+          }
+        }
+      }
+    }
+
     await ctx.db.patch(args.recipeId, {
       title: args.title ?? recipe.title,
       description: args.description ?? recipe.description,
@@ -192,8 +217,8 @@ export const updateRecipe = mutation({
       cookTime: args.cookTime ?? recipe.cookTime,
       serves: args.serves ?? recipe.serves,
       category: args.category ?? recipe.category,
-      // ingredients: args.ingredients ?? recipe.ingredients,
-      // method: args.method ?? recipe.method,
+      ingredients,
+      method: args.method ?? recipe.method,
     });
   },
 });
@@ -289,7 +314,6 @@ export const deleteRecipe = mutation({
     recipeId: v.id("recipes"),
   },
   handler: async (ctx, args) => {
-    // TODO: delete recipe image from storage
     const user = await getCurrentUserOrThrow(ctx);
 
     const recipe = await ctx.db.get(args.recipeId);
@@ -300,12 +324,37 @@ export const deleteRecipe = mutation({
       throw new ConvexError("Unauthorized");
     }
 
+    // Delete the recipe from the database first
     await ctx.db.delete(args.recipeId);
+
+    // Delete main recipe image
     if (recipe.image) {
       try {
         await ctx.storage.delete(recipe.image);
       } catch (e) {
-        console.warn("Failed to delete image for recipe", args.recipeId, e);
+        console.warn("Failed to delete recipe image", {
+          recipeId: args.recipeId,
+          imageId: recipe.image,
+          error: e,
+        });
+      }
+    }
+
+    // Delete method step images
+    if (recipe.method && recipe.method.length > 0) {
+      for (const [index, step] of recipe.method.entries()) {
+        if (step.image) {
+          try {
+            await ctx.storage.delete(step.image);
+          } catch (e) {
+            console.warn("Failed to delete method step image", {
+              recipeId: args.recipeId,
+              stepIndex: index,
+              imageId: step.image,
+              error: e,
+            });
+          }
+        }
       }
     }
   },

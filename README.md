@@ -3,14 +3,19 @@
 ### Next Immediate Steps
 
 - [x] **Connect Recipe Form**: Submit recipe data to Convex
-- [ ] **Build Recipe List**: Display user recipes in dashboard (with CRUD features)
+- [x] **Build Recipe List**: Display user recipes in dashboard (with CRUD features)
   - [x] View recipe page
   - [x] Action dropdown, edit, delete etc
   - [x] Image upload, storage and edit (from form and page)
-  - [ ] Method image upload and edit
-- [ ] Recipe main page
-  - [ ] Display ingredients and methods
-  - [ ] Edit ingredients and methods
+  - [x] Method image upload and edit
+- [x] Recipe main page
+  - [x] Display ingredients and methods
+  - [x] Edit ingredients and methods
+- [ ] Generate a recipe with recipe schema (parsed with AI)
+  - [ ] Save recipe
+  - [ ] Edit before saving
+- [ ] Generate a recipe with scraping
+- [ ] Generate a recipe with copy and pasting
 - [ ] **Ingredient Categories**: Add categorization to ingredients (meat, poultry, vegetable, spice etc) (or extract from an existing external ingredient DB while still allowing custom ingredients)
 - [ ] **Recipe Tags**: Auto-detect dietary tags like plant-based, coeliac friendly, gluten free from ingredients
 
@@ -29,6 +34,7 @@
 
 - [ ] Using sharp JS. Set up an endpoint in convex where I can transform images and render them at more appropriate sizes using a custom image loader in next image.
 - [ ] Custom convex endpoint to handle image uploads so I can more readily enforce image upload limits.
+- [ ] Add macros to recipe schema, add a generate macros button that AI does for you. Go back into teh schema scraper and get nutrition data if available
 
 ---
 
@@ -142,6 +148,7 @@
 - [ ] **"Cook with What You Have"**: AI meal planning from available ingredients
 - [ ] **Advanced Meal Planning**: AI-powered weekly meal optimization
 - [ ] **Recipe Recommendations**: Personalized recipe suggestions
+- [ ] **Photograph recipe books**: The app should be able to take the text from recipe books and save them to your recipes
 
 #### Integrations
 

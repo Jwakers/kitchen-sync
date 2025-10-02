@@ -18,8 +18,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { titleCase } from "@/lib/utils";
-import { api } from "convex/_generated/api";
-import type { FunctionReturnType } from "convex/server";
 import {
   ArrowLeft,
   Calendar,
@@ -36,15 +34,14 @@ import Link from "next/link";
 import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { ChangeImageModal } from "./change-image-modal";
+import { Recipe } from "./recipe-client";
 import { RecipeEditFormData } from "./schema";
 
-type Recipe = NonNullable<FunctionReturnType<typeof api.recipes.getRecipe>>;
-
 interface RecipeHeaderProps {
-  recipe: Recipe;
+  recipe: NonNullable<Recipe>;
   isEditMode: boolean;
   onToggleEditMode: () => void;
-  onDelete: (recipe: Recipe) => void;
+  onDelete: (recipe: NonNullable<Recipe>) => void;
   form: UseFormReturn<RecipeEditFormData>;
 }
 
