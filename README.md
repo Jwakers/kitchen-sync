@@ -3,14 +3,14 @@
 ### Next Immediate Steps
 
 - [x] **Connect Recipe Form**: Submit recipe data to Convex
-- [ ] **Build Recipe List**: Display user recipes in dashboard (with CRUD features)
+- [x] **Build Recipe List**: Display user recipes in dashboard (with CRUD features)
   - [x] View recipe page
   - [x] Action dropdown, edit, delete etc
   - [x] Image upload, storage and edit (from form and page)
-  - [ ] Method image upload and edit
-- [ ] Recipe main page
-  - [ ] Display ingredients and methods
-  - [ ] Edit ingredients and methods
+  - [x] Method image upload and edit
+- [x] Recipe main page
+  - [x] Display ingredients and methods
+  - [x] Edit ingredients and methods
 - [ ] Generate a recipe with copy and pasting
 - [ ] Generate a recipe with scraping
 - [ ] Generate a recipe with recipe schema

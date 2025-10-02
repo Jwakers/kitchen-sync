@@ -164,16 +164,17 @@ export const updateRecipe = mutation({
     // Map ingredients to database ingredients if possible
     if (args.ingredients?.length) {
       const allIngredients = await ctx.db.query("ingredients").collect();
+      const ingredientMap = new Map(
+        allIngredients.map((ing) => [ing.name.trim().toLowerCase(), ing._id])
+      );
 
       ingredients = await Promise.all(
         args.ingredients.map((ing) => {
-          const ingredient = allIngredients.find(
-            (i) => i.name.trim().toLowerCase() === ing.name.trim().toLowerCase()
-          );
+          const ingredientId = ingredientMap.get(ing.name.trim().toLowerCase());
 
           return {
             ...ing,
-            ingredientId: ingredient?._id,
+            ingredientId,
           };
         })
       );
