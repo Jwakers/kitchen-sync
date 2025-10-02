@@ -32,7 +32,7 @@ export default defineSchema({
       v.array(
         v.object({
           ingredientId: v.optional(v.id("ingredients")),
-          name: v.optional(v.string()),
+          name: v.string(),
           amount: v.number(),
           unit: v.optional(unitsUnion),
           preparation: v.optional(preparationUnion),
@@ -55,7 +55,6 @@ export default defineSchema({
     originalAuthor: v.optional(v.string()), // Original recipe author/creator
     importedAt: v.optional(v.number()), // Timestamp when recipe was imported
     originalPublishedDate: v.optional(v.string()), // Original publication date from source
-    // Additional metadata from source
     nutrition: v.optional(
       v.object({
         calories: v.optional(v.string()),

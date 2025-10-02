@@ -120,6 +120,90 @@ export const createDraftRecipe = mutation({
   },
 });
 
+export const createRecipe = mutation({
+  args: {
+    title: v.string(),
+    description: v.optional(v.string()),
+    prepTime: v.number(),
+    cookTime: v.number(),
+    serves: v.number(),
+    category: categoriesUnion,
+    ingredients: v.array(
+      v.object({
+        name: v.string(),
+        amount: v.number(),
+        unit: v.optional(unitsUnion),
+        preparation: v.optional(preparationUnion),
+      })
+    ),
+    method: v.array(
+      v.object({
+        title: v.string(),
+        description: v.optional(v.string()),
+        image: v.optional(v.id("_storage")),
+      })
+    ),
+    nutrition: v.optional(
+      v.object({
+        calories: v.optional(v.string()),
+        protein: v.optional(v.string()),
+        fat: v.optional(v.string()),
+        carbohydrates: v.optional(v.string()),
+      })
+    ),
+    originalUrl: v.optional(v.string()),
+    originalAuthor: v.optional(v.string()),
+    importedAt: v.optional(v.number()),
+    originalPublishedDate: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+
+    let ingredients = args.ingredients;
+    // Map ingredients to database ingredients if possible
+    if (ingredients?.length) {
+      const allIngredients = await ctx.db.query("ingredients").collect();
+      const ingredientMap = new Map(
+        allIngredients.map((ing) => [ing.name.trim().toLowerCase(), ing._id])
+      );
+
+      ingredients = await Promise.all(
+        ingredients.map((ing) => {
+          const ingredientId = ingredientMap.get(ing.name.trim().toLowerCase());
+
+          return {
+            ...ing,
+            ingredientId,
+          };
+        })
+      );
+    }
+
+    const now = Date.now();
+
+    const recipeId = await ctx.db.insert("recipes", {
+      userId: user._id,
+      title: args.title,
+      description: args.description,
+      prepTime: args.prepTime,
+      cookTime: args.cookTime,
+      serves: args.serves,
+      category: args.category,
+      ingredients,
+      method: args.method,
+      nutrition: args.nutrition,
+      originalUrl: args.originalUrl,
+      originalAuthor: args.originalAuthor,
+      importedAt: args.originalUrl ? now : undefined,
+      originalPublishedDate: args.originalPublishedDate,
+      updatedAt: now,
+      status: "published",
+    });
+
+    return { recipeId, error: null };
+  },
+});
+
 export const updateRecipe = mutation({
   args: {
     recipeId: v.id("recipes"),

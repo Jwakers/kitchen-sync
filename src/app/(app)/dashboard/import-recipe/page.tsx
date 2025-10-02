@@ -10,6 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { api } from "convex/_generated/api";
+import { Id } from "convex/_generated/dataModel";
+import { useMutation } from "convex/react";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -20,15 +23,11 @@ import {
   Sparkles,
   Users,
 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-type LoadingStage =
-  | "idle"
-  | "fetching"
-  | "analysing"
-  | "categorising"
-  | "complete";
+type LoadingStage = "idle" | "fetching" | "categorising" | "complete";
 
 export default function ImportRecipePage() {
   const router = useRouter();
@@ -39,6 +38,12 @@ export default function ImportRecipePage() {
     null
   );
   const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedRecipeId, setSavedRecipeId] = useState<Id<"recipes"> | null>(
+    null
+  );
+
+  const createRecipeMutation = useMutation(api.recipes.createRecipe);
 
   const handleImport = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,13 +65,7 @@ export default function ImportRecipePage() {
         throw new Error(fetchError || "Failed to fetch recipe");
       }
 
-      // Stage 2: Analysing ingredients
-      setLoadingStage("analysing");
-
-      // Small delay to show the analysing stage
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Stage 3: Categorising and generating method
+      // Stage 2: Parse with AI
       setLoadingStage("categorising");
       const parsed = await parseRecipeWithAI(recipe, recipeUrl || undefined);
 
@@ -121,7 +120,84 @@ export default function ImportRecipePage() {
     };
   }, [parsedRecipe, isSaved]);
 
+  const handleSave = async () => {
+    if (!parsedRecipe) return;
+
+    try {
+      setIsSaving(true);
+      const { recipeId, error } = await createRecipeMutation({
+        title: parsedRecipe.title,
+        description: parsedRecipe.description,
+        prepTime: parsedRecipe.prepTime,
+        cookTime: parsedRecipe.cookTime,
+        serves: parsedRecipe.serves,
+        category: parsedRecipe.category,
+        ingredients: parsedRecipe.ingredients,
+        method: parsedRecipe.method,
+        nutrition: parsedRecipe.nutrition,
+        originalUrl: parsedRecipe.originalUrl,
+        originalAuthor: parsedRecipe.originalAuthor,
+        importedAt: parsedRecipe.importedAt,
+        originalPublishedDate: parsedRecipe.originalPublishedDate,
+      });
+      if (error) {
+        throw new Error(error);
+      }
+      setSavedRecipeId(recipeId);
+      setIsSaved(true);
+    } catch (error) {
+      console.error(error);
+      setError(error instanceof Error ? error.message : "An error occurred");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const isLoading = loadingStage !== "idle" && loadingStage !== "complete";
+
+  // Success State - Replace entire page content
+  if (isSaved && savedRecipeId) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <Card className="max-w-2xl w-full p-12 text-center">
+          <div className="flex justify-center mb-6">
+            <div className="rounded-full bg-primary/10 p-6">
+              <CheckCircle2 className="h-16 w-16 text-primary" />
+            </div>
+          </div>
+          <h1 className="text-3xl font-bold mb-3">
+            Recipe Saved Successfully!
+          </h1>
+          <p className="text-muted-foreground text-lg mb-8">
+            Your recipe has been added to your collection and is ready to use.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button size="lg" asChild>
+              <Link href={`${ROUTES.RECIPE}/${savedRecipeId}`}>
+                View Recipe
+              </Link>
+            </Button>
+            <Button variant="outline" size="lg" asChild>
+              <Link href={ROUTES.MY_RECIPES}>Go to My Recipes</Link>
+            </Button>
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={() => {
+                setUrl("");
+                setParsedRecipe(null);
+                setIsSaved(false);
+                setSavedRecipeId(null);
+                setLoadingStage("idle");
+              }}
+            >
+              Import Another
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -245,16 +321,10 @@ export default function ImportRecipePage() {
                 description="Reading recipe from website..."
               />
               <LoadingStep
-                stage="analysing"
-                currentStage={loadingStage}
-                title="Analysing ingredients with AI"
-                description="Parsing amounts, units, and preparation methods..."
-              />
-              <LoadingStep
                 stage="categorising"
                 currentStage={loadingStage}
-                title="Organizing recipe"
-                description="Determining category and creating method steps..."
+                title="Processing recipe with AI"
+                description="Parsing ingredients, categorizing, and creating method steps..."
               />
             </div>
           </Card>
@@ -263,6 +333,34 @@ export default function ImportRecipePage() {
         {/* Recipe Preview */}
         {parsedRecipe && loadingStage === "complete" && (
           <RecipePreview recipe={parsedRecipe} isSaved={isSaved} />
+        )}
+
+        {/* Save Buttons */}
+        {parsedRecipe && loadingStage === "complete" && !isSaved && (
+          <div className="flex gap-3 mt-4">
+            <Button
+              className="flex-1"
+              size="lg"
+              disabled={isLoading || isSaving}
+              onClick={handleSave}
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Recipe"
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              disabled={isLoading || isSaving}
+            >
+              Edit Recipe
+            </Button>
+          </div>
         )}
       </div>
     </div>
@@ -284,7 +382,6 @@ function LoadingStep({
   const stages: LoadingStage[] = [
     "idle",
     "fetching",
-    "analysing",
     "categorising",
     "complete",
   ];
@@ -494,25 +591,6 @@ function RecipePreview({
           ))}
         </ol>
       </Card>
-
-      {/* Save Buttons */}
-      <div className="flex gap-3">
-        <Button
-          className="flex-1"
-          size="lg"
-          disabled={isSaved}
-          onClick={() => {
-            // TODO: Implement actual save functionality
-            console.log("Saving recipe:", recipe);
-            alert("Recipe save functionality coming soon!");
-          }}
-        >
-          {isSaved ? "Saved to Collection" : "Save Recipe"}
-        </Button>
-        <Button variant="outline" size="lg">
-          Edit Recipe
-        </Button>
-      </div>
     </div>
   );
 }

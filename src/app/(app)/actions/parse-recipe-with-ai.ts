@@ -1,24 +1,100 @@
 "use server";
 
+import { Doc } from "convex/_generated/dataModel";
 import {
   PREPARATION_OPTIONS,
   RECIPE_CATEGORIES,
   UNITS_FLAT,
 } from "convex/lib/constants";
 import OpenAI from "openai";
+import { z } from "zod";
 import type { ParsedRecipeSchema } from "./get-recipe-schema";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Zod schemas for structured output
+const IngredientSchema = z.object({
+  name: z.string(),
+  amount: z.number(),
+  unit: z.string().optional(),
+  preparation: z.string().optional(),
+});
+
+const MethodStepSchema = z.object({
+  title: z.string().describe("Short descriptive title (3-5 words)"),
+  description: z.string().describe("Complete original instruction text"),
+});
+
+const RecipeDataSchema = z.object({
+  ingredients: z
+    .array(IngredientSchema)
+    .describe(
+      "Parsed ingredients with amounts, units, and preparation methods"
+    ),
+  category: z.enum(RECIPE_CATEGORIES).describe("Recipe category"),
+  method: z
+    .array(MethodStepSchema)
+    .describe("Method steps with titles and complete original descriptions"),
+});
+
 // Type for the structured ingredient output
-type StructuredIngredient = {
-  name: string;
-  amount: number;
-  unit?: (typeof UNITS_FLAT)[number];
-  preparation?: (typeof PREPARATION_OPTIONS)[number];
-};
+type StructuredIngredient = NonNullable<Doc<"recipes">["ingredients"]>[number];
+
+// Helper to validate and map units to canonical values
+function validateUnit(unit?: string): (typeof UNITS_FLAT)[number] | undefined {
+  if (!unit) return undefined;
+
+  const normalized = unit.toLowerCase().trim();
+
+  // Direct match
+  if ((UNITS_FLAT as readonly string[]).includes(normalized)) {
+    return normalized as (typeof UNITS_FLAT)[number];
+  }
+
+  // Common variations
+  const unitMap: Record<string, (typeof UNITS_FLAT)[number]> = {
+    cup: "cups",
+    teaspoon: "tsp",
+    teaspoons: "tsp",
+    tablespoon: "tbsp",
+    tablespoons: "tbsp",
+    pound: "lbs",
+    pounds: "lbs",
+    lb: "lbs",
+    ounce: "oz",
+    ounces: "oz",
+    gram: "g",
+    grams: "g",
+    kilogram: "kg",
+    kilograms: "kg",
+    milliliter: "ml",
+    milliliters: "ml",
+    liter: "l",
+    liters: "l",
+    gallon: "gal",
+    gallons: "gal",
+  };
+
+  return unitMap[normalized];
+}
+
+// Helper to validate and map preparations to canonical values
+function validatePreparation(
+  prep?: string
+): (typeof PREPARATION_OPTIONS)[number] | undefined {
+  if (!prep) return undefined;
+
+  const normalized = prep.toLowerCase().trim();
+
+  // Direct match
+  if ((PREPARATION_OPTIONS as readonly string[]).includes(normalized)) {
+    return normalized as (typeof PREPARATION_OPTIONS)[number];
+  }
+
+  return undefined;
+}
 
 // Type for the complete parsed recipe ready for Convex
 export type ParsedRecipeForDB = {
@@ -93,20 +169,24 @@ function mapCategory(
   const lowerCategories = categories.map((c) => c.toLowerCase());
 
   // Try to match to our categories
-  if (lowerCategories.some((c) => c.includes("breakfast"))) return "breakfast";
-  if (lowerCategories.some((c) => c.includes("lunch"))) return "lunch";
-  if (lowerCategories.some((c) => c.includes("dinner"))) return "dinner";
-  if (lowerCategories.some((c) => c.includes("dessert"))) return "dessert";
-  if (lowerCategories.some((c) => c.includes("appetizer"))) return "appetizer";
-  if (lowerCategories.some((c) => c.includes("snack"))) return "snack";
-  if (lowerCategories.some((c) => c.includes("side"))) return "side";
+  if (lowerCategories.some((c) => c.includes("breakfast")))
+    return "breakfast" as const;
+  if (lowerCategories.some((c) => c.includes("lunch"))) return "lunch" as const;
+  if (lowerCategories.some((c) => c.includes("dinner")))
+    return "dinner" as const;
+  if (lowerCategories.some((c) => c.includes("dessert")))
+    return "dessert" as const;
+  if (lowerCategories.some((c) => c.includes("appetizer")))
+    return "appetizer" as const;
+  if (lowerCategories.some((c) => c.includes("snack"))) return "snack" as const;
+  if (lowerCategories.some((c) => c.includes("side"))) return "side" as const;
   if (
     lowerCategories.some((c) => c.includes("beverage") || c.includes("drink"))
   )
-    return "beverage";
+    return "beverage" as const;
 
   // Default to main if it's a main course or we can't determine
-  return "main";
+  return "main" as const;
 }
 
 /**
@@ -123,19 +203,30 @@ async function parseRecipeDataWithAI(
   category: (typeof RECIPE_CATEGORIES)[number];
   method: Array<{ title: string; description?: string }>;
 } | null> {
-  const systemPrompt = `You are an expert recipe parser. Parse the provided recipe data into a structured format.
+  const systemPrompt = `You are an expert recipe parser. Parse the provided recipe data and return a JSON object with this exact structure:
+
+{
+  "ingredients": [
+    {"name": "string", "amount": number, "unit": "string (optional)", "preparation": "string (optional)"}
+  ],
+  "category": "string (one of: ${RECIPE_CATEGORIES.join(", ")})",
+  "method": [
+    {"title": "string (3-5 words)", "description": "string (complete original instruction)"}
+  ]
+}
 
 Available units: ${UNITS_FLAT.join(", ")}
 Available preparations: ${PREPARATION_OPTIONS.join(", ")}
-Available categories: ${RECIPE_CATEGORIES.join(", ")}
 
-Your task:
-1. Parse ingredients into structured format
-2. Determine the best category for this recipe
-3. Convert instructions into method steps with descriptive titles
+CRITICAL INSTRUCTIONS:
 
 For ingredients:
 - Extract numeric amount (convert fractions to decimals: 1/2 = 0.5)
+- If amount is 0, missing, or unclear, use sensible defaults:
+  * Fresh herbs (basil, parsley, cilantro, etc.): 1 handful
+  * Spices/seasonings (salt, pepper, etc.): 1 pinch or to taste
+  * Vegetables (onion, garlic, etc.): 1 unit
+  * Other ingredients: estimate based on typical recipe amounts
 - Match unit to available units (or omit if none matches)
 - Extract ingredient name (without amount, unit, or preparation)
 - Identify preparation method from available options (or omit if none matches)
@@ -144,19 +235,16 @@ For ingredients:
 
 For category:
 - Choose ONE category from the available categories that best fits this recipe
-- Consider the recipe name, description, and ingredients
 
-For method:
-- Create concise, descriptive titles for each step (not just "Step 1", "Step 2")
-- Keep the original instruction text as the description
-- Titles should be action-oriented (e.g., "Prepare the sauce", "Cook the meat", "Assemble the dish")
+For method steps (VERY IMPORTANT):
+- Keep ALL original instruction steps - DO NOT combine or condense them
+- For EACH step, create a short descriptive title (3-5 words)
+- PRESERVE the COMPLETE original instruction text in the "description" field
+- DO NOT shorten, summarize, or paraphrase the original instruction text
+- DO NOT merge multiple steps into one
+- Titles should be action-oriented: "Prepare the sauce", "Brown the meat", "Preheat the oven"
 
-Return JSON in this format:
-{
-  "ingredients": [{"name": "...", "amount": 1.5, "unit": "cups", "preparation": "chopped"}],
-  "category": "dinner",
-  "method": [{"title": "Prepare ingredients", "description": "..."}]
-}`;
+You MUST return valid JSON.`;
 
   try {
     const categoryContext = Array.isArray(schemaCategory)
@@ -170,18 +258,19 @@ Schema Category: ${categoryContext}
 Ingredients:
 ${ingredients.map((ing, i) => `${i + 1}. ${ing}`).join("\n")}
 
-Instructions:
-${instructions.map((inst, i) => `${i + 1}. ${inst}`).join("\n")}`;
+Instructions (${instructions.length} steps - KEEP ALL ${instructions.length} STEPS, DO NOT CONDENSE):
+${instructions.map((inst, i) => `${i + 1}. ${inst}`).join("\n")}
+
+IMPORTANT: Return exactly ${instructions.length} method steps. Copy each instruction text completely into the description field.`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o-mini", // Fast and accurate - best for structured parsing
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
       ],
       response_format: { type: "json_object" },
-      temperature: 0.1, // Lower for faster, more deterministic responses
-      max_tokens: 2000, // Limit response size for speed
+      temperature: 0.1,
     });
 
     const content = response.choices[0].message.content;
@@ -189,12 +278,23 @@ ${instructions.map((inst, i) => `${i + 1}. ${inst}`).join("\n")}`;
       throw new Error("No response from OpenAI");
     }
 
-    const parsed = JSON.parse(content);
+    // Parse and validate with Zod
+    const jsonData = JSON.parse(content);
+    const validatedData = RecipeDataSchema.parse(jsonData);
+
+    // Clean up and validate units and preparations
+    const cleanedIngredients: StructuredIngredient[] =
+      validatedData.ingredients.map((ing) => ({
+        name: ing.name,
+        amount: ing.amount,
+        unit: validateUnit(ing.unit),
+        preparation: validatePreparation(ing.preparation),
+      }));
 
     return {
-      ingredients: parsed.ingredients || [],
-      category: parsed.category || "main",
-      method: parsed.method || [],
+      ingredients: cleanedIngredients,
+      category: validatedData.category,
+      method: validatedData.method,
     };
   } catch (error) {
     console.error("Error parsing recipe with AI:", error);
@@ -246,7 +346,7 @@ export async function parseRecipeWithAI(
     prepTime: parseDuration(schema.prepTime),
     cookTime: parseDuration(schema.cookTime),
     serves: parseServings(schema.recipeYield),
-    category,
+    category: category as (typeof RECIPE_CATEGORIES)[number],
     ingredients,
     method,
     // Attribution & Source Information

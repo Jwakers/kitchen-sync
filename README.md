@@ -14,6 +14,7 @@
 - [ ] Generate a recipe with recipe schema (parsed with AI)
   - [ ] Save recipe
   - [ ] Edit before saving
+  - [ ] Handle main image
 - [ ] Generate a recipe with scraping
 - [ ] Generate a recipe with copy and pasting
 - [ ] **Ingredient Categories**: Add categorization to ingredients (meat, poultry, vegetable, spice etc) (or extract from an existing external ingredient DB while still allowing custom ingredients)
@@ -29,12 +30,14 @@
 - [ ] Handle my-recipe pagination (limit to 20 per page)
 - [ ] Add client side compression to before uploading images using browser-image-compression
 - [ ] Add a utility function to output image sizes string
+- [ ] On recipe pages add a "Mise en place" section that shows all the preparations steps based on what ingredients have preparation set
 
 ## Major updates
 
 - [ ] Using sharp JS. Set up an endpoint in convex where I can transform images and render them at more appropriate sizes using a custom image loader in next image.
 - [ ] Custom convex endpoint to handle image uploads so I can more readily enforce image upload limits.
 - [ ] Add macros to recipe schema, add a generate macros button that AI does for you. Go back into teh schema scraper and get nutrition data if available
+- [ ] use a KV store or other caching strategy to cache AI parsed recipes to prevent processing more than once.
 
 ---
 
