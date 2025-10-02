@@ -120,6 +120,28 @@ export function MethodSection({
     toast.success("Image removed");
   };
 
+  const handleRemoveStep = (index: number) => {
+    const previewToRemove = imagePreviews[index];
+    if (previewToRemove?.startsWith("blob:")) {
+      URL.revokeObjectURL(previewToRemove);
+    }
+
+    remove(index);
+
+    setImagePreviews((prev) => {
+      const next: Record<number, string | null> = {};
+      Object.entries(prev).forEach(([key, value]) => {
+        const numericKey = Number(key);
+        if (numericKey === index) {
+          return;
+        }
+        const nextKey = numericKey > index ? numericKey - 1 : numericKey;
+        next[nextKey] = value;
+      });
+      return next;
+    });
+  };
+
   // Cleanup blob URLs on unmount
   useEffect(() => {
     return () => {
@@ -258,7 +280,7 @@ export function MethodSection({
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => remove(index)}
+                    onClick={() => handleRemoveStep(index)}
                     className="h-8 w-8 p-0 mt-5"
                   >
                     <Trash2 className="h-4 w-4" />

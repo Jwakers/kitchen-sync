@@ -21,19 +21,15 @@ export const getRecipe = query({
     }
 
     // Convert method step images from storage IDs to URLs
-    let methodWithUrls;
-
-    if (recipe.method && recipe.method.length > 0) {
-      methodWithUrls = await Promise.all(
-        recipe.method.map(async (step) => {
-          if (step.image) {
-            const stepImageUrl = await ctx.storage.getUrl(step.image);
-            return { ...step, imageUrl: stepImageUrl };
-          }
-          return { ...step, imageUrl: undefined };
-        })
-      );
-    }
+    const methodWithUrls = await Promise.all(
+      (recipe.method ?? []).map(async (step) => {
+        if (step.image) {
+          const stepImageUrl = await ctx.storage.getUrl(step.image);
+          return { ...step, imageUrl: stepImageUrl };
+        }
+        return { ...step, imageUrl: undefined };
+      })
+    );
 
     return { ...recipe, image, method: methodWithUrls };
   },
