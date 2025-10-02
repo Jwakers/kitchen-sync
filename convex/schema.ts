@@ -31,7 +31,8 @@ export default defineSchema({
     ingredients: v.optional(
       v.array(
         v.object({
-          ingredientId: v.id("ingredients"),
+          ingredientId: v.optional(v.id("ingredients")),
+          name: v.optional(v.string()),
           amount: v.number(),
           unit: v.optional(unitsUnion),
           preparation: v.optional(preparationUnion),
@@ -41,7 +42,8 @@ export default defineSchema({
     method: v.optional(
       v.array(
         v.object({
-          step: v.string(),
+          title: v.string(),
+          description: v.optional(v.string()),
           image: v.optional(v.id("_storage")),
         })
       )
@@ -56,6 +58,7 @@ export default defineSchema({
 
   ingredients: defineTable({
     name: v.string(),
+    displayName: v.optional(v.string()),
     foodGroup: v.optional(v.string()),
     foodSubGroup: v.optional(v.string()),
     isCustom: v.boolean(),

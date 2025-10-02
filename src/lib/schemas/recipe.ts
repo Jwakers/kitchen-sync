@@ -1,3 +1,4 @@
+import { PREPARATION_OPTIONS, UNITS_FLAT } from "convex/lib/constants";
 import { z } from "zod";
 
 export const recipeSchema = z.object({
@@ -21,9 +22,9 @@ export const recipeSchema = z.object({
   ingredients: z.array(
     z.object({
       name: z.string().min(1, "Ingredient name is required"),
-      amount: z.string().optional(),
-      unit: z.string().optional(),
-      preparation: z.string().optional(),
+      amount: z.number(),
+      unit: z.enum(UNITS_FLAT).optional(),
+      preparation: z.enum(PREPARATION_OPTIONS).optional(),
     })
   ),
   method: z.array(

@@ -10,10 +10,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { api } from "convex/_generated/api";
-import { Id } from "convex/_generated/dataModel";
-import { useQuery } from "convex/react";
-import { ArrowLeft, Edit, Globe, Palette, Pencil } from "lucide-react";
+import { ArrowLeft, Globe, Palette } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { RecipeForm } from "./recipe-form";
@@ -25,15 +22,8 @@ type AddRecipeDrawerProps = {
 
 export function AddRecipeDrawer({ open, onOpenChange }: AddRecipeDrawerProps) {
   const [showForm, setShowForm] = useState(false);
-  const [selectedRecipeId, setSelectedRecipeId] =
-    useState<Id<"recipes"> | null>(null);
-
-  const draftRecipes = useQuery(api.recipes.getDraftRecipes, {
-    cursor: undefined,
-  });
 
   const handleCreateOwn = () => {
-    setSelectedRecipeId(null);
     setShowForm(true);
   };
 
@@ -43,16 +33,8 @@ export function AddRecipeDrawer({ open, onOpenChange }: AddRecipeDrawerProps) {
 
   useEffect(() => {
     if (open) return;
-
     setShowForm(false);
-    setSelectedRecipeId(null);
   }, [open]);
-
-  useEffect(() => {
-    if (selectedRecipeId) {
-      setShowForm(true);
-    }
-  }, [selectedRecipeId]);
 
   if (showForm) {
     return (
@@ -74,10 +56,7 @@ export function AddRecipeDrawer({ open, onOpenChange }: AddRecipeDrawerProps) {
               Fill in the details to create your recipe
             </DrawerDescription>
           </DrawerHeader>
-          <RecipeForm
-            selectedRecipeId={selectedRecipeId}
-            closeDrawer={() => onOpenChange(false)}
-          />
+          <RecipeForm closeDrawer={() => onOpenChange(false)} />
         </DrawerContent>
       </Drawer>
     );
@@ -94,38 +73,6 @@ export function AddRecipeDrawer({ open, onOpenChange }: AddRecipeDrawerProps) {
         </DrawerHeader>
 
         <div className="flex flex-col gap-4 p-4">
-          {draftRecipes?.length ? (
-            <Card className="p-6 text-left">
-              <div className="flex items-center gap-4">
-                <div className="p-3 border border-primary rounded-lg">
-                  <Edit className="h-6 w-6 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-lg">Resume Draft Recipe</h3>
-                  <p className="text-muted-foreground text-sm">
-                    Resume building your draft recipe
-                  </p>
-                  <ul className="mt-4 space-y-1">
-                    {draftRecipes.map((recipe) => (
-                      <li key={recipe._id}>
-                        <button
-                          type="button"
-                          className="p-4 rounded border border-dashed flex justify-between w-full gap-2"
-                          onClick={() => setSelectedRecipeId(recipe._id)}
-                        >
-                          <span className="text-sm font-bold">
-                            {recipe.title}
-                          </span>
-                          <Pencil />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </Card>
-          ) : null}
-
           <button
             onClick={handleCreateOwn}
             type="button"

@@ -11,6 +11,9 @@
 - [ ] Recipe main page
   - [ ] Display ingredients and methods
   - [ ] Edit ingredients and methods
+- [ ] Generate a recipe with copy and pasting
+- [ ] Generate a recipe with scraping
+- [ ] Generate a recipe with recipe schema
 - [ ] **Ingredient Categories**: Add categorization to ingredients (meat, poultry, vegetable, spice etc) (or extract from an existing external ingredient DB while still allowing custom ingredients)
 - [ ] **Recipe Tags**: Auto-detect dietary tags like plant-based, coeliac friendly, gluten free from ingredients
 
@@ -142,6 +145,7 @@
 - [ ] **"Cook with What You Have"**: AI meal planning from available ingredients
 - [ ] **Advanced Meal Planning**: AI-powered weekly meal optimization
 - [ ] **Recipe Recommendations**: Personalized recipe suggestions
+- [ ] **Photograph recipe books**: The app should be able to take the text from recipe books and save them to your recipes
 
 #### Integrations
 
