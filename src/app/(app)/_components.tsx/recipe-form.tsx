@@ -71,7 +71,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
       title: "",
       description: "",
       prepTime: 0,
-      cookTime: 0,
+      cookTime: undefined,
       serves: 0,
       image: undefined,
       ingredients: [],

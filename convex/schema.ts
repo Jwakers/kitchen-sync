@@ -25,7 +25,7 @@ export default defineSchema({
     description: v.optional(v.string()),
     image: v.optional(v.id("_storage")),
     prepTime: v.number(),
-    cookTime: v.number(),
+    cookTime: v.optional(v.number()),
     serves: v.number(),
     category: categoriesUnion,
     ingredients: v.optional(

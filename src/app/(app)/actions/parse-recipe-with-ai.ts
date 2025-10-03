@@ -221,6 +221,7 @@ export type ParsedRecipeForDB = {
   cookTime: number; // in minutes
   serves: number;
   category: (typeof RECIPE_CATEGORIES)[number];
+  imageUrl: string | undefined;
   ingredients: StructuredIngredient[];
   method: Array<{
     title: string;
@@ -233,10 +234,10 @@ export type ParsedRecipeForDB = {
   originalPublishedDate?: string; // Original publication date from source
   // Additional metadata from source
   nutrition?: {
-    calories?: string;
-    protein?: string;
-    fat?: string;
-    carbohydrates?: string;
+    calories?: number; // in grams
+    protein?: number; // in grams
+    fat?: number; // in grams
+    carbohydrates?: number; // in grams
   };
   rating?: {
     value?: string | number; // Rating value (e.g., 4.8)
@@ -269,6 +270,109 @@ function parseServings(recipeYield?: string): number {
 
   const match = recipeYield.match(/(\d+)/);
   return match ? parseInt(match[1]) : 4;
+}
+
+/**
+ * Parses nutrition values to integers representing grams
+ * Handles ranges, unit conversions, and unclear values with best judgment
+ * Examples:
+ * - "20g" -> 20
+ * - "1500mg" -> 2 (rounded up from 1.5g)
+ * - "10-15g" -> 15 (higher value)
+ * - "100-500mg" -> 2 (middle value for high range, rounded up)
+ * - "300 calories" -> 300
+ * - "0.5g" -> 1 (rounded up)
+ */
+function parseNutritionValue(value?: string): number | undefined {
+  if (!value) return undefined;
+
+  // Remove whitespace and convert to lowercase for easier parsing
+  const normalized = value.toLowerCase().trim();
+
+  // Extract numeric values and units
+  // Pattern matches: number (with optional decimal) followed by optional unit
+  // Also handles ranges like "10-15g" or "100-200 mg"
+  const rangeMatch = normalized.match(
+    /(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s*(mg|g|gram|grams|milligram|milligrams)?/
+  );
+
+  if (rangeMatch) {
+    const low = parseFloat(rangeMatch[1]);
+    const high = parseFloat(rangeMatch[2]);
+    const unit = rangeMatch[3];
+
+    // Determine if it's a high range (difference > 100 for mg, > 10 for g)
+    const isHighRange = unit?.startsWith("m")
+      ? high - low > 100
+      : high - low > 10;
+
+    // Take higher value, or middle value for high ranges
+    let valueInUnit = isHighRange ? (low + high) / 2 : high;
+
+    // Convert to grams if needed
+    if (unit?.startsWith("m")) {
+      // milligrams to grams
+      valueInUnit = valueInUnit / 1000;
+    }
+
+    // Round up to nearest integer
+    return Math.ceil(valueInUnit);
+  }
+
+  // Single value match
+  const singleMatch = normalized.match(
+    /(\d+(?:\.\d+)?)\s*(mg|g|gram|grams|milligram|milligrams|calorie|calories|cal|kcal)?/
+  );
+
+  if (singleMatch) {
+    let numericValue = parseFloat(singleMatch[1]);
+    const unit = singleMatch[2];
+
+    // Convert to grams based on unit
+    if (unit?.startsWith("m")) {
+      // milligrams to grams
+      numericValue = numericValue / 1000;
+    }
+    // For calories and kcal, keep as-is (already in the right unit)
+    // For grams or no unit specified, keep as-is
+
+    // Round up to nearest integer (since we store as integers representing grams)
+    return Math.ceil(numericValue);
+  }
+
+  // If we can't parse it, return undefined
+  return undefined;
+}
+
+/**
+ * Parses nutrition object from string values to integer values (grams)
+ */
+function parseNutritionData(nutrition?: {
+  calories?: string;
+  protein?: string;
+  fat?: string;
+  carbohydrates?: string;
+}): ParsedRecipeForDB["nutrition"] {
+  if (!nutrition) return undefined;
+
+  const parsed = {
+    calories: parseNutritionValue(nutrition.calories),
+    protein: parseNutritionValue(nutrition.protein),
+    fat: parseNutritionValue(nutrition.fat),
+    carbohydrates: parseNutritionValue(nutrition.carbohydrates),
+  };
+
+  // Only return the object if at least one value was parsed
+  if (
+    parsed.calories === undefined &&
+    parsed.protein === undefined &&
+    parsed.fat === undefined &&
+    parsed.carbohydrates === undefined
+  ) {
+    return undefined;
+  }
+
+  return parsed;
 }
 
 /**
@@ -363,6 +467,13 @@ For ingredients:
 - Identify preparation method from available options (or omit if none matches)
 - Remove parenthetical notes like "(28 ounce)" from the name
 - Remove trailing text like "divided", "or to taste", "optional"
+
+For nutrition information (if available in the recipe data):
+- Values should be returned as integers representing grams (for protein, fat, carbs) or units (for calories)
+- If a range is present (e.g., "10-15g"), use the higher value or middle value if it's a wide range
+- Convert units as needed (e.g., mg to g: divide by 1000)
+- If nutrition values are unclear or missing, use your best judgment based on typical values for this type of recipe accounting for ingredients used
+- Round up to the nearest whole number
 
 For category:
 - Choose ONE category from the available categories that best fits this recipe
@@ -478,6 +589,7 @@ export async function parseRecipeWithAI(
     cookTime: parseDuration(schema.cookTime),
     serves: parseServings(schema.recipeYield),
     category: category as (typeof RECIPE_CATEGORIES)[number],
+    imageUrl: schema.image,
     ingredients,
     method,
     // Attribution & Source Information
@@ -485,8 +597,8 @@ export async function parseRecipeWithAI(
     originalAuthor: schema.author,
     importedAt: Date.now(), // Current timestamp when recipe is imported
     originalPublishedDate: schema.datePublished,
-    // Additional metadata
-    nutrition: schema.nutrition,
+    // Additional metadata - parse nutrition values to integers (grams)
+    nutrition: parseNutritionData(schema.nutrition),
     rating: schema.aggregateRating
       ? {
           value: schema.aggregateRating.ratingValue,

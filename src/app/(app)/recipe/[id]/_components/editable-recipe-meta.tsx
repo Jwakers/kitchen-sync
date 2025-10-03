@@ -40,7 +40,7 @@ export function EditableRecipeMeta({
   const prepTime = form.watch("prepTime");
   const cookTime = form.watch("cookTime");
   const totalTime =
-    (prepTime ?? recipe.prepTime) + (cookTime ?? recipe.cookTime);
+    (prepTime ?? recipe.prepTime ?? 0) + (cookTime ?? recipe.cookTime ?? 0);
 
   return (
     <Card className="mb-6">

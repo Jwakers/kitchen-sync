@@ -29,7 +29,7 @@ function RecipeCard({
 }: {
   recipe: FunctionReturnType<typeof api.recipes.getAllUserRecipes>[number];
 }) {
-  const totalTime = recipe.prepTime + recipe.cookTime;
+  const totalTime = (recipe.prepTime ?? 0) + (recipe.cookTime ?? 0);
   const categoryLabel = titleCase(recipe.category);
   const categoryColor = CATEGORY_COLORS[recipe.category];
 
