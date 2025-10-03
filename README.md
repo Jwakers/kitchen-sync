@@ -16,6 +16,9 @@
   - [x] Edit before saving
   - [x] Handle main image
   - [x] Data parser should be aware nutrition values should be returns as integers that represent gram values. So some conversion may be needed.
+- [ ] Production deployment and PWA
+  - [ ] Set up on Vercel
+  - [ ] Set up clerk and convex prod deployments (including clerk webhook)
 - [ ] Generate a recipe with copy and pasting (fallback if first method fails)
 - [ ] Generate a recipe with scraping (fallback if first method fails)
 - [ ] **Ingredient Categories**: Add categorization to ingredients (meat, poultry, vegetable, spice etc) (or extract from an existing external ingredient DB while still allowing custom ingredients)
@@ -40,6 +43,7 @@
 - [ ] On recipe pages add a "Mise en place" section that shows all the preparations steps based on what ingredients have preparation set
 - [ ] Update the UI for selecting units and prep to show categories and share across all forms. Use a categorised table like display
 - [ ] Set recipe to draft or publish (users should be notified what this means. Published does not mean public, users in your house can see your recipes etc. This should be globally saved information so its easy to update)
+- [ ] Sign in / Sign up pages should respect dark mode as well as looking a bit more native to the site
 
 ## Major updates
 
@@ -72,14 +76,14 @@
 
 #### Recipe Management
 
-- [ ] **Recipe CRUD Operations**: Connect existing recipe form to Convex mutations (create, read, update, delete)
-- [ ] **Recipe List View**: Display user's recipes in dashboard with search and category filtering
-- [ ] **Recipe Detail View**: Full recipe display with ingredients, method, and photos
-- [ ] **Recipe Image Upload**: Integrate Convex file storage for recipe photos
-- [ ] **Recipe Categories**: Enable filtering by existing categories (main, dessert, snack, etc.)
+- [x] **Recipe CRUD Operations**: Connect existing recipe form to Convex mutations (create, read, update, delete)
+- [x] **Recipe List View**: Display user's recipes in dashboard with search and category filtering
+- [x] **Recipe Detail View**: Full recipe display with ingredients, method, and photos
+- [x] **Recipe Image Upload**: Integrate Convex file storage for recipe photos
+- [x] **Recipe Categories**: Enable filtering by existing categories (main, dessert, snack, etc.)
 - [ ] **Recipe Tags**: Auto-detect dietary tags like plant-based, coeliac friendly, gluten free from ingredients
 - [ ] **Ingredient Categories**: Add categorization to ingredients (meat, poultry, vegetable, spice etc) (or extract from an existing external ingredient DB while still allowing custom ingredients)
-- [ ] **AI Recipe Import**: Build URL scraping or text parsing for importing recipes from websites
+- [x] **AI Recipe Import**: Build URL scraping or text parsing for importing recipes from websites
 
 #### Shopping List System
 
