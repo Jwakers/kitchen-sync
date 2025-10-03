@@ -28,6 +28,7 @@
 ## Tech debt
 
 - [ ] Consolidate how ingredients, method and nutrition data is rendered
+- [ ] Consolidate how cook time/serves/prep looks
 - [ ] Consolidate form schemas
 
 ## Minor updates
@@ -38,6 +39,7 @@
 - [ ] Add a utility function to output image sizes string
 - [ ] On recipe pages add a "Mise en place" section that shows all the preparations steps based on what ingredients have preparation set
 - [ ] Update the UI for selecting units and prep to show categories and share across all forms. Use a categorised table like display
+- [ ] Set recipe to draft or publish (users should be notified what this means. Published does not mean public, users in your house can see your recipes etc. This should be globally saved information so its easy to update)
 
 ## Major updates
 

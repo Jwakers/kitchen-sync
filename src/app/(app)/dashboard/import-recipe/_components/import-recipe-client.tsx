@@ -1,5 +1,6 @@
 "use client";
 
+import { fetchImageServerSide } from "@/app/(app)/actions/fetch-image";
 import { getRecipeSchema } from "@/app/(app)/actions/get-recipe-schema";
 import {
   ParsedRecipeForDB,
@@ -229,41 +230,35 @@ export function ImportRecipeClient() {
     recipeId: Id<"recipes">,
     imageUrl: string
   ) => {
-    try {
-      // Strip URL params
-      const url = new URL(imageUrl);
-      if (url.protocol !== "https:") {
-        throw new Error("Invalid image URL");
-      }
+    // Fetch image server-side to bypass CORS
+    const result = await fetchImageServerSide(imageUrl);
 
-      const response = await fetch(`${url.origin}${url.pathname}`);
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch image: ${response.statusText}`);
-      }
-
-      const blob = await response.blob();
-
-      const postUrl = await generateUploadUrl();
-
-      const ac = new AbortController();
-      const t = setTimeout(() => ac.abort(), 30_000);
-      const result = await fetch(postUrl, {
-        method: "POST",
-        headers: { "Content-Type": blob.type },
-        body: blob,
-        signal: ac.signal,
-      }).finally(() => clearTimeout(t));
-
-      const { storageId } = await result.json();
-
-      await updateRecipeImage({
-        recipeId,
-        storageId,
-      });
-    } catch (error) {
-      console.error(error);
+    if (!result.success || !result.data || !result.contentType) {
+      throw new Error(result.error || "Failed to fetch image");
     }
+
+    // Convert data URL to blob
+    const response = await fetch(result.data);
+    const blob = await response.blob();
+
+    // Upload to Convex
+    const postUrl = await generateUploadUrl();
+
+    const ac = new AbortController();
+    const t = setTimeout(() => ac.abort(), 30_000);
+    const uploadResult = await fetch(postUrl, {
+      method: "POST",
+      headers: { "Content-Type": result.contentType },
+      body: blob,
+      signal: ac.signal,
+    }).finally(() => clearTimeout(t));
+
+    const { storageId } = await uploadResult.json();
+
+    await updateRecipeImage({
+      recipeId,
+      storageId,
+    });
   };
 
   const isLoading = loadingStage !== "idle" && loadingStage !== "complete";
