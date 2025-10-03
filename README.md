@@ -11,19 +11,25 @@
 - [x] Recipe main page
   - [x] Display ingredients and methods
   - [x] Edit ingredients and methods
-- [ ] Generate a recipe with recipe schema (parsed with AI)
+- [x] Generate a recipe with recipe schema (parsed with AI)
   - [x] Save recipe
   - [x] Edit before saving
-  - [ ] Handle main image
-  - [ ] Data parser should be aware nutrition values should be returns as integers that represent gram values. So some conversion may be needed.
-- [ ] Generate a recipe with scraping
-- [ ] Generate a recipe with copy and pasting
+  - [x] Handle main image
+  - [x] Data parser should be aware nutrition values should be returns as integers that represent gram values. So some conversion may be needed.
+- [ ] Generate a recipe with copy and pasting (fallback if first method fails)
+- [ ] Generate a recipe with scraping (fallback if first method fails)
 - [ ] **Ingredient Categories**: Add categorization to ingredients (meat, poultry, vegetable, spice etc) (or extract from an existing external ingredient DB while still allowing custom ingredients)
 - [ ] **Recipe Tags**: Auto-detect dietary tags like plant-based, coeliac friendly, gluten free from ingredients
 
 ## 🐛 Bug Tracking
 
 <!-- Add bugs here as you encounter them -->
+
+## Tech debt
+
+- [ ] Consolidate how ingredients, method and nutrition data is rendered
+- [ ] Consolidate how cook time/serves/prep looks
+- [ ] Consolidate form schemas
 
 ## Minor updates
 
@@ -33,6 +39,7 @@
 - [ ] Add a utility function to output image sizes string
 - [ ] On recipe pages add a "Mise en place" section that shows all the preparations steps based on what ingredients have preparation set
 - [ ] Update the UI for selecting units and prep to show categories and share across all forms. Use a categorised table like display
+- [ ] Set recipe to draft or publish (users should be notified what this means. Published does not mean public, users in your house can see your recipes etc. This should be globally saved information so its easy to update)
 
 ## Major updates
 
@@ -40,6 +47,7 @@
 - [ ] Custom convex endpoint to handle image uploads so I can more readily enforce image upload limits.
 - [ ] Add macros to recipe schema, add a generate macros button that AI does for you. Go back into teh schema scraper and get nutrition data if available
 - [ ] use a KV store or other caching strategy to cache AI parsed recipes to prevent processing more than once.
+- [ ] AI image upscaler for poor quality images (PRO feature)
 
 ---
 

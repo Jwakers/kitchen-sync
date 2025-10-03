@@ -58,10 +58,10 @@ export function EditImportedRecipe({
       method: recipe.method,
       nutrition: recipe.nutrition
         ? {
-            calories: recipe.nutrition.calories || "",
-            protein: recipe.nutrition.protein || "",
-            fat: recipe.nutrition.fat || "",
-            carbohydrates: recipe.nutrition.carbohydrates || "",
+            calories: recipe.nutrition.calories,
+            protein: recipe.nutrition.protein,
+            fat: recipe.nutrition.fat,
+            carbohydrates: recipe.nutrition.carbohydrates,
           }
         : undefined,
     },

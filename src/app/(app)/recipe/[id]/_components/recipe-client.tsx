@@ -15,6 +15,7 @@ import { DeleteRecipeDialog } from "./delete-recipe-dialog";
 import { EditableRecipeMeta } from "./editable-recipe-meta";
 import { IngredientsSection } from "./ingredients-section";
 import { MethodSection } from "./method-section";
+import { NutritionSection } from "./nutrition-section";
 import { RecipeHeader } from "./recipe-header";
 import { RecipeLoading } from "./recipe-loading";
 import { RecipeNotFound } from "./recipe-not-found";
@@ -42,7 +43,7 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
       title: "",
       description: "",
       prepTime: 0,
-      cookTime: 0,
+      cookTime: undefined,
       serves: 0,
       category: "main",
       ingredients: [],
@@ -147,6 +148,8 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
                 onCancel={handleCancelEdit}
               />
             )}
+
+            {!isEditMode && <NutritionSection recipe={recipe} />}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <IngredientsSection

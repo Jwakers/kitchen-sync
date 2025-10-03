@@ -10,7 +10,7 @@ export const importedRecipeSchema = z.object({
   title: z.string().min(1, "Recipe title is required"),
   description: z.string().optional(),
   prepTime: z.number().min(1, "Prep time must be at least 1 minute"),
-  cookTime: z.number().min(1, "Cook time must be at least 1 minute"),
+  cookTime: z.number().min(0, "Cook time must be 0 or greater").optional(),
   serves: z.number().min(1, "Must serve at least 1 person"),
   category: z.enum(RECIPE_CATEGORIES, {
     error: "Please select a valid category",
@@ -35,16 +35,17 @@ export const importedRecipeSchema = z.object({
     .min(1, "Must have at least 1 method step"),
   nutrition: z
     .object({
-      calories: z.string().optional(),
-      protein: z.string().optional(),
-      fat: z.string().optional(),
-      carbohydrates: z.string().optional(),
+      calories: z.number().int().optional(),
+      protein: z.number().int().optional(),
+      fat: z.number().int().optional(),
+      carbohydrates: z.number().int().optional(),
     })
     .optional(),
   // Source metadata fields - passed through but not editable by user
   originalUrl: z.string().optional(),
   originalAuthor: z.string().optional(),
   originalPublishedDate: z.string().optional(),
+  imageUrl: z.string().optional(),
 });
 
 export type ImportedRecipeFormData = z.infer<typeof importedRecipeSchema>;

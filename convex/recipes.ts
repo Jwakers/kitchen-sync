@@ -110,7 +110,7 @@ export const createDraftRecipe = mutation({
       userId: user._id,
       title: "",
       prepTime: 0,
-      cookTime: 0,
+      cookTime: undefined,
       serves: 0,
       category: "main",
       updatedAt: Date.now(),
@@ -126,7 +126,7 @@ export const createRecipe = mutation({
     title: v.string(),
     description: v.optional(v.string()),
     prepTime: v.number(),
-    cookTime: v.number(),
+    cookTime: v.optional(v.number()),
     serves: v.number(),
     category: categoriesUnion,
     ingredients: v.array(
@@ -351,10 +351,15 @@ const _validateRecipe = (recipe: Doc<"recipes">) => {
     });
   }
 
-  if (!recipe.cookTime || recipe.cookTime < 1) {
+  // cookTime is optional, but if provided must be >= 0
+  if (
+    recipe.cookTime !== undefined &&
+    recipe.cookTime !== null &&
+    recipe.cookTime < 0
+  ) {
     errors.push({
       field: "cookTime",
-      message: "Cook time must be at least 1 minute",
+      message: "Cook time must be 0 or greater",
     });
   }
 
