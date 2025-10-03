@@ -19,7 +19,7 @@ export async function fetchImageServerSide(imageUrl: string): Promise<{
 
     // Fetch image from external site
     // Server-side fetch doesn't have CORS restrictions
-    const response = await fetch(`${url.origin}${url.pathname}`, {
+    const response = await fetch(url.toString(), {
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",

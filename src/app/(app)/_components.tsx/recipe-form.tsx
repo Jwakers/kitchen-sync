@@ -391,9 +391,12 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                             type="number"
                             placeholder="15"
                             {...field}
-                            onChange={(e) =>
-                              field.onChange(Number(e.target.value))
-                            }
+                            onChange={(e) => {
+                              const { value } = e.target;
+                              field.onChange(
+                                value === "" ? undefined : Number(value)
+                              );
+                            }}
                           />
                         </FormControl>
                         <FormMessage />
@@ -1010,10 +1013,12 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                     <span className="text-muted-foreground">Prep:</span>{" "}
                     {formValues.prepTime} min
                   </div>
-                  <div>
-                    <span className="text-muted-foreground">Cook:</span>{" "}
-                    {formValues.cookTime} min
-                  </div>
+                  {formValues.cookTime ? (
+                    <div>
+                      <span className="text-muted-foreground">Cook:</span>{" "}
+                      {formValues.cookTime} min
+                    </div>
+                  ) : null}
                   <div>
                     <span className="text-muted-foreground">Serves:</span>{" "}
                     {formValues.serves}
