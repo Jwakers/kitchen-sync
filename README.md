@@ -15,6 +15,7 @@
   - [ ] Save recipe
   - [ ] Edit before saving
   - [ ] Handle main image
+  - [ ] Data parser should be aware nutrition values should be returns as integers that represent gram values. So some conversion may be needed.
 - [ ] Generate a recipe with scraping
 - [ ] Generate a recipe with copy and pasting
 - [ ] **Ingredient Categories**: Add categorization to ingredients (meat, poultry, vegetable, spice etc) (or extract from an existing external ingredient DB while still allowing custom ingredients)

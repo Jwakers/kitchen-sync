@@ -1,4 +1,5 @@
 import { ConvexError, v } from "convex/values";
+import { Doc } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
 import { categoriesUnion, preparationUnion, unitsUnion } from "./schema";
 import { getCurrentUser, getCurrentUserOrThrow } from "./users";
@@ -145,15 +146,14 @@ export const createRecipe = mutation({
     ),
     nutrition: v.optional(
       v.object({
-        calories: v.optional(v.string()),
-        protein: v.optional(v.string()),
-        fat: v.optional(v.string()),
-        carbohydrates: v.optional(v.string()),
+        calories: v.optional(v.number()),
+        protein: v.optional(v.number()),
+        fat: v.optional(v.number()),
+        carbohydrates: v.optional(v.number()),
       })
     ),
     originalUrl: v.optional(v.string()),
     originalAuthor: v.optional(v.string()),
-    importedAt: v.optional(v.number()),
     originalPublishedDate: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -167,19 +167,20 @@ export const createRecipe = mutation({
         allIngredients.map((ing) => [ing.name.trim().toLowerCase(), ing._id])
       );
 
-      ingredients = await Promise.all(
-        ingredients.map((ing) => {
-          const ingredientId = ingredientMap.get(ing.name.trim().toLowerCase());
+      ingredients = ingredients.map((ing) => {
+        const ingredientId = ingredientMap.get(ing.name.trim().toLowerCase());
 
-          return {
-            ...ing,
-            ingredientId,
-          };
-        })
-      );
+        return {
+          ...ing,
+          ingredientId,
+        };
+      });
     }
 
     const now = Date.now();
+    const originalPublishedDate = args.originalPublishedDate
+      ? new Date(args.originalPublishedDate).getTime()
+      : undefined;
 
     const recipeId = await ctx.db.insert("recipes", {
       userId: user._id,
@@ -195,12 +196,23 @@ export const createRecipe = mutation({
       originalUrl: args.originalUrl,
       originalAuthor: args.originalAuthor,
       importedAt: args.originalUrl ? now : undefined,
-      originalPublishedDate: args.originalPublishedDate,
+      originalPublishedDate,
       updatedAt: now,
+      status: "draft",
+    });
+
+    const recipe = await ctx.db.get(recipeId);
+    if (!recipe) throw new ConvexError("Recipe not found");
+
+    const errors = _validateRecipe(recipe);
+
+    if (errors.length > 0) return { recipeId, errors, published: false };
+
+    await ctx.db.patch(recipe._id, {
       status: "published",
     });
 
-    return { recipeId, error: null };
+    return { recipeId, errors: null, published: true };
   },
 });
 
@@ -307,6 +319,71 @@ export const updateRecipe = mutation({
   },
 });
 
+const _validateRecipe = (recipe: Doc<"recipes">) => {
+  const errors: {
+    field:
+      | "title"
+      | "prepTime"
+      | "cookTime"
+      | "serves"
+      | "category"
+      | "ingredients"
+      | "method";
+    message: string;
+  }[] = [];
+
+  if (!recipe.title) {
+    errors.push({
+      field: "title",
+      message: "Title is required",
+    });
+  }
+
+  if (!recipe.prepTime || recipe.prepTime < 1) {
+    errors.push({
+      field: "prepTime",
+      message: "Prep time must be at least 1 minute",
+    });
+  }
+
+  if (!recipe.cookTime || recipe.cookTime < 1) {
+    errors.push({
+      field: "cookTime",
+      message: "Cook time must be at least 1 minute",
+    });
+  }
+
+  if (!recipe.serves || recipe.serves < 1) {
+    errors.push({
+      field: "serves",
+      message: "Must serve at least 1 person",
+    });
+  }
+
+  if (!recipe.category) {
+    errors.push({
+      field: "category",
+      message: "Category is required",
+    });
+  }
+
+  if (!recipe.ingredients || recipe.ingredients.length === 0) {
+    errors.push({
+      field: "ingredients",
+      message: "Must have at least 1 ingredient",
+    });
+  }
+
+  if (!recipe.method || recipe.method.length === 0) {
+    errors.push({
+      field: "method",
+      message: "Must have at least 1 method step",
+    });
+  }
+
+  return errors;
+};
+
 export const publishRecipe = mutation({
   args: {
     recipeId: v.id("recipes"),
@@ -322,66 +399,7 @@ export const publishRecipe = mutation({
       throw new ConvexError("Unauthorized");
     }
 
-    const errors: {
-      field:
-        | "title"
-        | "prepTime"
-        | "cookTime"
-        | "serves"
-        | "category"
-        | "ingredients"
-        | "method";
-      message: string;
-    }[] = [];
-
-    if (!recipe.title) {
-      errors.push({
-        field: "title",
-        message: "Title is required",
-      });
-    }
-
-    if (!recipe.prepTime || recipe.prepTime < 1) {
-      errors.push({
-        field: "prepTime",
-        message: "Prep time must be at least 1 minute",
-      });
-    }
-
-    if (!recipe.cookTime || recipe.cookTime < 1) {
-      errors.push({
-        field: "cookTime",
-        message: "Cook time must be at least 1 minute",
-      });
-    }
-
-    if (!recipe.serves || recipe.serves < 1) {
-      errors.push({
-        field: "serves",
-        message: "Must serve at least 1 person",
-      });
-    }
-
-    if (!recipe.category) {
-      errors.push({
-        field: "category",
-        message: "Category is required",
-      });
-    }
-
-    if (!recipe.ingredients || recipe.ingredients.length === 0) {
-      errors.push({
-        field: "ingredients",
-        message: "Must have at least 1 ingredient",
-      });
-    }
-
-    if (!recipe.method || recipe.method.length === 0) {
-      errors.push({
-        field: "method",
-        message: "Must have at least 1 method step",
-      });
-    }
+    const errors = _validateRecipe(recipe);
 
     if (errors.length > 0) return { errors, success: false };
 

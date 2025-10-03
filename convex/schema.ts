@@ -54,13 +54,13 @@ export default defineSchema({
     originalUrl: v.optional(v.string()), // URL where recipe was imported from
     originalAuthor: v.optional(v.string()), // Original recipe author/creator
     importedAt: v.optional(v.number()), // Timestamp when recipe was imported
-    originalPublishedDate: v.optional(v.string()), // Original publication date from source
+    originalPublishedDate: v.optional(v.number()), // Original publication date from source
     nutrition: v.optional(
       v.object({
-        calories: v.optional(v.string()),
-        protein: v.optional(v.string()),
-        fat: v.optional(v.string()),
-        carbohydrates: v.optional(v.string()),
+        calories: v.optional(v.number()),
+        protein: v.optional(v.number()),
+        fat: v.optional(v.number()),
+        carbohydrates: v.optional(v.number()),
       })
     ),
   })

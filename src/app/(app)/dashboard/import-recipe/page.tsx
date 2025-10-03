@@ -26,6 +26,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 type LoadingStage = "idle" | "fetching" | "categorising" | "complete";
 
@@ -125,7 +126,25 @@ export default function ImportRecipePage() {
 
     try {
       setIsSaving(true);
-      const { recipeId, error } = await createRecipeMutation({
+      // TODO: Data parser should be aware these should be returns as integers that represent gram values. So some conversion may be needed.
+      const nutrition = parsedRecipe.nutrition
+        ? {
+            calories: parsedRecipe.nutrition.calories
+              ? parseInt(parsedRecipe.nutrition.calories)
+              : undefined,
+            protein: parsedRecipe.nutrition.protein
+              ? parseInt(parsedRecipe.nutrition.protein)
+              : undefined,
+            fat: parsedRecipe.nutrition.fat
+              ? parseInt(parsedRecipe.nutrition.fat)
+              : undefined,
+            carbohydrates: parsedRecipe.nutrition.carbohydrates
+              ? parseInt(parsedRecipe.nutrition.carbohydrates)
+              : undefined,
+          }
+        : undefined;
+
+      const { recipeId, published } = await createRecipeMutation({
         title: parsedRecipe.title,
         description: parsedRecipe.description,
         prepTime: parsedRecipe.prepTime,
@@ -134,15 +153,20 @@ export default function ImportRecipePage() {
         category: parsedRecipe.category,
         ingredients: parsedRecipe.ingredients,
         method: parsedRecipe.method,
-        nutrition: parsedRecipe.nutrition,
+        nutrition,
         originalUrl: parsedRecipe.originalUrl,
         originalAuthor: parsedRecipe.originalAuthor,
-        importedAt: parsedRecipe.importedAt,
         originalPublishedDate: parsedRecipe.originalPublishedDate,
       });
-      if (error) {
-        throw new Error(error);
+
+      if (!published) {
+        toast.info("There were some issues with the recipe", {
+          description:
+            "It has been saved as a draft. You can edit it and publish it later.",
+        });
+        return;
       }
+
       setSavedRecipeId(recipeId);
       setIsSaved(true);
     } catch (error) {
