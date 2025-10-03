@@ -178,9 +178,14 @@ export const createRecipe = mutation({
     }
 
     const now = Date.now();
-    const originalPublishedDate = args.originalPublishedDate
-      ? new Date(args.originalPublishedDate).getTime()
-      : undefined;
+    let originalPublishedDate: number | undefined;
+    if (args.originalPublishedDate) {
+      const parsedDate = new Date(args.originalPublishedDate);
+      if (isNaN(parsedDate.getTime())) {
+        throw new ConvexError("Invalid originalPublishedDate format");
+      }
+      originalPublishedDate = parsedDate.getTime();
+    }
 
     const recipeId = await ctx.db.insert("recipes", {
       userId: user._id,
@@ -374,11 +379,41 @@ const _validateRecipe = (recipe: Doc<"recipes">) => {
     });
   }
 
+  if (recipe.ingredients) {
+    for (let i = 0; i < recipe.ingredients.length; i++) {
+      const ing = recipe.ingredients[i];
+      if (!ing.name || ing.name.trim() === "") {
+        errors.push({
+          field: "ingredients",
+          message: `Ingredient ${i + 1} must have a name`,
+        });
+      }
+      if (!ing.amount || ing.amount <= 0) {
+        errors.push({
+          field: "ingredients",
+          message: `Ingredient ${i + 1} must have a positive amount`,
+        });
+      }
+    }
+  }
+
   if (!recipe.method || recipe.method.length === 0) {
     errors.push({
       field: "method",
       message: "Must have at least 1 method step",
     });
+  }
+
+  if (recipe.method) {
+    for (let i = 0; i < recipe.method.length; i++) {
+      const step = recipe.method[i];
+      if (!step.title || step.title.trim() === "") {
+        errors.push({
+          field: "method",
+          message: `Method step ${i + 1} must have a title`,
+        });
+      }
+    }
   }
 
   return errors;
