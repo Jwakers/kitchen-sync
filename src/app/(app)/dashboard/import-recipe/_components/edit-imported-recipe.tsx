@@ -170,7 +170,14 @@ export function EditImportedRecipe({
                         type="number"
                         placeholder="15"
                         {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        value={field.value ?? ""}
+                        onBlur={(e) =>
+                          field.onChange(
+                            e.target.value === ""
+                              ? undefined
+                              : Number(e.target.value)
+                          )
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -188,7 +195,14 @@ export function EditImportedRecipe({
                         type="number"
                         placeholder="30"
                         {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        value={field.value ?? ""}
+                        onBlur={(e) =>
+                          field.onChange(
+                            e.target.value === ""
+                              ? undefined
+                              : Number(e.target.value)
+                          )
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -206,7 +220,14 @@ export function EditImportedRecipe({
                         type="number"
                         placeholder="4"
                         {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        value={field.value ?? ""}
+                        onBlur={(e) =>
+                          field.onChange(
+                            e.target.value === ""
+                              ? undefined
+                              : Number(e.target.value)
+                          )
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -313,10 +334,14 @@ export function EditImportedRecipe({
                                   type="number"
                                   placeholder="Amount"
                                   {...field}
-                                  onChange={(e) => {
-                                    const v = Number(e.target.value);
-                                    field.onChange(v);
-                                  }}
+                                  value={field.value ?? ""}
+                                  onBlur={(e) =>
+                                    field.onChange(
+                                      e.target.value === ""
+                                        ? undefined
+                                        : Number(e.target.value)
+                                    )
+                                  }
                                 />
                               </FormControl>
                               <FormMessage />

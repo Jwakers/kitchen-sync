@@ -526,7 +526,7 @@ function RecipePreview({
           </div>
         </AlertTitle>
         <AlertDescription>
-          You can add components and dependencies to your app using the cli.
+          Review the imported recipe below and make any changes before saving.
         </AlertDescription>
       </Alert>
 
