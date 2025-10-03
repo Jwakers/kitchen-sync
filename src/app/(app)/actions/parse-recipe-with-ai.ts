@@ -53,13 +53,31 @@ function validateUnit(unit?: string): (typeof UNITS_FLAT)[number] | undefined {
     return normalized as (typeof UNITS_FLAT)[number];
   }
 
-  // Common variations
+  // Common variations and plural forms
   const unitMap: Record<string, (typeof UNITS_FLAT)[number]> = {
+    // Volume
     cup: "cups",
     teaspoon: "tsp",
     teaspoons: "tsp",
     tablespoon: "tbsp",
     tablespoons: "tbsp",
+    "fluid ounce": "fl oz",
+    "fluid ounces": "fl oz",
+    gallon: "gal",
+    gallons: "gal",
+    milliliter: "ml",
+    milliliters: "ml",
+    millilitre: "ml",
+    millilitres: "ml",
+    liter: "l",
+    liters: "l",
+    litre: "l",
+    litres: "l",
+    pint: "pt",
+    pints: "pt",
+    quart: "qt",
+    quarts: "qt",
+    // Weight
     pound: "lbs",
     pounds: "lbs",
     lb: "lbs",
@@ -67,14 +85,55 @@ function validateUnit(unit?: string): (typeof UNITS_FLAT)[number] | undefined {
     ounces: "oz",
     gram: "g",
     grams: "g",
+    gramme: "g",
+    grammes: "g",
     kilogram: "kg",
     kilograms: "kg",
-    milliliter: "ml",
-    milliliters: "ml",
-    liter: "l",
-    liters: "l",
-    gallon: "gal",
-    gallons: "gal",
+    kilogramme: "kg",
+    kilogrammes: "kg",
+    milligram: "mg",
+    milligrams: "mg",
+    // Count
+    pinches: "pinch",
+    dashes: "dash",
+    handfuls: "handful",
+    drops: "drop",
+    // Abstract/Items
+    pieces: "piece",
+    pcs: "piece",
+    pc: "piece",
+    cloves: "clove",
+    slices: "slice",
+    sheets: "sheet",
+    sprigs: "sprig",
+    stalks: "stalk",
+    stems: "stem",
+    heads: "head",
+    bunches: "bunch",
+    bulbs: "bulb",
+    wedges: "wedge",
+    cubes: "cube",
+    strips: "strip",
+    fillets: "fillet",
+    leaves: "leaf",
+    cans: "can",
+    jars: "jar",
+    packets: "packet",
+    pkts: "packet",
+    packages: "package",
+    pkgs: "package",
+    containers: "container",
+    bottles: "bottle",
+    bags: "bag",
+    boxes: "box",
+    loaves: "loaf",
+    sticks: "stick",
+    squares: "square",
+    rounds: "round",
+    breasts: "breast",
+    thighs: "thigh",
+    legs: "leg",
+    racks: "rack",
   };
 
   return unitMap[normalized];
@@ -93,7 +152,65 @@ function validatePreparation(
     return normalized as (typeof PREPARATION_OPTIONS)[number];
   }
 
-  return undefined;
+  // Common variations
+  const prepMap: Record<string, (typeof PREPARATION_OPTIONS)[number]> = {
+    chop: "chopped",
+    "finely chop": "finely chopped",
+    "roughly chop": "roughly chopped",
+    dice: "diced",
+    "finely dice": "finely diced",
+    slice: "sliced",
+    "thinly slice": "thinly sliced",
+    "thickly slice": "thickly sliced",
+    julienne: "julienned",
+    mince: "minced",
+    grate: "grated",
+    "finely grate": "finely grated",
+    shred: "shredded",
+    cube: "cubed",
+    quarter: "quartered",
+    halve: "halved",
+    crush: "crushed",
+    mash: "mashed",
+    puree: "pureed",
+    beat: "beaten",
+    whip: "whipped",
+    fold: "folded",
+    knead: "kneaded",
+    roll: "rolled",
+    press: "pressed",
+    strain: "strained",
+    drain: "drained",
+    rinse: "rinsed",
+    peel: "peeled",
+    trim: "trimmed",
+    seed: "seeded",
+    core: "cored",
+    stem: "stemmed",
+    zest: "zested",
+    debone: "de-boned",
+    "de-bone": "de-boned",
+    fillet: "filleted",
+    butterfly: "butterflied",
+    blanch: "blanched",
+    toast: "toasted",
+    roast: "roasted",
+    caramelize: "caramelized",
+    caramelise: "caramelized",
+    sauté: "sautéed",
+    saute: "sautéed",
+    fry: "fried",
+    poach: "poached",
+    grill: "grilled",
+    boil: "boiled",
+    steam: "steamed",
+    smoke: "smoked",
+    freeze: "frozen",
+    defrost: "defrosted",
+    thaw: "defrosted",
+  };
+
+  return prepMap[normalized];
 }
 
 // Type for the complete parsed recipe ready for Convex
@@ -215,19 +332,33 @@ async function parseRecipeDataWithAI(
   ]
 }
 
-Available units: ${UNITS_FLAT.join(", ")}
-Available preparations: ${PREPARATION_OPTIONS.join(", ")}
+Available units (CHOOSE FROM THESE ONLY): 
+  Volume: cups, tsp, tbsp, fl oz, gal, ml, l, pt, qt
+  Weight: lbs, oz, g, kg, mg
+  Count: pinch, dash, handful, drop
+  Items: piece, whole, clove, slice, sheet, sprig, stalk, stem, head, bunch, bulb, wedge, cube, strip, fillet, leaf, can, jar, packet, package, container, bottle, bag, box, loaf, stick, square, round, breast, thigh, leg, rack
+
+Available preparations (CHOOSE FROM THESE ONLY): 
+  Cutting: chopped, finely chopped, roughly chopped, diced, finely diced, sliced, thinly sliced, thickly sliced, julienned, minced, grated, finely grated, shredded, cubed, quartered, halved
+  Temperature: room temperature, chilled, warmed, softened, melted, frozen, defrosted
+  Processing: beaten, whipped, peeled, trimmed, seeded, cored, stemmed, zested, de-boned, filleted, butterflied, drained, rinsed, strained, pressed
+  Pre-cooked: blanched, toasted, roasted, caramelized, sautéed, fried, poached, grilled, boiled, steamed, smoked
+  Other: whole, crushed, mashed, pureed, fresh, dried
 
 CRITICAL INSTRUCTIONS:
 
 For ingredients:
-- Extract numeric amount (convert fractions to decimals: 1/2 = 0.5)
+- Extract numeric amount (convert fractions to decimals: 1/2 = 0.5, 1/4 = 0.25, 1/3 = 0.33)
 - If amount is 0, missing, or unclear, use sensible defaults:
-  * Fresh herbs (basil, parsley, cilantro, etc.): 1 handful
-  * Spices/seasonings (salt, pepper, etc.): 1 pinch or to taste
-  * Vegetables (onion, garlic, etc.): 1 unit
+  * Garlic cloves: use "clove" unit, amount based on recipe (2-4 typical)
+  * Fresh herbs (basil, parsley, cilantro): use "sprig" or "bunch" or "handful"
+  * Spices/seasonings (salt, pepper): use "pinch" or "dash" or 1 tsp
+  * Vegetables (onion): use "piece" or "whole" or standard weight
+  * Canned/packaged items: use "can", "jar", "packet", etc.
   * Other ingredients: estimate based on typical recipe amounts
-- Match unit to available units (or omit if none matches)
+- ALWAYS try to match units to available units above
+- For items like "2 chicken breasts" use amount: 2, unit: "breast"
+- For items like "1 head of lettuce" use amount: 1, unit: "head"  
 - Extract ingredient name (without amount, unit, or preparation)
 - Identify preparation method from available options (or omit if none matches)
 - Remove parenthetical notes like "(28 ounce)" from the name

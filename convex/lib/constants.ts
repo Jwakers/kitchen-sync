@@ -17,14 +17,21 @@ export const RECIPE_CATEGORIES = [
 
 // Preparation Options
 export const PREPARATION_OPTIONS = [
+  // Cutting styles
   "chopped",
+  "finely chopped",
+  "roughly chopped",
   "diced",
+  "finely diced",
   "rough chop",
   "sliced",
+  "thinly sliced",
+  "thickly sliced",
   "julienned",
   "brunoise",
   "minced",
   "grated",
+  "finely grated",
   "shredded",
   "cubed",
   "quartered",
@@ -33,11 +40,15 @@ export const PREPARATION_OPTIONS = [
   "crushed",
   "mashed",
   "pureed",
+  // Temperature states
   "room temperature",
   "chilled",
   "warmed",
   "softened",
   "melted",
+  "frozen",
+  "defrosted",
+  // Processing methods
   "beaten",
   "whipped",
   "folded",
@@ -52,13 +63,67 @@ export const PREPARATION_OPTIONS = [
   "seeded",
   "cored",
   "stemmed",
+  "zested",
+  "de-boned",
+  "filleted",
+  "butterflied",
+  // Cooking methods (pre-cooked ingredients)
+  "blanched",
+  "toasted",
+  "roasted",
+  "caramelized",
+  "sautéed",
+  "fried",
+  "poached",
+  "grilled",
+  "boiled",
+  "steamed",
+  "smoked",
+  // Freshness states
+  "fresh",
+  "dried",
 ] as const;
 
 // Units - organized by category for better maintainability
 export const UNITS = {
-  volume: ["cups", "tsp", "tbsp", "fl oz", "gal", "ml", "l"],
-  weight: ["lbs", "oz", "g", "kg"],
-  count: ["pinch", "dash", "handful"],
+  volume: ["cups", "tsp", "tbsp", "fl oz", "gal", "ml", "l", "pt", "qt"],
+  weight: ["lbs", "oz", "g", "kg", "mg"],
+  count: ["pinch", "dash", "handful", "drop"],
+  // Abstract/item-based measurements
+  items: [
+    "piece",
+    "whole",
+    "clove",
+    "slice",
+    "sheet",
+    "sprig",
+    "stalk",
+    "stem",
+    "head",
+    "bunch",
+    "bulb",
+    "wedge",
+    "cube",
+    "strip",
+    "fillet",
+    "leaf",
+    "can",
+    "jar",
+    "packet",
+    "package",
+    "container",
+    "bottle",
+    "bag",
+    "box",
+    "loaf",
+    "stick",
+    "square",
+    "round",
+    "breast",
+    "thigh",
+    "leg",
+    "rack",
+  ],
 } as const;
 
 // Flattened units array for schema compatibility
@@ -66,6 +131,7 @@ export const UNITS_FLAT = [
   ...UNITS.volume,
   ...UNITS.weight,
   ...UNITS.count,
+  ...UNITS.items,
 ] as const;
 
 // TypeScript types

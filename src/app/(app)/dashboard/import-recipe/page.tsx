@@ -6,10 +6,21 @@ import {
   parseRecipeWithAI,
 } from "@/app/(app)/actions/parse-recipe-with-ai";
 import { ROUTES } from "@/app/constants";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import {
+  importedRecipeSchema,
+  type ImportedRecipeFormData,
+} from "@/lib/schemas/imported-recipe";
 import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
 import { useMutation } from "convex/react";
@@ -27,6 +38,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import z from "zod";
+import { EditImportedRecipe } from "./_components/edit-imported-recipe";
 
 type LoadingStage = "idle" | "fetching" | "categorising" | "complete";
 
@@ -43,6 +56,7 @@ export default function ImportRecipePage() {
   const [savedRecipeId, setSavedRecipeId] = useState<Id<"recipes"> | null>(
     null
   );
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const createRecipeMutation = useMutation(api.recipes.createRecipe);
 
@@ -98,6 +112,7 @@ export default function ImportRecipePage() {
     setLoadingStage("idle");
     setError(null);
     setIsSaved(false);
+    setIsEditMode(false);
   };
 
   // Warn user before leaving if recipe is not saved
@@ -121,42 +136,67 @@ export default function ImportRecipePage() {
     };
   }, [parsedRecipe, isSaved]);
 
-  const handleSave = async () => {
-    if (!parsedRecipe) return;
-
+  const validateAndSaveRecipe = async (
+    recipeData: ParsedRecipeForDB | ImportedRecipeFormData
+  ) => {
     try {
       setIsSaving(true);
+
+      // Validate the recipe before saving
+      const validationResult = importedRecipeSchema.safeParse(recipeData);
+
+      if (!validationResult.success) {
+        // Validation failed, enter edit mode
+
+        const errors = z.flattenError(validationResult.error).fieldErrors;
+        const errorMessages = Object.entries(errors)
+          .map(([field, messages]) => `${field}: ${messages?.join(", ")}`)
+          .join("; ");
+
+        toast.error("Recipe validation failed", {
+          description: "Please correct the errors in edit mode",
+        });
+
+        console.error("Validation errors:", errorMessages);
+        setIsEditMode(true);
+        setIsSaving(false);
+        return;
+      }
+
+      // Validation passed, proceed with saving
+      const validatedRecipe = validationResult.data;
+
       // TODO: Data parser should be aware these should be returns as integers that represent gram values. So some conversion may be needed.
-      const nutrition = parsedRecipe.nutrition
+      const nutrition = validatedRecipe.nutrition
         ? {
-            calories: parsedRecipe.nutrition.calories
-              ? parseInt(parsedRecipe.nutrition.calories)
+            calories: validatedRecipe.nutrition.calories
+              ? parseInt(validatedRecipe.nutrition.calories)
               : undefined,
-            protein: parsedRecipe.nutrition.protein
-              ? parseInt(parsedRecipe.nutrition.protein)
+            protein: validatedRecipe.nutrition.protein
+              ? parseInt(validatedRecipe.nutrition.protein)
               : undefined,
-            fat: parsedRecipe.nutrition.fat
-              ? parseInt(parsedRecipe.nutrition.fat)
+            fat: validatedRecipe.nutrition.fat
+              ? parseInt(validatedRecipe.nutrition.fat)
               : undefined,
-            carbohydrates: parsedRecipe.nutrition.carbohydrates
-              ? parseInt(parsedRecipe.nutrition.carbohydrates)
+            carbohydrates: validatedRecipe.nutrition.carbohydrates
+              ? parseInt(validatedRecipe.nutrition.carbohydrates)
               : undefined,
           }
         : undefined;
 
       const { recipeId, published } = await createRecipeMutation({
-        title: parsedRecipe.title,
-        description: parsedRecipe.description,
-        prepTime: parsedRecipe.prepTime,
-        cookTime: parsedRecipe.cookTime,
-        serves: parsedRecipe.serves,
-        category: parsedRecipe.category,
-        ingredients: parsedRecipe.ingredients,
-        method: parsedRecipe.method,
+        title: validatedRecipe.title,
+        description: validatedRecipe.description,
+        prepTime: validatedRecipe.prepTime,
+        cookTime: validatedRecipe.cookTime,
+        serves: validatedRecipe.serves,
+        category: validatedRecipe.category,
+        ingredients: validatedRecipe.ingredients,
+        method: validatedRecipe.method,
         nutrition,
-        originalUrl: parsedRecipe.originalUrl,
-        originalAuthor: parsedRecipe.originalAuthor,
-        originalPublishedDate: parsedRecipe.originalPublishedDate,
+        originalUrl: parsedRecipe?.originalUrl,
+        originalAuthor: parsedRecipe?.originalAuthor,
+        originalPublishedDate: parsedRecipe?.originalPublishedDate,
       });
 
       if (!published) {
@@ -177,7 +217,32 @@ export default function ImportRecipePage() {
     }
   };
 
+  const handleSave = async () => {
+    if (!parsedRecipe) return;
+    await validateAndSaveRecipe(parsedRecipe);
+  };
+
+  const handleEditSave = async (editedRecipe: ImportedRecipeFormData) => {
+    await validateAndSaveRecipe(editedRecipe);
+  };
+
   const isLoading = loadingStage !== "idle" && loadingStage !== "complete";
+
+  // Edit Mode
+  if (isEditMode && parsedRecipe && !isSaved) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-6 max-w-4xl">
+          <EditImportedRecipe
+            recipe={parsedRecipe}
+            onCancel={() => setIsEditMode(false)}
+            onSave={handleEditSave}
+            isSaving={isSaving}
+          />
+        </div>
+      </div>
+    );
+  }
 
   // Success State - Replace entire page content
   if (isSaved && savedRecipeId) {
@@ -381,6 +446,7 @@ export default function ImportRecipePage() {
               variant="outline"
               size="lg"
               disabled={isLoading || isSaving}
+              onClick={() => setIsEditMode(true)}
             >
               Edit Recipe
             </Button>
@@ -451,169 +517,187 @@ function RecipePreview({
   return (
     <div className="space-y-6">
       {/* Success Message */}
-      <Card className="p-4 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
-            <p className="font-medium text-green-900 dark:text-green-100">
-              Recipe imported successfully!
-            </p>
+      <Alert variant="default">
+        <CheckCircle2 />
+        <AlertTitle>
+          <div className="flex items-center justify-between gap-2">
+            <p>Recipe imported successfully!</p>
+            {!isSaved && <Badge variant="outline">Not saved</Badge>}
           </div>
-          {!isSaved && (
-            <Badge
-              variant="outline"
-              className="bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-900 text-yellow-900 dark:text-yellow-100"
-            >
-              Not saved
-            </Badge>
-          )}
-        </div>
-      </Card>
+        </AlertTitle>
+        <AlertDescription>
+          You can add components and dependencies to your app using the cli.
+        </AlertDescription>
+      </Alert>
 
       {/* Recipe Header */}
-      <Card className="p-6">
-        <div className="space-y-4">
-          <div>
-            <h2 className="text-2xl font-bold text-foreground mb-2">
-              {recipe.title}
-            </h2>
-            {recipe.description && (
-              <p className="text-muted-foreground">{recipe.description}</p>
-            )}
-          </div>
-
-          {/* Metadata */}
-          <div className="flex flex-wrap gap-4">
-            {recipe.prepTime > 0 && (
-              <div className="flex items-center gap-2 text-sm">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Prep:</span>
-                <span className="font-medium">{recipe.prepTime} min</span>
-              </div>
-            )}
-            {recipe.cookTime > 0 && (
-              <div className="flex items-center gap-2 text-sm">
-                <ChefHat className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Cook:</span>
-                <span className="font-medium">{recipe.cookTime} min</span>
-              </div>
-            )}
-            {recipe.serves > 0 && (
-              <div className="flex items-center gap-2 text-sm">
-                <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Serves:</span>
-                <span className="font-medium">{recipe.serves}</span>
-              </div>
-            )}
-            <Badge variant="secondary" className="capitalize">
-              {recipe.category}
-            </Badge>
-          </div>
-
-          {/* Attribution */}
-          {(recipe.originalAuthor || recipe.originalUrl || recipe.rating) && (
-            <div className="pt-4 border-t space-y-2">
-              <p className="text-xs font-medium text-muted-foreground">
-                Source Information
-              </p>
-              {recipe.originalAuthor && (
-                <p className="text-sm text-muted-foreground">
-                  By{" "}
-                  <span className="font-medium">{recipe.originalAuthor}</span>
-                </p>
-              )}
-              {recipe.originalUrl && (
-                <p className="text-sm">
-                  <a
-                    href={recipe.originalUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline"
-                  >
-                    View original recipe →
-                  </a>
-                </p>
+      <Card>
+        <CardHeader>
+          <h2 className="text-2xl font-bold">{recipe.title}</h2>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              {recipe.description && (
+                <p className="text-muted-foreground">{recipe.description}</p>
               )}
             </div>
-          )}
-        </div>
+
+            {/* Metadata */}
+            <div className="flex flex-wrap gap-4">
+              {recipe.prepTime > 0 && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">Prep:</span>
+                  <span className="font-medium">{recipe.prepTime} min</span>
+                </div>
+              )}
+              {recipe.cookTime > 0 && (
+                <div className="flex items-center gap-2 text-sm">
+                  <ChefHat className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">Cook:</span>
+                  <span className="font-medium">{recipe.cookTime} min</span>
+                </div>
+              )}
+              {recipe.serves > 0 && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">Serves:</span>
+                  <span className="font-medium">{recipe.serves}</span>
+                </div>
+              )}
+              <Badge variant="secondary" className="capitalize">
+                {recipe.category}
+              </Badge>
+            </div>
+          </div>
+        </CardContent>
+        {(recipe.originalAuthor || recipe.originalUrl || recipe.rating) && (
+          <>
+            <Separator />
+            <CardFooter>
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground">
+                  Source Information
+                </p>
+                {recipe.originalAuthor && (
+                  <p className="text-sm text-muted-foreground">
+                    By{" "}
+                    <span className="font-medium">{recipe.originalAuthor}</span>
+                  </p>
+                )}
+                {recipe.originalUrl && (
+                  <p className="text-sm">
+                    <a
+                      href={recipe.originalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      View original recipe →
+                    </a>
+                  </p>
+                )}
+              </div>
+            </CardFooter>
+          </>
+        )}
       </Card>
 
       {/* Nutrition (if available) */}
       {recipe.nutrition && (
-        <Card className="p-6">
-          <h3 className="text-xl font-semibold mb-4">Nutrition Information</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {recipe.nutrition.calories && (
-              <div>
-                <p className="text-sm text-muted-foreground">Calories</p>
-                <p className="font-medium">{recipe.nutrition.calories}</p>
-              </div>
-            )}
-            {recipe.nutrition.protein && (
-              <div>
-                <p className="text-sm text-muted-foreground">Protein</p>
-                <p className="font-medium">{recipe.nutrition.protein}</p>
-              </div>
-            )}
-            {recipe.nutrition.fat && (
-              <div>
-                <p className="text-sm text-muted-foreground">Fat</p>
-                <p className="font-medium">{recipe.nutrition.fat}</p>
-              </div>
-            )}
-            {recipe.nutrition.carbohydrates && (
-              <div>
-                <p className="text-sm text-muted-foreground">Carbs</p>
-                <p className="font-medium">{recipe.nutrition.carbohydrates}</p>
-              </div>
-            )}
-          </div>
+        <Card>
+          <CardHeader>
+            <h3 className="text-xl font-semibold">Nutrition Information</h3>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {recipe.nutrition.calories && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Calories</p>
+                  <p className="font-medium">{recipe.nutrition.calories}</p>
+                </div>
+              )}
+              {recipe.nutrition.protein && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Protein</p>
+                  <p className="font-medium">{recipe.nutrition.protein}</p>
+                </div>
+              )}
+              {recipe.nutrition.fat && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Fat</p>
+                  <p className="font-medium">{recipe.nutrition.fat}</p>
+                </div>
+              )}
+              {recipe.nutrition.carbohydrates && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Carbs</p>
+                  <p className="font-medium">
+                    {recipe.nutrition.carbohydrates}
+                  </p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+          <CardFooter>
+            <p className="text-sm text-muted-foreground mb-4 italic">
+              Note: These are estimated values and may not be accurate.
+            </p>
+          </CardFooter>
         </Card>
       )}
 
       {/* Ingredients */}
-      <Card className="p-6">
-        <h3 className="text-xl font-semibold mb-4">Ingredients</h3>
-        <ul className="space-y-2">
-          {recipe.ingredients.map((ingredient, index) => (
-            <li key={index} className="flex items-start gap-2">
-              <span className="text-muted-foreground mt-1">•</span>
-              <span>
-                <span className="font-medium">{ingredient.amount}</span>
-                {ingredient.unit && ` ${ingredient.unit}`}
-                {ingredient.name && ` ${ingredient.name}`}
-                {ingredient.preparation && (
-                  <span className="text-muted-foreground italic">
-                    , {ingredient.preparation}
-                  </span>
-                )}
-              </span>
-            </li>
-          ))}
-        </ul>
+      <Card>
+        <CardHeader>
+          <h3 className="text-xl font-semibold">Ingredients</h3>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-2">
+            {recipe.ingredients.map((ingredient, index) => (
+              <li key={index} className="flex items-start gap-2">
+                <span className="text-muted-foreground mt-1">•</span>
+                <span>
+                  <span className="font-medium">{ingredient.amount}</span>
+                  {ingredient.unit && ` ${ingredient.unit}`}
+                  {ingredient.name && ` ${ingredient.name}`}
+                  {ingredient.preparation && (
+                    <span className="text-muted-foreground italic">
+                      , {ingredient.preparation}
+                    </span>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </CardContent>
       </Card>
 
       {/* Method */}
-      <Card className="p-6">
-        <h3 className="text-xl font-semibold mb-4">Method</h3>
-        <ol className="space-y-4">
-          {recipe.method.map((step, index) => (
-            <li key={index} className="flex gap-4">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
-                {index + 1}
-              </div>
-              <div className="flex-1">
-                <p className="font-medium mb-1">{step.title}</p>
-                {step.description && (
-                  <p className="text-muted-foreground text-sm">
-                    {step.description}
-                  </p>
-                )}
-              </div>
-            </li>
-          ))}
-        </ol>
+      <Card>
+        <CardHeader>
+          <h3 className="text-xl font-semibold">Method</h3>
+        </CardHeader>
+        <CardContent>
+          <ol className="space-y-4">
+            {recipe.method.map((step, index) => (
+              <li key={index} className="flex gap-4">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+                  {index + 1}
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium mb-1">{step.title}</p>
+                  {step.description && (
+                    <p className="text-muted-foreground text-sm">
+                      {step.description}
+                    </p>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </CardContent>
       </Card>
     </div>
   );

@@ -12,8 +12,8 @@
   - [x] Display ingredients and methods
   - [x] Edit ingredients and methods
 - [ ] Generate a recipe with recipe schema (parsed with AI)
-  - [ ] Save recipe
-  - [ ] Edit before saving
+  - [x] Save recipe
+  - [x] Edit before saving
   - [ ] Handle main image
   - [ ] Data parser should be aware nutrition values should be returns as integers that represent gram values. So some conversion may be needed.
 - [ ] Generate a recipe with scraping
@@ -32,6 +32,7 @@
 - [ ] Add client side compression to before uploading images using browser-image-compression
 - [ ] Add a utility function to output image sizes string
 - [ ] On recipe pages add a "Mise en place" section that shows all the preparations steps based on what ingredients have preparation set
+- [ ] Update the UI for selecting units and prep to show categories and share across all forms. Use a categorised table like display
 
 ## Major updates
 
