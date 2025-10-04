@@ -2,10 +2,8 @@
 
 import { fetchImageServerSide } from "@/app/(app)/actions/fetch-image";
 import { getRecipeSchema } from "@/app/(app)/actions/get-recipe-schema";
-import {
-  ParsedRecipeForDB,
-  parseRecipeWithAI,
-} from "@/app/(app)/actions/parse-recipe-with-ai";
+import { parseRecipeWithAI } from "@/app/(app)/actions/parse-recipe-with-ai";
+import { parseTextToRecipe } from "@/app/(app)/actions/parse-text-to-recipe";
 import { ROUTES } from "@/app/constants";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +20,7 @@ import {
   importedRecipeSchema,
   type ImportedRecipeFormData,
 } from "@/lib/schemas/imported-recipe";
+import { type ParsedRecipeForDB } from "@/lib/types/recipe-parser";
 import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
 import { useMutation } from "convex/react";
@@ -30,6 +29,7 @@ import {
   CheckCircle2,
   ChefHat,
   Clock,
+  FileText,
   Globe,
   Loader2,
   Sparkles,
@@ -42,8 +42,10 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import z from "zod";
 import { EditImportedRecipe } from "./edit-imported-recipe";
+import { TextToRecipeParser } from "./text-to-recipe-parser";
 
 type LoadingStage = "idle" | "fetching" | "categorising" | "complete";
+type ImportSource = "url" | "text";
 
 export function ImportRecipeClient() {
   const router = useRouter();
@@ -59,6 +61,8 @@ export function ImportRecipeClient() {
     null
   );
   const [isEditMode, setIsEditMode] = useState(false);
+  const [showTextParser, setShowTextParser] = useState(false);
+  const [importSource, setImportSource] = useState<ImportSource>("url");
 
   const createRecipeMutation = useMutation(api.recipes.createRecipe);
   const generateUploadUrl = useMutation(api.recipes.generateUploadUrl);
@@ -70,6 +74,7 @@ export function ImportRecipeClient() {
     e.preventDefault();
     if (!url || !isValidUrl(url)) return;
 
+    setImportSource("url");
     setError(null);
     setParsedRecipe(null);
 
@@ -119,6 +124,88 @@ export function ImportRecipeClient() {
     setError(null);
     setIsSaved(false);
     setIsEditMode(false);
+    setShowTextParser(false);
+  };
+
+  const handleTextRecipeParsed = async (text: string) => {
+    setImportSource("text");
+    setLoadingStage("fetching");
+    setError(null);
+
+    // Simulate stage progression for better UX
+    const timeout = setTimeout(() => {
+      setLoadingStage("categorising");
+    }, 2000);
+
+    const result = await parseTextToRecipe(text);
+
+    clearTimeout(timeout);
+
+    if (!result.success) {
+      // If we have partial data, use it and enter edit mode
+      if (result.partialRecipe) {
+        const partialConverted: ParsedRecipeForDB = {
+          title: result.partialRecipe.title ?? "Untitled Recipe",
+          description: result.partialRecipe.description ?? "",
+          prepTime: result.partialRecipe.prepTime ?? 0,
+          cookTime: result.partialRecipe.cookTime ?? 0,
+          serves: result.partialRecipe.serves ?? 4,
+          category: result.partialRecipe.category ?? "main",
+          ingredients: result.partialRecipe.ingredients ?? [],
+          method: result.partialRecipe.method ?? [],
+          nutrition: result.partialRecipe.nutrition,
+          imageUrl: undefined,
+          originalUrl: undefined,
+          originalAuthor: undefined,
+          importedAt: Date.now(),
+          originalPublishedDate: undefined,
+          rating: undefined,
+        };
+
+        setParsedRecipe(partialConverted);
+        setLoadingStage("complete");
+        setShowTextParser(false);
+        setIsEditMode(true);
+
+        toast.error("Recipe incomplete", {
+          description:
+            result.error || "Please complete the missing fields in edit mode",
+        });
+      } else {
+        setLoadingStage("idle");
+        setError(result.error || "Failed to create recipe from text");
+        throw new Error(result.error ?? "Text parsing failed");
+      }
+      return;
+    }
+
+    if (!result.recipe) {
+      setLoadingStage("idle");
+      setError("Failed to create recipe from text");
+      throw new Error("Failed to create recipe from text");
+    }
+
+    // Convert ParsedRecipeFromText to ParsedRecipeForDB format
+    const convertedRecipe: ParsedRecipeForDB = {
+      title: result.recipe.title,
+      description: result.recipe.description,
+      prepTime: result.recipe.prepTime,
+      cookTime: result.recipe.cookTime,
+      serves: result.recipe.serves,
+      category: result.recipe.category,
+      ingredients: result.recipe.ingredients,
+      method: result.recipe.method,
+      nutrition: result.recipe.nutrition,
+      imageUrl: undefined, // No image from text parsing
+      originalUrl: undefined,
+      originalAuthor: undefined,
+      importedAt: Date.now(),
+      originalPublishedDate: undefined,
+      rating: undefined,
+    };
+    setParsedRecipe(convertedRecipe);
+    setLoadingStage("complete");
+    setShowTextParser(false);
   };
 
   // Warn user before leaving if recipe is not saved
@@ -324,7 +411,7 @@ export function ImportRecipeClient() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <div className="container mx-auto px-4 py-6 max-w-4xl">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
@@ -358,81 +445,156 @@ export function ImportRecipeClient() {
           </div>
         </div>
 
-        {/* Main Card */}
-        <Card className="p-6 md:p-8 mb-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 bg-primary/10 rounded-lg">
-              <Globe className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold">Enter Recipe URL</h2>
-              <p className="text-sm text-muted-foreground">
-                Paste the URL of the recipe you want to import
-              </p>
-            </div>
+        {/* Main Card - URL Import */}
+        {!isLoading && !parsedRecipe && !showTextParser && (
+          <>
+            <Card className="p-6 md:p-8 mb-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-primary/10 rounded-lg">
+                  <Globe className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold">Enter Recipe URL</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Paste the URL of the recipe you want to import
+                  </p>
+                </div>
+              </div>
+
+              <form onSubmit={handleImport} className="space-y-6">
+                {/* URL Input */}
+                <div className="space-y-2">
+                  <label
+                    htmlFor="recipe-url"
+                    className="text-sm font-medium text-foreground"
+                  >
+                    Recipe URL
+                  </label>
+                  <Input
+                    id="recipe-url"
+                    type="url"
+                    placeholder="https://www.allrecipes.com/recipe/..."
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    className="text-base"
+                    disabled={isLoading}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Supported sites include AllRecipes, BBC Good Food, Food
+                    Network, and many more
+                  </p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button
+                    type="submit"
+                    className="flex-1"
+                    disabled={!url || !isValidUrl(url) || isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Importing...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        Import Recipe
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={clearAll}
+                    disabled={isLoading}
+                  >
+                    Clear
+                  </Button>
+                </div>
+              </form>
+
+              {/* Error Message with Text Parser CTA */}
+              {error && (
+                <div className="mt-6 space-y-3">
+                  <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                    <p className="text-sm text-destructive font-medium">
+                      {error}
+                    </p>
+                  </div>
+                  <Alert>
+                    <FileText className="h-4 w-4" />
+                    <AlertTitle>Can&apos;t import from URL?</AlertTitle>
+                    <AlertDescription>
+                      <p className="mb-2">
+                        Try pasting the recipe text directly instead. AI will
+                        organize it for you automatically.
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowTextParser(true)}
+                        className="mt-2"
+                      >
+                        <FileText className="mr-2 h-4 w-4" />
+                        Paste Recipe Text
+                      </Button>
+                    </AlertDescription>
+                  </Alert>
+                </div>
+              )}
+            </Card>
+
+            {/* Subtle CTA for Text Parser (when no error) */}
+            {!error && (
+              <Card className="p-4 mb-6 bg-muted/30">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-muted rounded-lg">
+                      <FileText className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">
+                        Have recipe text instead?
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Paste any recipe text and AI will organize it
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowTextParser(true)}
+                  >
+                    <FileText className="mr-2 h-4 w-4" />
+                    Paste Text
+                  </Button>
+                </div>
+              </Card>
+            )}
+          </>
+        )}
+
+        {/* Text Parser Component */}
+        {showTextParser && !isLoading && !parsedRecipe && (
+          <div className="space-y-4 mb-6">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowTextParser(false)}
+              className="mb-2"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to URL Import
+            </Button>
+            <TextToRecipeParser
+              onRecipeParsed={handleTextRecipeParsed}
+              showAsError={!!error}
+            />
           </div>
-
-          <form onSubmit={handleImport} className="space-y-6">
-            {/* URL Input */}
-            <div className="space-y-2">
-              <label
-                htmlFor="recipe-url"
-                className="text-sm font-medium text-foreground"
-              >
-                Recipe URL
-              </label>
-              <Input
-                id="recipe-url"
-                type="url"
-                placeholder="https://www.allrecipes.com/recipe/..."
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                className="text-base"
-                disabled={isLoading}
-              />
-              <p className="text-xs text-muted-foreground">
-                Supported sites include AllRecipes, BBC Good Food, Food Network,
-                and many more
-              </p>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button
-                type="submit"
-                className="flex-1"
-                disabled={!url || !isValidUrl(url) || isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Importing...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Import Recipe
-                  </>
-                )}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={clearAll}
-                disabled={isLoading}
-              >
-                Clear
-              </Button>
-            </div>
-          </form>
-
-          {/* Error Message */}
-          {error && (
-            <div className="mt-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-              <p className="text-sm text-destructive font-medium">{error}</p>
-            </div>
-          )}
-        </Card>
+        )}
 
         {/* Loading Progress */}
         {isLoading && (
@@ -441,14 +603,26 @@ export function ImportRecipeClient() {
               <LoadingStep
                 stage="fetching"
                 currentStage={loadingStage}
-                title="Fetching recipe data"
-                description="Reading recipe from website..."
+                title={
+                  importSource === "url"
+                    ? "Fetching recipe data"
+                    : "Validating recipe text"
+                }
+                description={
+                  importSource === "url"
+                    ? "Reading recipe from website..."
+                    : "Checking recipe format..."
+                }
               />
               <LoadingStep
                 stage="categorising"
                 currentStage={loadingStage}
                 title="Processing recipe with AI"
-                description="Parsing ingredients, categorizing, and creating method steps..."
+                description={
+                  importSource === "url"
+                    ? "Parsing ingredients, categorizing, and creating method steps..."
+                    : "Organizing ingredients, generating descriptions, and calculating nutrition..."
+                }
               />
             </div>
           </Card>

@@ -1,6 +1,5 @@
 "use client";
 
-import { ParsedRecipeForDB } from "@/app/(app)/actions/parse-recipe-with-ai";
 import { PreparationSelector } from "@/components/preparation-selector";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +25,7 @@ import {
   importedRecipeSchema,
   type ImportedRecipeFormData,
 } from "@/lib/schemas/imported-recipe";
+import { ParsedRecipeForDB } from "@/lib/types/recipe-parser";
 import { titleCase } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RECIPE_CATEGORIES } from "convex/lib/constants";

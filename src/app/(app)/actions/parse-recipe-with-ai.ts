@@ -1,32 +1,36 @@
 "use server";
 
-import { Doc } from "convex/_generated/dataModel";
+import {
+  IngredientSchema,
+  MethodStepSchema,
+  type ParsedRecipeForDB,
+  type StructuredIngredient,
+} from "@/lib/types/recipe-parser";
+import {
+  mapCategory,
+  parseDuration,
+  parseNutritionData,
+  parseServings,
+} from "@/lib/utils/recipe-parsing-helpers";
+import {
+  validatePreparation,
+  validateUnit,
+} from "@/lib/utils/recipe-validation";
 import {
   PREPARATION_OPTIONS,
   RECIPE_CATEGORIES,
-  UNITS_FLAT,
+  UNITS,
 } from "convex/lib/constants";
 import OpenAI from "openai";
 import { z } from "zod";
 import type { ParsedRecipeSchema } from "./get-recipe-schema";
+import { BASE_RECIPE_PARSING_SCHEMA } from "./shared-recipe-schema";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Zod schemas for structured output
-const IngredientSchema = z.object({
-  name: z.string(),
-  amount: z.number(),
-  unit: z.string().optional(),
-  preparation: z.string().optional(),
-});
-
-const MethodStepSchema = z.object({
-  title: z.string().describe("Short descriptive title (3-5 words)"),
-  description: z.string().describe("Complete original instruction text"),
-});
-
+// Zod schema for AI-parsed recipe data
 const RecipeDataSchema = z.object({
   ingredients: z
     .array(IngredientSchema)
@@ -38,377 +42,6 @@ const RecipeDataSchema = z.object({
     .array(MethodStepSchema)
     .describe("Method steps with titles and complete original descriptions"),
 });
-
-// Type for the structured ingredient output
-type StructuredIngredient = NonNullable<Doc<"recipes">["ingredients"]>[number];
-
-// Helper to validate and map units to canonical values
-function validateUnit(unit?: string): (typeof UNITS_FLAT)[number] | undefined {
-  if (!unit) return undefined;
-
-  const normalized = unit.toLowerCase().trim();
-
-  // Direct match
-  if ((UNITS_FLAT as readonly string[]).includes(normalized)) {
-    return normalized as (typeof UNITS_FLAT)[number];
-  }
-
-  // Common variations and plural forms
-  const unitMap: Record<string, (typeof UNITS_FLAT)[number]> = {
-    // Volume
-    cup: "cups",
-    teaspoon: "tsp",
-    teaspoons: "tsp",
-    tablespoon: "tbsp",
-    tablespoons: "tbsp",
-    "fluid ounce": "fl oz",
-    "fluid ounces": "fl oz",
-    gallon: "gal",
-    gallons: "gal",
-    milliliter: "ml",
-    milliliters: "ml",
-    millilitre: "ml",
-    millilitres: "ml",
-    liter: "l",
-    liters: "l",
-    litre: "l",
-    litres: "l",
-    pint: "pt",
-    pints: "pt",
-    quart: "qt",
-    quarts: "qt",
-    // Weight
-    pound: "lbs",
-    pounds: "lbs",
-    lb: "lbs",
-    ounce: "oz",
-    ounces: "oz",
-    gram: "g",
-    grams: "g",
-    gramme: "g",
-    grammes: "g",
-    kilogram: "kg",
-    kilograms: "kg",
-    kilogramme: "kg",
-    kilogrammes: "kg",
-    milligram: "mg",
-    milligrams: "mg",
-    // Count
-    pinches: "pinch",
-    dashes: "dash",
-    handfuls: "handful",
-    drops: "drop",
-    // Abstract/Items
-    pieces: "piece",
-    pcs: "piece",
-    pc: "piece",
-    cloves: "clove",
-    slices: "slice",
-    sheets: "sheet",
-    sprigs: "sprig",
-    stalks: "stalk",
-    stems: "stem",
-    heads: "head",
-    bunches: "bunch",
-    bulbs: "bulb",
-    wedges: "wedge",
-    cubes: "cube",
-    strips: "strip",
-    fillets: "fillet",
-    leaves: "leaf",
-    cans: "can",
-    jars: "jar",
-    packets: "packet",
-    pkts: "packet",
-    packages: "package",
-    pkgs: "package",
-    containers: "container",
-    bottles: "bottle",
-    bags: "bag",
-    boxes: "box",
-    loaves: "loaf",
-    sticks: "stick",
-    squares: "square",
-    rounds: "round",
-    breasts: "breast",
-    thighs: "thigh",
-    legs: "leg",
-    racks: "rack",
-  };
-
-  return unitMap[normalized];
-}
-
-// Helper to validate and map preparations to canonical values
-function validatePreparation(
-  prep?: string
-): (typeof PREPARATION_OPTIONS)[number] | undefined {
-  if (!prep) return undefined;
-
-  const normalized = prep.toLowerCase().trim();
-
-  // Direct match
-  if ((PREPARATION_OPTIONS as readonly string[]).includes(normalized)) {
-    return normalized as (typeof PREPARATION_OPTIONS)[number];
-  }
-
-  // Common variations
-  const prepMap: Record<string, (typeof PREPARATION_OPTIONS)[number]> = {
-    chop: "chopped",
-    "finely chop": "finely chopped",
-    "roughly chop": "roughly chopped",
-    dice: "diced",
-    "finely dice": "finely diced",
-    slice: "sliced",
-    "thinly slice": "thinly sliced",
-    "thickly slice": "thickly sliced",
-    julienne: "julienned",
-    mince: "minced",
-    grate: "grated",
-    "finely grate": "finely grated",
-    shred: "shredded",
-    cube: "cubed",
-    quarter: "quartered",
-    halve: "halved",
-    crush: "crushed",
-    mash: "mashed",
-    puree: "pureed",
-    beat: "beaten",
-    whip: "whipped",
-    fold: "folded",
-    knead: "kneaded",
-    roll: "rolled",
-    press: "pressed",
-    strain: "strained",
-    drain: "drained",
-    rinse: "rinsed",
-    peel: "peeled",
-    trim: "trimmed",
-    seed: "seeded",
-    core: "cored",
-    stem: "stemmed",
-    zest: "zested",
-    debone: "de-boned",
-    "de-bone": "de-boned",
-    fillet: "filleted",
-    butterfly: "butterflied",
-    blanch: "blanched",
-    toast: "toasted",
-    roast: "roasted",
-    caramelize: "caramelized",
-    caramelise: "caramelized",
-    sauté: "sautéed",
-    saute: "sautéed",
-    fry: "fried",
-    poach: "poached",
-    grill: "grilled",
-    boil: "boiled",
-    steam: "steamed",
-    smoke: "smoked",
-    freeze: "frozen",
-    defrost: "defrosted",
-    thaw: "defrosted",
-  };
-
-  return prepMap[normalized];
-}
-
-// Type for the complete parsed recipe ready for Convex
-export type ParsedRecipeForDB = {
-  title: string;
-  description?: string;
-  prepTime: number; // in minutes
-  cookTime: number; // in minutes
-  serves: number;
-  category: (typeof RECIPE_CATEGORIES)[number];
-  imageUrl: string | undefined;
-  ingredients: StructuredIngredient[];
-  method: Array<{
-    title: string;
-    description?: string;
-  }>;
-  // Attribution & Source Information
-  originalUrl?: string; // URL where recipe was imported from
-  originalAuthor?: string; // Original recipe author/creator
-  importedAt?: number; // Timestamp when recipe was imported
-  originalPublishedDate?: string; // Original publication date from source
-  // Additional metadata from source
-  nutrition?: {
-    calories?: number; // in grams
-    protein?: number; // in grams
-    fat?: number; // in grams
-    carbohydrates?: number; // in grams
-  };
-  rating?: {
-    value?: string | number; // Rating value (e.g., 4.8)
-    count?: number; // Number of ratings/reviews
-  };
-};
-
-/**
- * Converts ISO 8601 duration to minutes
- * Examples: "PT30M" -> 30, "PT1H30M" -> 90, "PT2H" -> 120
- */
-function parseDuration(duration?: string): number {
-  if (!duration) return 0;
-
-  const hoursMatch = duration.match(/(\d+)H/);
-  const minutesMatch = duration.match(/(\d+)M/);
-
-  const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0;
-  const minutes = minutesMatch ? parseInt(minutesMatch[1]) : 0;
-
-  return hours * 60 + minutes;
-}
-
-/**
- * Extracts serving count from recipeYield string
- * Examples: "12" -> 12, "Serves 4" -> 4, "4-6 servings" -> 4
- */
-function parseServings(recipeYield?: string): number {
-  if (!recipeYield) return 4; // Default
-
-  const match = recipeYield.match(/(\d+)/);
-  return match ? parseInt(match[1]) : 4;
-}
-
-/**
- * Parses nutrition values to integers representing grams
- * Handles ranges, unit conversions, and unclear values with best judgment
- * Examples:
- * - "20g" -> 20
- * - "1500mg" -> 2 (rounded up from 1.5g)
- * - "10-15g" -> 15 (higher value)
- * - "100-500mg" -> 2 (middle value for high range, rounded up)
- * - "300 calories" -> 300
- * - "0.5g" -> 1 (rounded up)
- */
-function parseNutritionValue(value?: string): number | undefined {
-  if (!value) return undefined;
-
-  // Remove whitespace and convert to lowercase for easier parsing
-  const normalized = value.toLowerCase().trim();
-
-  // Extract numeric values and units
-  // Pattern matches: number (with optional decimal) followed by optional unit
-  // Also handles ranges like "10-15g" or "100-200 mg"
-  const rangeMatch = normalized.match(
-    /(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s*(mg|g|gram|grams|milligram|milligrams)?/
-  );
-
-  if (rangeMatch) {
-    const low = parseFloat(rangeMatch[1]);
-    const high = parseFloat(rangeMatch[2]);
-    const unit = rangeMatch[3];
-
-    // Determine if it's a high range (difference > 100 for mg, > 10 for g)
-    const isHighRange = unit?.startsWith("m")
-      ? high - low > 100
-      : high - low > 10;
-
-    // Take higher value, or middle value for high ranges
-    let valueInUnit = isHighRange ? (low + high) / 2 : high;
-
-    // Convert to grams if needed
-    if (unit?.startsWith("m")) {
-      // milligrams to grams
-      valueInUnit = valueInUnit / 1000;
-    }
-
-    // Round up to nearest integer
-    return Math.ceil(valueInUnit);
-  }
-
-  // Single value match
-  const singleMatch = normalized.match(
-    /(\d+(?:\.\d+)?)\s*(mg|g|gram|grams|milligram|milligrams|calorie|calories|cal|kcal)?/
-  );
-
-  if (singleMatch) {
-    let numericValue = parseFloat(singleMatch[1]);
-    const unit = singleMatch[2];
-
-    // Convert to grams based on unit
-    if (unit?.startsWith("m")) {
-      // milligrams to grams
-      numericValue = numericValue / 1000;
-    }
-    // For calories and kcal, keep as-is (already in the right unit)
-    // For grams or no unit specified, keep as-is
-
-    // Round up to nearest integer (since we store as integers representing grams)
-    return Math.ceil(numericValue);
-  }
-
-  // If we can't parse it, return undefined
-  return undefined;
-}
-
-/**
- * Parses nutrition object from string values to integer values (grams)
- */
-function parseNutritionData(nutrition?: {
-  calories?: string;
-  protein?: string;
-  fat?: string;
-  carbohydrates?: string;
-}): ParsedRecipeForDB["nutrition"] {
-  if (!nutrition) return undefined;
-
-  const parsed = {
-    calories: parseNutritionValue(nutrition.calories),
-    protein: parseNutritionValue(nutrition.protein),
-    fat: parseNutritionValue(nutrition.fat),
-    carbohydrates: parseNutritionValue(nutrition.carbohydrates),
-  };
-
-  // Only return the object if at least one value was parsed
-  if (
-    parsed.calories === undefined &&
-    parsed.protein === undefined &&
-    parsed.fat === undefined &&
-    parsed.carbohydrates === undefined
-  ) {
-    return undefined;
-  }
-
-  return parsed;
-}
-
-/**
- * Maps recipe category from schema.org to our app categories
- */
-function mapCategory(
-  schemaCategory?: string | string[]
-): (typeof RECIPE_CATEGORIES)[number] {
-  const categories = Array.isArray(schemaCategory)
-    ? schemaCategory
-    : schemaCategory
-      ? [schemaCategory]
-      : [];
-
-  const lowerCategories = categories.map((c) => c.toLowerCase());
-
-  // Try to match to our categories
-  if (lowerCategories.some((c) => c.includes("breakfast")))
-    return "breakfast" as const;
-  if (lowerCategories.some((c) => c.includes("lunch"))) return "lunch" as const;
-  if (lowerCategories.some((c) => c.includes("dinner")))
-    return "dinner" as const;
-  if (lowerCategories.some((c) => c.includes("dessert")))
-    return "dessert" as const;
-  if (lowerCategories.some((c) => c.includes("appetizer")))
-    return "appetizer" as const;
-  if (lowerCategories.some((c) => c.includes("snack"))) return "snack" as const;
-  if (lowerCategories.some((c) => c.includes("side"))) return "side" as const;
-  if (
-    lowerCategories.some((c) => c.includes("beverage") || c.includes("drink"))
-  )
-    return "beverage" as const;
-
-  // Default to main if it's a main course or we can't determine
-  return "main" as const;
-}
 
 /**
  * Uses GPT-4o-mini to parse recipe data with AI
@@ -424,6 +57,17 @@ async function parseRecipeDataWithAI(
   category: (typeof RECIPE_CATEGORIES)[number];
   method: Array<{ title: string; description?: string }>;
 } | null> {
+  // Generate units string from constants
+  const unitsString = `Available units (CHOOSE FROM THESE ONLY): 
+  Volume: ${UNITS.volume.join(", ")}
+  Weight: ${UNITS.weight.join(", ")}
+  Count: ${UNITS.count.join(", ")}
+  Items: ${UNITS.items.join(", ")}`;
+
+  // Generate preparations string from constants
+  const preparationsString = `Available preparations (CHOOSE FROM THESE ONLY): 
+  ${PREPARATION_OPTIONS.join(", ")}`;
+
   const systemPrompt = `You are an expert recipe parser. Parse the provided recipe data and return a JSON object with this exact structure:
 
 {
@@ -436,18 +80,9 @@ async function parseRecipeDataWithAI(
   ]
 }
 
-Available units (CHOOSE FROM THESE ONLY): 
-  Volume: cups, tsp, tbsp, fl oz, gal, ml, l, pt, qt
-  Weight: lbs, oz, g, kg, mg
-  Count: pinch, dash, handful, drop
-  Items: piece, whole, clove, slice, sheet, sprig, stalk, stem, head, bunch, bulb, wedge, cube, strip, fillet, leaf, can, jar, packet, package, container, bottle, bag, box, loaf, stick, square, round, breast, thigh, leg, rack
+${unitsString}
 
-Available preparations (CHOOSE FROM THESE ONLY): 
-  Cutting: chopped, finely chopped, roughly chopped, diced, finely diced, sliced, thinly sliced, thickly sliced, julienned, minced, grated, finely grated, shredded, cubed, quartered, halved
-  Temperature: room temperature, chilled, warmed, softened, melted, frozen, defrosted
-  Processing: beaten, whipped, peeled, trimmed, seeded, cored, stemmed, zested, de-boned, filleted, butterflied, drained, rinsed, strained, pressed
-  Pre-cooked: blanched, toasted, roasted, caramelized, sautéed, fried, poached, grilled, boiled, steamed, smoked
-  Other: whole, crushed, mashed, pureed, fresh, dried
+${preparationsString}
 
 CRITICAL INSTRUCTIONS:
 
@@ -511,7 +146,14 @@ IMPORTANT: Return exactly ${instructions.length} method steps. Copy each instruc
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
       ],
-      response_format: { type: "json_object" },
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "recipe_parser",
+          strict: true,
+          schema: BASE_RECIPE_PARSING_SCHEMA,
+        },
+      },
       temperature: 0.1,
     });
 
@@ -520,9 +162,16 @@ IMPORTANT: Return exactly ${instructions.length} method steps. Copy each instruc
       throw new Error("No response from OpenAI");
     }
 
-    // Parse and validate with Zod
+    // Parse JSON (structured outputs ensures valid JSON)
     const jsonData = JSON.parse(content);
-    const validatedData = RecipeDataSchema.parse(jsonData);
+    const validationResult = RecipeDataSchema.safeParse(jsonData);
+
+    if (!validationResult.success) {
+      console.error("Schema validation failed:", validationResult.error);
+      return null;
+    }
+
+    const validatedData = validationResult.data;
 
     // Clean up and validate units and preparations
     const cleanedIngredients: StructuredIngredient[] =
