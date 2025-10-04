@@ -91,7 +91,10 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
         serves: data.serves,
         category: data.category,
         ingredients: data.ingredients,
-        method: data.method,
+        method: data.method.map((step) => ({
+          ...step,
+          image: undefined, // TODO
+        })),
       });
 
       toast.success("Recipe updated successfully");

@@ -19,6 +19,7 @@
 - [ ] Production deployment and PWA
   - [ ] Set up on Vercel
   - [ ] Set up clerk and convex prod deployments (including clerk webhook)
+- [ ] Image upload for method steps
 - [ ] Generate a recipe with copy and pasting (fallback if first method fails)
 - [ ] Generate a recipe with scraping (fallback if first method fails)
 - [ ] **Ingredient Categories**: Add categorization to ingredients (meat, poultry, vegetable, spice etc) (or extract from an existing external ingredient DB while still allowing custom ingredients)
