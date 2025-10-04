@@ -16,9 +16,11 @@
   - [x] Edit before saving
   - [x] Handle main image
   - [x] Data parser should be aware nutrition values should be returns as integers that represent gram values. So some conversion may be needed.
-- [ ] Production deployment and PWA
-  - [ ] Set up on Vercel
-  - [ ] Set up clerk and convex prod deployments (including clerk webhook)
+- [x] Production deployment and PWA
+  - [x] Set up on Vercel
+  - [ ] Set up convex prod deployments
+  - [ ] Clerk still requires a custom (non vercel) domain
+  - [ ] Clerk users webhook
 - [ ] Image upload for method steps
 - [ ] Generate a recipe with copy and pasting (fallback if first method fails)
 - [ ] Generate a recipe with scraping (fallback if first method fails)
@@ -38,6 +40,7 @@
 ## Minor updates
 
 - [ ] When a recipe is saved from the create recipe form, give the users a link in the toast to the new recipe page
+- [ ] Recipe description needs clamping or moving on mobile
 - [ ] Handle my-recipe pagination (limit to 20 per page)
 - [ ] Add client side compression to before uploading images using browser-image-compression
 - [ ] Add a utility function to output image sizes string
@@ -114,6 +117,7 @@
 - [ ] **Offline Caching**: Cache recipes and shopping lists in IndexedDB for offline access
 - [ ] **Offline-First Design**: Ensure core features work without internet connection
 - [ ] **Manual Recipe Entry**: Fallback for when AI scraping fails - allow copy/paste text parsing
+- [ ] Add context sensitive installation instructions to the home page
 
 ### 📅 Post-Launch Phase 1 (4-8 Months)
 
