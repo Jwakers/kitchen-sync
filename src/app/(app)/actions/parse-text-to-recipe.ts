@@ -431,25 +431,23 @@ function extractPartialRecipeData(
     // Extract nutrition
     const nutritionObj = safeExtractObject(data, "nutrition");
     if (nutritionObj) {
-      const nutrition: Partial<Required<ParsedRecipeFromText["nutrition"]>> =
-        {};
-
       const calories = safeExtractNumber(nutritionObj, "calories");
-      if (calories !== undefined) nutrition.calories = calories;
-
       const protein = safeExtractNumber(nutritionObj, "protein");
-      if (protein !== undefined) nutrition.protein = protein;
-
       const fat = safeExtractNumber(nutritionObj, "fat");
-      if (fat !== undefined) nutrition.fat = fat;
-
       const carbohydrates = safeExtractNumber(nutritionObj, "carbohydrates");
-      if (carbohydrates !== undefined) nutrition.carbohydrates = carbohydrates;
 
-      if (Object.keys(nutrition).length > 0) {
-        partial.nutrition = nutrition as Required<
-          ParsedRecipeFromText["nutrition"]
-        >;
+      if (
+        calories !== undefined &&
+        protein !== undefined &&
+        fat !== undefined &&
+        carbohydrates !== undefined
+      ) {
+        partial.nutrition = {
+          calories,
+          protein,
+          fat,
+          carbohydrates,
+        };
       }
     }
 
