@@ -18,10 +18,11 @@
   - [x] Data parser should be aware nutrition values should be returns as integers that represent gram values. So some conversion may be needed.
 - [x] Production deployment and PWA
   - [x] Set up on Vercel
-  - [ ] Set up convex prod deployments
-  - [ ] Clerk still requires a custom (non vercel) domain
-  - [ ] Clerk users webhook
+  - [x] Set up convex prod deployments
+  - [x] Clerk still requires a custom (non vercel) domain
+  - [x] Clerk users webhook
 - [ ] Image upload for method steps
+- [ ] Fix mobile UI issues site wide
 - [ ] Generate a recipe with copy and pasting (fallback if first method fails)
 - [ ] Generate a recipe with scraping (fallback if first method fails)
 - [ ] **Ingredient Categories**: Add categorization to ingredients (meat, poultry, vegetable, spice etc) (or extract from an existing external ingredient DB while still allowing custom ingredients)
@@ -36,9 +37,11 @@
 - [ ] Consolidate how ingredients, method and nutrition data is rendered
 - [ ] Consolidate how cook time/serves/prep looks
 - [ ] Consolidate form schemas
+- [ ] Consolidate the two AI recipe parse functions
 
 ## Minor updates
 
+- [ ] Background and colours on android look really ugly for some reason
 - [ ] When a recipe is saved from the create recipe form, give the users a link in the toast to the new recipe page
 - [ ] Recipe description needs clamping or moving on mobile
 - [ ] Handle my-recipe pagination (limit to 20 per page)
@@ -49,6 +52,7 @@
 - [ ] Set recipe to draft or publish (users should be notified what this means. Published does not mean public, users in your house can see your recipes etc. This should be globally saved information so its easy to update)
 - [ ] Sign in / Sign up pages should respect dark mode as well as looking a bit more native to the site
 - [ ] Update app icons.
+- [ ] Add OpenGraph meta information to all pages.
 
 ## Major updates
 
