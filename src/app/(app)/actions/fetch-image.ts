@@ -1,5 +1,7 @@
 "use server";
 
+import { validateUrlForSSRF } from "@/lib/utils/secure-fetch";
+
 /**
  * Fetches an image from an external URL server-side to bypass CORS restrictions
  * Returns the image as a base64 data URL
@@ -11,15 +13,18 @@ export async function fetchImageServerSide(imageUrl: string): Promise<{
   error?: string;
 }> {
   try {
-    // Validate URL
-    const url = new URL(imageUrl);
-    if (url.protocol !== "https:" && url.protocol !== "http:") {
-      return { success: false, error: "Invalid image URL protocol" };
+    // Validate URL for SSRF protection
+    const validation = await validateUrlForSSRF(imageUrl);
+    if (!validation.valid) {
+      return {
+        success: false,
+        error: `URL validation failed: ${validation.reason}`,
+      };
     }
 
     // Fetch image from external site
     // Server-side fetch doesn't have CORS restrictions
-    const response = await fetch(url.toString(), {
+    const response = await fetch(validation.url!.toString(), {
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",

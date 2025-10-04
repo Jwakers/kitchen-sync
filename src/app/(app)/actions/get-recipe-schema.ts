@@ -1,6 +1,6 @@
 "use server";
 
-import axios from "axios";
+import { validateUrlForSSRF } from "@/lib/utils/secure-fetch";
 import * as cheerio from "cheerio";
 import type { Recipe } from "schema-dts";
 
@@ -59,15 +59,28 @@ async function scrapeRecipeSchema(
   url: URL
 ): Promise<ParsedRecipeSchema | null> {
   try {
-    // Fetch the HTML
-    const response = await axios.get(url.toString(), {
+    // Validate URL for SSRF protection
+    const validation = await validateUrlForSSRF(url.toString());
+    if (!validation.valid) {
+      throw new Error(`SSRF Protection: ${validation.reason}`);
+    }
+
+    // Fetch the HTML using native fetch
+    const response = await fetch(validation.url!.toString(), {
+      signal: AbortSignal.timeout(10000), // 10 second timeout
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
       },
     });
 
-    const html = response.data;
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch: ${response.status} ${response.statusText}`
+      );
+    }
+
+    const html = await response.text();
     const $ = cheerio.load(html);
 
     // Look for JSON-LD script tags containing Recipe schema

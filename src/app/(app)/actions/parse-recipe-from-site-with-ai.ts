@@ -10,7 +10,7 @@ import {
   validatePreparation,
   validateUnit,
 } from "@/lib/utils/recipe-validation";
-import axios from "axios";
+import { validateUrlForSSRF } from "@/lib/utils/secure-fetch";
 import * as cheerio from "cheerio";
 import {
   PREPARATION_OPTIONS,
@@ -306,16 +306,34 @@ export async function parseRecipeFromSiteWithAI(
   }
 
   try {
-    // 1️⃣ Fetch page HTML
-    const { data: html } = await axios.get(url, {
-      timeout: 10000, // 10 second timeout
+    // 1️⃣ Validate URL for SSRF protection
+    const validation = await validateUrlForSSRF(url);
+    if (!validation.valid) {
+      console.error(
+        `SSRF Protection: URL validation failed - ${validation.reason}`
+      );
+      return null;
+    }
+
+    // 2️⃣ Fetch page HTML using native fetch (more secure than axios)
+    const response = await fetch(validation.url!.toString(), {
+      signal: AbortSignal.timeout(10000), // 10 second timeout
       headers: {
         "User-Agent":
           "Mozilla/5.0 (compatible; RecipeBot/1.0; +https://kitchen-sync.app)",
       },
     });
 
-    // 2️⃣ Load into Cheerio
+    if (!response.ok) {
+      console.error(
+        `Failed to fetch URL: ${response.status} ${response.statusText}`
+      );
+      return null;
+    }
+
+    const html = await response.text();
+
+    // 3️⃣ Load into Cheerio
     const $ = cheerio.load(html);
 
     // Extract image from meta tags (before removing scripts)
@@ -335,7 +353,7 @@ export async function parseRecipeFromSiteWithAI(
       return null;
     }
 
-    // 3️⃣ Parse with AI (pass extracted image)
+    // 4️⃣ Parse with AI (pass extracted image)
     const recipe = await parseHtmlWithAI(truncatedText, imageUrl);
 
     if (!recipe) {
