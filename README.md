@@ -48,6 +48,7 @@
 - [ ] Update the UI for selecting units and prep to show categories and share across all forms. Use a categorised table like display
 - [ ] Set recipe to draft or publish (users should be notified what this means. Published does not mean public, users in your house can see your recipes etc. This should be globally saved information so its easy to update)
 - [ ] Sign in / Sign up pages should respect dark mode as well as looking a bit more native to the site
+- [ ] Update app icons.
 
 ## Major updates
 
