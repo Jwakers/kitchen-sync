@@ -464,6 +464,7 @@ export async function parseTextToRecipe(text: string): Promise<{
     return {
       success: false,
       error: result.error,
+      partialRecipe: result.partialRecipe,
     };
   }
 

@@ -8,13 +8,19 @@ import { RECIPE_CATEGORIES } from "convex/lib/constants";
 export function parseDuration(duration?: string): number {
   if (!duration) return 0;
 
-  const hoursMatch = duration.match(/(\d+)H/);
-  const minutesMatch = duration.match(/(\d+)M/);
+  const normalized = duration.toUpperCase();
+  const matches = normalized.match(
+    /P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?/
+  );
 
-  const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0;
-  const minutes = minutesMatch ? parseInt(minutesMatch[1]) : 0;
+  if (!matches) return 0;
 
-  return hours * 60 + minutes;
+  const days = matches[1] ? parseInt(matches[1], 10) : 0;
+  const hours = matches[2] ? parseInt(matches[2], 10) : 0;
+  const minutes = matches[3] ? parseInt(matches[3], 10) : 0;
+  const seconds = matches[4] ? parseInt(matches[4], 10) : 0;
+
+  return days * 24 * 60 + hours * 60 + minutes + Math.ceil(seconds / 60);
 }
 
 /**

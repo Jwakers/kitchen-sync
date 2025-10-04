@@ -133,11 +133,13 @@ export function ImportRecipeClient() {
     setError(null);
 
     // Simulate stage progression for better UX
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       setLoadingStage("categorising");
     }, 2000);
 
     const result = await parseTextToRecipe(text);
+
+    clearTimeout(timeout);
 
     if (!result.success) {
       // If we have partial data, use it and enter edit mode
@@ -170,16 +172,17 @@ export function ImportRecipeClient() {
             result.error || "Please complete the missing fields in edit mode",
         });
       } else {
-        setError(result.error || "Failed to create recipe from text");
         setLoadingStage("idle");
+        setError(result.error || "Failed to create recipe from text");
+        throw new Error(result.error ?? "Text parsing failed");
       }
       return;
     }
 
     if (!result.recipe) {
-      setError("Failed to create recipe from text");
       setLoadingStage("idle");
-      return;
+      setError("Failed to create recipe from text");
+      throw new Error("Failed to create recipe from text");
     }
 
     // Convert ParsedRecipeFromText to ParsedRecipeForDB format
