@@ -2,6 +2,7 @@
 
 import { fetchImageServerSide } from "@/app/(app)/actions/fetch-image";
 import { getRecipeSchema } from "@/app/(app)/actions/get-recipe-schema";
+import { parseRecipeFromSiteWithAI } from "@/app/(app)/actions/parse-recipe-from-site-with-ai";
 import { parseRecipeSchemaWithAI } from "@/app/(app)/actions/parse-recipe-schema-with-ai";
 import { parseTextToRecipe } from "@/app/(app)/actions/parse-text-to-recipe";
 import { ROUTES } from "@/app/constants";
@@ -44,7 +45,12 @@ import z from "zod";
 import { EditImportedRecipe } from "./edit-imported-recipe";
 import { TextToRecipeParser } from "./text-to-recipe-parser";
 
-type LoadingStage = "idle" | "fetching" | "categorising" | "complete";
+type LoadingStage =
+  | "idle"
+  | "fetching"
+  | "categorising"
+  | "parsing"
+  | "complete";
 type ImportSource = "url" | "text";
 
 export function ImportRecipeClient() {
@@ -87,19 +93,31 @@ export function ImportRecipeClient() {
         url: recipeUrl,
       } = await getRecipeSchema(url);
 
-      if (fetchError || !recipe) {
-        throw new Error(fetchError || "Failed to fetch recipe");
-      }
-
       // Stage 2: Parse with AI
-      setLoadingStage("categorising");
-      const parsed = await parseRecipeSchemaWithAI(
-        recipe,
-        recipeUrl || undefined
-      );
+      let parsed: ParsedRecipeForDB | null = null;
 
-      if (!parsed) {
-        throw new Error("Failed to parse recipe");
+      if (fetchError || !recipe) {
+        // Fallback: Use AI to parse directly from HTML when schema.org fails
+        toast.info("Recipe schema not found", {
+          description: "Using AI to extract recipe from page...",
+        });
+
+        setLoadingStage("parsing");
+        parsed = await parseRecipeFromSiteWithAI(url);
+
+        if (!parsed) {
+          throw new Error(
+            "Failed to extract recipe. The page may not contain a recipe, or it may be behind a paywall."
+          );
+        }
+      } else {
+        // Normal path: Parse structured schema.org data
+        setLoadingStage("categorising");
+        parsed = await parseRecipeSchemaWithAI(recipe, recipeUrl || undefined);
+
+        if (!parsed) {
+          throw new Error("Failed to parse recipe");
+        }
       }
 
       setParsedRecipe(parsed);
@@ -617,16 +635,26 @@ export function ImportRecipeClient() {
                     : "Checking recipe format..."
                 }
               />
-              <LoadingStep
-                stage="categorising"
-                currentStage={loadingStage}
-                title="Processing recipe with AI"
-                description={
-                  importSource === "url"
-                    ? "Parsing ingredients, categorizing, and creating method steps..."
-                    : "Organizing ingredients, generating descriptions, and calculating nutrition..."
-                }
-              />
+              {loadingStage !== "parsing" && (
+                <LoadingStep
+                  stage="categorising"
+                  currentStage={loadingStage}
+                  title="Processing recipe with AI"
+                  description={
+                    importSource === "url"
+                      ? "Parsing ingredients, categorizing, and creating method steps..."
+                      : "Organizing ingredients, generating descriptions, and calculating nutrition..."
+                  }
+                />
+              )}
+              {loadingStage === "parsing" && (
+                <LoadingStep
+                  stage="parsing"
+                  currentStage={loadingStage}
+                  title="Extracting recipe with AI"
+                  description="No structured data found - analysing page content to extract recipe information..."
+                />
+              )}
             </div>
           </Card>
         )}
@@ -685,6 +713,7 @@ function LoadingStep({
     "idle",
     "fetching",
     "categorising",
+    "parsing",
     "complete",
   ];
   const currentIndex = stages.indexOf(currentStage);
