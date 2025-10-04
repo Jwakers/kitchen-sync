@@ -229,7 +229,7 @@ export default function RecipeListing() {
             <Button
               size="lg"
               onClick={() => setShowAddRecipeDrawer(true)}
-              className="gap-2"
+              className="hidden md:flex"
             >
               <Plus className="h-5 w-5" />
               Add Recipe
