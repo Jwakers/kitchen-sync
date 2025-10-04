@@ -2,7 +2,7 @@
 
 import { fetchImageServerSide } from "@/app/(app)/actions/fetch-image";
 import { getRecipeSchema } from "@/app/(app)/actions/get-recipe-schema";
-import { parseRecipeWithAI } from "@/app/(app)/actions/parse-recipe-with-ai";
+import { parseRecipeSchemaWithAI } from "@/app/(app)/actions/parse-recipe-schema-with-ai";
 import { parseTextToRecipe } from "@/app/(app)/actions/parse-text-to-recipe";
 import { ROUTES } from "@/app/constants";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -93,7 +93,10 @@ export function ImportRecipeClient() {
 
       // Stage 2: Parse with AI
       setLoadingStage("categorising");
-      const parsed = await parseRecipeWithAI(recipe, recipeUrl || undefined);
+      const parsed = await parseRecipeSchemaWithAI(
+        recipe,
+        recipeUrl || undefined
+      );
 
       if (!parsed) {
         throw new Error("Failed to parse recipe");
