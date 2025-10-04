@@ -197,7 +197,7 @@ IMPORTANT: Return exactly ${instructions.length} method steps. Copy each instruc
  * Parses recipe schema data into a format ready for your Convex database
  * Uses AI for intelligent parsing of ingredients, category, and method
  */
-export async function parseRecipeWithAI(
+export async function parseRecipeSchemaWithAI(
   schema: ParsedRecipeSchema,
   originalUrl?: string
 ): Promise<ParsedRecipeForDB | null> {
