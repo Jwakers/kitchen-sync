@@ -23,6 +23,48 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Helper functions for safe data extraction
+function safeExtractString<T extends Record<string, unknown>>(
+  data: T,
+  key: keyof T
+): string | undefined {
+  const value = data[key];
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function safeExtractNumber<T extends Record<string, unknown>>(
+  data: T,
+  key: keyof T
+): number | undefined {
+  const value = data[key];
+  return typeof value === "number" ? value : undefined;
+}
+
+function safeExtractArray<T extends Record<string, unknown>, U>(
+  data: T,
+  key: keyof T,
+  validator: (item: unknown) => item is U,
+  mapper: (item: U) => unknown
+): unknown[] | undefined {
+  const value = data[key];
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const validItems = value.filter(validator).map(mapper);
+  return validItems.length > 0 ? validItems : undefined;
+}
+
+function safeExtractObject<T extends Record<string, unknown>>(
+  data: T,
+  key: keyof T
+): Record<string, unknown> | undefined {
+  const value = data[key];
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : undefined;
+}
+
 // Schema for text recipe parsing (all fields required per structured outputs)
 const TextRecipeSchema = z.object({
   success: z.boolean(),
@@ -311,97 +353,98 @@ function extractPartialRecipeData(
     const data = jsonData as Record<string, unknown>;
     const partial: Partial<ParsedRecipeFromText> = {};
 
-    // Extract whatever we can
-    if (data.title && typeof data.title === "string") {
-      partial.title = data.title;
-    }
-    if (data.description && typeof data.description === "string") {
-      partial.description = data.description;
-    }
-    if (typeof data.prepTime === "number") {
-      partial.prepTime = data.prepTime;
-    }
-    if (typeof data.cookTime === "number") {
-      partial.cookTime = data.cookTime;
-    }
-    if (typeof data.serves === "number") {
-      partial.serves = data.serves;
-    }
-    if (data.category && typeof data.category === "string") {
-      partial.category = data.category as (typeof RECIPE_CATEGORIES)[number];
+    // Extract basic fields using helper functions
+    const title = safeExtractString(data, "title");
+    if (title) partial.title = title;
+
+    const description = safeExtractString(data, "description");
+    if (description) partial.description = description;
+
+    const prepTime = safeExtractNumber(data, "prepTime");
+    if (prepTime !== undefined) partial.prepTime = prepTime;
+
+    const cookTime = safeExtractNumber(data, "cookTime");
+    if (cookTime !== undefined) partial.cookTime = cookTime;
+
+    const serves = safeExtractNumber(data, "serves");
+    if (serves !== undefined) partial.serves = serves;
+
+    const category = safeExtractString(data, "category");
+    if (category) {
+      partial.category = category as (typeof RECIPE_CATEGORIES)[number];
     }
 
     // Extract ingredients (only complete ones)
-    if (Array.isArray(data.ingredients)) {
-      const validIngredients = data.ingredients
-        .filter(
-          (ing: unknown): ing is { name: string; amount: number } =>
-            typeof ing === "object" &&
-            ing !== null &&
-            "name" in ing &&
-            typeof ing.name === "string" &&
-            "amount" in ing &&
-            typeof ing.amount === "number"
-        )
-        .map((ing) => ({
-          name: ing.name,
-          amount: ing.amount,
-          unit: validateUnit(
-            "unit" in ing && typeof ing.unit === "string" ? ing.unit : undefined
-          ),
-          preparation: validatePreparation(
-            "preparation" in ing && typeof ing.preparation === "string"
-              ? ing.preparation
-              : undefined
-          ),
-        }));
+    const ingredients = safeExtractArray(
+      data,
+      "ingredients",
+      (ing: unknown): ing is { name: string; amount: number } =>
+        typeof ing === "object" &&
+        ing !== null &&
+        "name" in ing &&
+        typeof ing.name === "string" &&
+        "amount" in ing &&
+        typeof ing.amount === "number",
+      (ing) => ({
+        name: ing.name,
+        amount: ing.amount,
+        unit: validateUnit(
+          "unit" in ing && typeof ing.unit === "string" ? ing.unit : undefined
+        ),
+        preparation: validatePreparation(
+          "preparation" in ing && typeof ing.preparation === "string"
+            ? ing.preparation
+            : undefined
+        ),
+      })
+    );
 
-      if (validIngredients.length > 0) {
-        partial.ingredients = validIngredients;
-      }
+    if (ingredients) {
+      partial.ingredients = ingredients as StructuredIngredient[];
     }
 
     // Extract method steps
-    if (Array.isArray(data.method)) {
-      const validSteps = data.method
-        .filter(
-          (step: unknown): step is { title: string } =>
-            typeof step === "object" &&
-            step !== null &&
-            "title" in step &&
-            typeof step.title === "string"
-        )
-        .map((step) => ({
-          title: step.title,
-          description:
-            "description" in step && typeof step.description === "string"
-              ? step.description
-              : undefined,
-        }));
+    const method = safeExtractArray(
+      data,
+      "method",
+      (step: unknown): step is { title: string } =>
+        typeof step === "object" &&
+        step !== null &&
+        "title" in step &&
+        typeof step.title === "string",
+      (step) => ({
+        title: step.title,
+        description:
+          "description" in step && typeof step.description === "string"
+            ? step.description
+            : undefined,
+      })
+    );
 
-      if (validSteps.length > 0) {
-        partial.method = validSteps;
-      }
+    if (method) {
+      partial.method = method as Array<{
+        title: string;
+        description?: string;
+      }>;
     }
 
     // Extract nutrition
-    if (data.nutrition && typeof data.nutrition === "object") {
-      const nutritionData = data.nutrition as Record<string, unknown>;
+    const nutritionObj = safeExtractObject(data, "nutrition");
+    if (nutritionObj) {
       const nutrition: Partial<Required<ParsedRecipeFromText["nutrition"]>> =
         {};
 
-      if (typeof nutritionData.calories === "number") {
-        nutrition.calories = nutritionData.calories;
-      }
-      if (typeof nutritionData.protein === "number") {
-        nutrition.protein = nutritionData.protein;
-      }
-      if (typeof nutritionData.fat === "number") {
-        nutrition.fat = nutritionData.fat;
-      }
-      if (typeof nutritionData.carbohydrates === "number") {
-        nutrition.carbohydrates = nutritionData.carbohydrates;
-      }
+      const calories = safeExtractNumber(nutritionObj, "calories");
+      if (calories !== undefined) nutrition.calories = calories;
+
+      const protein = safeExtractNumber(nutritionObj, "protein");
+      if (protein !== undefined) nutrition.protein = protein;
+
+      const fat = safeExtractNumber(nutritionObj, "fat");
+      if (fat !== undefined) nutrition.fat = fat;
+
+      const carbohydrates = safeExtractNumber(nutritionObj, "carbohydrates");
+      if (carbohydrates !== undefined) nutrition.carbohydrates = carbohydrates;
 
       if (Object.keys(nutrition).length > 0) {
         partial.nutrition = nutrition as Required<
