@@ -117,6 +117,7 @@
 - [ ] **Offline Caching**: Cache recipes and shopping lists in IndexedDB for offline access
 - [ ] **Offline-First Design**: Ensure core features work without internet connection
 - [ ] **Manual Recipe Entry**: Fallback for when AI scraping fails - allow copy/paste text parsing
+- [ ] Add context sensitive installation instructions to the home page
 
 ### 📅 Post-Launch Phase 1 (4-8 Months)
 
