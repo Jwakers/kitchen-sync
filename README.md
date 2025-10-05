@@ -21,10 +21,14 @@
   - [x] Set up convex prod deployments
   - [x] Clerk still requires a custom (non vercel) domain
   - [x] Clerk users webhook
+- [ ] Shopping list
+  - [ ] UI
+  - [ ] Persist shopping list in local storage
+  - [ ] Add additional items
 - [ ] Image upload for method steps
 - [ ] Fix mobile UI issues site wide
-- [ ] Generate a recipe with copy and pasting (fallback if first method fails)
-- [ ] Generate a recipe with scraping (fallback if first method fails)
+- [x] Generate a recipe with copy and pasting (fallback if first method fails)
+- [x] Generate a recipe with scraping (fallback if first method fails)
 - [ ] **Ingredient Categories**: Add categorization to ingredients (meat, poultry, vegetable, spice etc) (or extract from an existing external ingredient DB while still allowing custom ingredients)
 - [ ] **Recipe Tags**: Auto-detect dietary tags like plant-based, coeliac friendly, gluten free from ingredients
 
@@ -53,6 +57,7 @@
 - [ ] Sign in / Sign up pages should respect dark mode as well as looking a bit more native to the site
 - [ ] Update app icons.
 - [ ] Add OpenGraph meta information to all pages.
+- [ ] Separate 404 for home (site) and app. They need different redirects and copy
 
 ## Major updates
 
@@ -61,6 +66,8 @@
 - [ ] Add macros to recipe schema, add a generate macros button that AI does for you. Go back into teh schema scraper and get nutrition data if available
 - [ ] use a KV store or other caching strategy to cache AI parsed recipes to prevent processing more than once.
 - [ ] AI image upscaler for poor quality images (PRO feature)
+- [ ] Stream the AI response for better perceived performance. This may involve two separate calls, one, a human readable response of recipe text, then a final call to coalesce it into structured JSON
+- [ ] Share to the app. Investigate whether it is possible that, if a website is shared to this app, it can be immediately added to the import URL field on the import URL field, with a popup asking for confirmation to import this recipe
 
 ---
 
@@ -101,6 +108,14 @@
 - [ ] **Editable Shopping Lists**: Allow manual editing, adding, and removing items from generated lists
 - [ ] **Shopping List Persistence**: Save and load shopping lists in Convex database
 - [ ] **Shopping List Sharing**: Share lists with household members for collaborative shopping
+- [ ] Normalise units to make it easier to combine ingredients
+
+#### Dashboard
+
+- [ ] How to use the app
+- [ ] Recent recipes
+- [ ] Shopping list info
+      ... This section is quite organic and will grow with most new features
 
 #### Household Collaboration
 

@@ -99,7 +99,7 @@ export function ImportRecipeClient() {
       if (fetchError || !recipe) {
         // Fallback: Use AI to parse directly from HTML when schema.org fails
         toast.info("Recipe schema not found", {
-          description: "Using AI to extract recipe from page...",
+          description: "Extracting recipe from page...",
         });
 
         setLoadingStage("parsing");
@@ -461,7 +461,7 @@ export function ImportRecipeClient() {
               Import Recipe from URL
             </h1>
             <p className="text-muted-foreground mt-1">
-              Import recipes from any cooking website with AI
+              Import recipes from any cooking website
             </p>
           </div>
         </div>
@@ -549,7 +549,7 @@ export function ImportRecipeClient() {
                     <AlertTitle>Can&apos;t import from URL?</AlertTitle>
                     <AlertDescription>
                       <p className="mb-2">
-                        Try pasting the recipe text directly instead. AI will
+                        Try pasting the recipe text directly instead. We&apos;ll
                         organize it for you automatically.
                       </p>
                       <Button
@@ -580,7 +580,7 @@ export function ImportRecipeClient() {
                         Have recipe text instead?
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Paste any recipe text and AI will organize it
+                        Paste any recipe text and we&apos;ll organize it
                       </p>
                     </div>
                   </div>
@@ -626,24 +626,24 @@ export function ImportRecipeClient() {
                 currentStage={loadingStage}
                 title={
                   importSource === "url"
-                    ? "Fetching recipe data"
-                    : "Validating recipe text"
+                    ? "Gathering ingredients"
+                    : "Reading your recipe"
                 }
                 description={
                   importSource === "url"
-                    ? "Reading recipe from website..."
-                    : "Checking recipe format..."
+                    ? "Fetching all the tasty details..."
+                    : "Making sense of everything..."
                 }
               />
               {loadingStage !== "parsing" && (
                 <LoadingStep
                   stage="categorising"
                   currentStage={loadingStage}
-                  title="Processing recipe with AI"
+                  title="Organizing the kitchen"
                   description={
                     importSource === "url"
-                      ? "Parsing ingredients, categorizing, and creating method steps..."
-                      : "Organizing ingredients, generating descriptions, and calculating nutrition..."
+                      ? "Sorting ingredients, steps, and all the good stuff..."
+                      : "Arranging ingredients, adding some polish, and working out the details..."
                   }
                 />
               )}
@@ -651,8 +651,8 @@ export function ImportRecipeClient() {
                 <LoadingStep
                   stage="parsing"
                   currentStage={loadingStage}
-                  title="Extracting recipe with AI"
-                  description="No structured data found - analysing page content to extract recipe information..."
+                  title="Digging deeper"
+                  description="Finding all the recipe details hidden in the page..."
                 />
               )}
             </div>

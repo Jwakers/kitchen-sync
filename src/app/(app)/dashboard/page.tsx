@@ -1,5 +1,11 @@
 import { ROUTES } from "@/app/constants";
-import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ChefHat, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 
 export const metadata = {
@@ -21,9 +27,39 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <Button asChild>
-            <Link href={ROUTES.MY_RECIPES}>My Recipes</Link>
-          </Button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Link href={ROUTES.MY_RECIPES}>
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <ChefHat className="h-5 w-5 text-primary" />
+                    </div>
+                    <CardTitle>My Recipes</CardTitle>
+                  </div>
+                  <CardDescription>
+                    View, edit, and manage all your recipes
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </Link>
+
+            <Link href={ROUTES.SHOPPING_LIST}>
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <ShoppingCart className="h-5 w-5 text-primary" />
+                    </div>
+                    <CardTitle>Shopping List</CardTitle>
+                  </div>
+                  <CardDescription>
+                    Create smart shopping lists from your recipes
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </Link>
+          </div>
         </div>
       </div>
     </div>

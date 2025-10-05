@@ -13,7 +13,7 @@ const lexendSans = Lexend({
 
 const APP_NAME = "Kitchen Sync";
 const APP_DEFAULT_TITLE = "Kitchen Sync - Family Meal Planning";
-const APP_TITLE_TEMPLATE = "%s - Kitchen Sync";
+const APP_TITLE_TEMPLATE = "%s | Kitchen Sync";
 const APP_DESCRIPTION =
   "Create recipes, plan weekly meals, and generate smart shopping lists. Take the pain out of family meal planning with Kitchen Sync.";
 
