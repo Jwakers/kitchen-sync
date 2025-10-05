@@ -103,7 +103,7 @@ export function AddRecipeDrawer({ open, onOpenChange }: AddRecipeDrawerProps) {
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg">Import Recipe</h3>
                   <p className="text-muted-foreground text-sm">
-                    From a URL or paste recipe text - AI will do the rest
+                    From a URL or paste recipe text - we&apos;ll do the rest
                   </p>
                 </div>
               </div>

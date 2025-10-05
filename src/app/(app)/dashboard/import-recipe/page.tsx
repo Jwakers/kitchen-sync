@@ -3,7 +3,7 @@ import { ImportRecipeClient } from "./_components/import-recipe-client";
 
 export const metadata: Metadata = {
   title: "Import Recipe",
-  description: "Import recipes from any cooking website with AI",
+  description: "Import recipes from other websites",
 };
 
 export default function ImportRecipePage() {

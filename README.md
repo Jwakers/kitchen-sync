@@ -23,8 +23,8 @@
   - [x] Clerk users webhook
 - [ ] Image upload for method steps
 - [ ] Fix mobile UI issues site wide
-- [ ] Generate a recipe with copy and pasting (fallback if first method fails)
-- [ ] Generate a recipe with scraping (fallback if first method fails)
+- [x] Generate a recipe with copy and pasting (fallback if first method fails)
+- [x] Generate a recipe with scraping (fallback if first method fails)
 - [ ] **Ingredient Categories**: Add categorization to ingredients (meat, poultry, vegetable, spice etc) (or extract from an existing external ingredient DB while still allowing custom ingredients)
 - [ ] **Recipe Tags**: Auto-detect dietary tags like plant-based, coeliac friendly, gluten free from ingredients
 
@@ -53,6 +53,7 @@
 - [ ] Sign in / Sign up pages should respect dark mode as well as looking a bit more native to the site
 - [ ] Update app icons.
 - [ ] Add OpenGraph meta information to all pages.
+- [ ] Separate 404 for home (site) and app. They need different redirects and copy
 
 ## Major updates
 
@@ -61,6 +62,7 @@
 - [ ] Add macros to recipe schema, add a generate macros button that AI does for you. Go back into teh schema scraper and get nutrition data if available
 - [ ] use a KV store or other caching strategy to cache AI parsed recipes to prevent processing more than once.
 - [ ] AI image upscaler for poor quality images (PRO feature)
+- [ ] Stream teh AI response for better perceived performance
 
 ---
 

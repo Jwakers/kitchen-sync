@@ -72,8 +72,8 @@ export function TextToRecipeParser({
             </h2>
             <p className="text-sm text-muted-foreground">
               {showAsError
-                ? "Paste your recipe below and AI will organize it for you"
-                : "Copy and paste any recipe text, and AI will organize it"}
+                ? "Paste your recipe below and we&apos;ll organize it for you"
+                : "Copy and paste any recipe text, and we&apos;ll organize it"}
             </p>
           </div>
         </div>
@@ -87,8 +87,8 @@ export function TextToRecipeParser({
             <AlertTitle>How it works</AlertTitle>
             <AlertDescription>
               Copy recipe text from anywhere - a website, a message, or your own
-              notes. AI will organize the ingredients, instructions, and even
-              calculate nutrition info for you.
+              notes. We&apos;ll organize the ingredients, instructions, and even
+              work out nutrition info for you.
             </AlertDescription>
           </Alert>
         )}
@@ -184,7 +184,7 @@ Instructions:
             ) : (
               <>
                 <Sparkles className="mr-2 h-4 w-4" />
-                Create Recipe with AI
+                Create Recipe
               </>
             )}
           </Button>
@@ -205,10 +205,10 @@ Instructions:
           <ul className="list-disc list-inside space-y-1 ml-2">
             <li>Include your ingredients and cooking steps</li>
             <li>The more detail, the better</li>
-            <li>Don&apos;t worry about formatting - AI handles it</li>
+            <li>Don&apos;t worry about formatting - we&apos;ll handle it</li>
             <li>Recipe name and description will be created if needed</li>
             <li>
-              Nutrition info can be calculated automatically if not provided
+              Nutrition info can be worked out automatically if not provided
             </li>
           </ul>
         </div>
