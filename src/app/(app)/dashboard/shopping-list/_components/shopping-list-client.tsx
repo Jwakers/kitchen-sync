@@ -182,7 +182,7 @@ export default function ShoppingListClient() {
 
             {/* Generate Button */}
             {selectedRecipeIds.size > 0 && (
-              <div className="sticky bottom-[calc(64px+env(safe-area-inset-bottom))] mt-8 pb-4">
+              <div className="sticky bottom-nav mt-8">
                 <Button
                   size="lg"
                   className="w-full shadow-lg"

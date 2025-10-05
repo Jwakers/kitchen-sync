@@ -4,15 +4,26 @@ import { ROUTES } from "@/app/constants";
 import { Button } from "@/components/ui/button";
 import { Ellipsis, Home, Plus, ShoppingCart, User } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AddRecipeDrawer } from "./add-recipe-drawer";
 
 export function Navbar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const navRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    document.body.style.setProperty(
+      "--nav-height",
+      `${navRef.current?.clientHeight}px`
+    );
+  }, []);
 
   return (
     <>
-      <nav className="fixed bottom-0 safe-area-inset-bottom left-0 right-0 z-50 bg-background border-t border-border">
+      <nav
+        ref={navRef}
+        className="fixed bottom-0 safe-area-inset-bottom left-0 right-0 z-50 bg-background border-t border-border"
+      >
         <div className="flex items-center justify-around px-4 py-2">
           {/* Home */}
           <Link href={ROUTES.DASHBOARD}>

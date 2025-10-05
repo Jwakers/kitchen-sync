@@ -179,3 +179,7 @@
   @utility safe-area-inset-top {
     padding-top: env(safe-area-inset-top);
   }
+
+  @utility bottom-nav {
+    bottom: calc(var(--nav-height,72px) + env(safe-area-inset-bottom) + 1rem);
+  }
