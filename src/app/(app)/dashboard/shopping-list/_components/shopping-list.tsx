@@ -382,7 +382,7 @@ export default function ShoppingList({
             {/* Action Buttons */}
             {isFinalised ? (
               // Final state: Print, Share, Done
-              <div className="flex gap-2 flex-wrap sticky bottom-20">
+              <div className="flex gap-2 flex-wrap sticky bottom-[calc(64px+env(safe-area-inset-bottom))]">
                 <Button
                   variant="outline"
                   className="flex-1"
@@ -409,7 +409,7 @@ export default function ShoppingList({
               </div>
             ) : (
               // Editing state: Confirm/Save
-              <div className="flex gap-2 sticky bottom-20">
+              <div className="flex gap-2 sticky bottom-[calc(64px+env(safe-area-inset-bottom))]">
                 <Button variant="outline" className="flex-1" onClick={onBack}>
                   Cancel
                 </Button>

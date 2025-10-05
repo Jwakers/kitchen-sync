@@ -58,6 +58,7 @@
 - [ ] Update app icons.
 - [ ] Add OpenGraph meta information to all pages.
 - [ ] Separate 404 for home (site) and app. They need different redirects and copy
+- [ ] Update sticky bottom calc accounting for navbar; currently: `bottom-[calc(64px+env(safe-area-inset-bottom))]`
 
 ## Major updates
 
