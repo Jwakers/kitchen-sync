@@ -1,3 +1,13 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,6 +43,7 @@ export default function ShoppingList({
   const [allIngredients, setAllIngredients] = useState(flatIngredients.current);
   const [isFinalised, setIsFinalised] = useState(false);
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
+  const [showDoneDialog, setShowDoneDialog] = useState(false);
 
   const handleAmountChange = (id: string, newAmount: number) => {
     setAllIngredients((prev) =>
@@ -105,6 +116,7 @@ export default function ShoppingList({
   };
 
   const handleDoneShopping = () => {
+    setShowDoneDialog(false);
     toast.success("Shopping complete! Happy cooking!");
     // Go back to recipe selection
     onBack();
@@ -370,7 +382,7 @@ export default function ShoppingList({
             {/* Action Buttons */}
             {isFinalised ? (
               // Final state: Print, Share, Done
-              <div className="flex gap-2 sticky bottom-20">
+              <div className="flex gap-2 flex-wrap sticky bottom-20">
                 <Button
                   variant="outline"
                   className="flex-1"
@@ -387,7 +399,10 @@ export default function ShoppingList({
                   <Share2 className="h-4 w-4 mr-2" />
                   Share
                 </Button>
-                <Button className="flex-1" onClick={handleDoneShopping}>
+                <Button
+                  className="w-full sm:w-auto sm:flex-1"
+                  onClick={() => setShowDoneDialog(true)}
+                >
                   <Check className="h-4 w-4 mr-2" />
                   Done Shopping
                 </Button>
@@ -411,6 +426,25 @@ export default function ShoppingList({
           </CardContent>
         </Card>
       </div>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showDoneDialog} onOpenChange={setShowDoneDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Complete Shopping?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove your shopping list and return you to the recipe
+              selection. Are you sure you&apos;re done shopping?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDoneShopping}>
+              Yes, I&apos;m Done
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
