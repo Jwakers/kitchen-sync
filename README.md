@@ -24,6 +24,7 @@
 - [ ] Shopping list
   - [ ] UI
   - [ ] Persist shopping list in local storage
+  - [ ] Add additional items
 - [ ] Image upload for method steps
 - [ ] Fix mobile UI issues site wide
 - [x] Generate a recipe with copy and pasting (fallback if first method fails)
@@ -107,6 +108,7 @@
 - [ ] **Editable Shopping Lists**: Allow manual editing, adding, and removing items from generated lists
 - [ ] **Shopping List Persistence**: Save and load shopping lists in Convex database
 - [ ] **Shopping List Sharing**: Share lists with household members for collaborative shopping
+- [ ] Normalise units to make it easier to combine ingredients
 
 #### Dashboard
 
