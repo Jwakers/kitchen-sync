@@ -75,7 +75,7 @@ export default function ShoppingList({
     const listText = `Created: ${new Date().toLocaleDateString()}\n\n${allIngredients
       .map((item) => {
         const checked = checkedItems.has(item.id) ? "✓ " : "";
-        return `${checked}• ${item.amount} ${item.unit} ${item.name}`;
+        return `${checked}• ${item.amount}${item.unit ? ` ${item.unit}` : ""} ${item.name}`;
       })
       .join("\n")}`;
 
@@ -281,11 +281,6 @@ export default function ShoppingList({
                         >
                           {item.name}
                         </p>
-                        {/* {item.recipeId.length > 1 && (
-                          <Badge variant="secondary" className="text-xs">
-                            {item.recipeId} recipes
-                          </Badge>
-                        )} */}
                       </div>
 
                       {/* Amount Display/Controls */}
@@ -419,14 +414,6 @@ export default function ShoppingList({
     </>
   );
 }
-
-const parseRecipeIngredients = (recipe: Recipe) => {
-  return recipe.ingredients?.map((ing) => ({
-    recipeId: recipe._id,
-    id: crypto.randomUUID(),
-    ...ing,
-  }));
-};
 
 type ShoppingListItem = {
   id: string;
