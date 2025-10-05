@@ -13,7 +13,7 @@ export function Header() {
   const { resolvedTheme } = useTheme();
 
   return (
-    <header className="sticky top-0 safe-area-inset-top z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <Link href={ROUTES.DASHBOARD} className="flex items-center space-x-2">
