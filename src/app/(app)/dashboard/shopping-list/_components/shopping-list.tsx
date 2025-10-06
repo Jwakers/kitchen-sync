@@ -1,21 +1,9 @@
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { api } from "convex/_generated/api";
-import { FunctionReturnType } from "convex/server";
 import {
   ArrowLeft,
   Check,
@@ -26,25 +14,30 @@ import {
   ShoppingCart,
   X,
 } from "lucide-react";
-import { useRef, useState } from "react";
 import { toast } from "sonner";
+import { ShoppingListItem } from "./types";
 
-type Recipe = FunctionReturnType<typeof api.recipes.getAllUserRecipes>[number];
+interface ShoppingListProps {
+  allIngredients: ShoppingListItem[];
+  setAllIngredients: React.Dispatch<React.SetStateAction<ShoppingListItem[]>>;
+  checkedItems: Set<string>;
+  setCheckedItems: React.Dispatch<React.SetStateAction<Set<string>>>;
+  isFinalised: boolean;
+  setIsFinalised: React.Dispatch<React.SetStateAction<boolean>>;
+  onConfirm: () => void;
+  onBack: () => void;
+}
 
 export default function ShoppingList({
+  allIngredients,
+  setAllIngredients,
+  checkedItems,
+  setCheckedItems,
+  isFinalised,
+  setIsFinalised,
+  onConfirm,
   onBack,
-  recipes,
-}: {
-  onBack: () => void;
-  recipes: Recipe[];
-}) {
-  const flatIngredients = useRef(buildShoppingListItems(recipes));
-
-  const [allIngredients, setAllIngredients] = useState(flatIngredients.current);
-  const [isFinalised, setIsFinalised] = useState(false);
-  const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
-  const [showDoneDialog, setShowDoneDialog] = useState(false);
-
+}: ShoppingListProps) {
   const handleAmountChange = (id: string, newAmount: number) => {
     setAllIngredients((prev) =>
       prev.map((item) =>
@@ -67,10 +60,6 @@ export default function ShoppingList({
       }
       return newSet;
     });
-  };
-
-  const handleConfirm = () => {
-    setIsFinalised(true);
   };
 
   const handleEdit = () => {
@@ -115,24 +104,12 @@ export default function ShoppingList({
     }
   };
 
-  const handleDoneShopping = () => {
-    setShowDoneDialog(false);
-    toast.success("Shopping complete! Happy cooking!");
-    // Go back to recipe selection
-    onBack();
-  };
-
   return (
     <>
       {/* Print-only section */}
       <div className="hidden print:block">
         <div className="p-8">
           <h1 className="text-3xl font-bold mb-2">Shopping List</h1>
-          <p className="mb-6">
-            From {recipes.length} {recipes.length === 1 ? "recipe" : "recipes"}:{" "}
-            {recipes.map((r) => r.title).join(", ")}
-          </p>
-
           <div className="space-y-1">
             {allIngredients.map((item) => {
               const isChecked = checkedItems.has(item.id);
@@ -203,22 +180,6 @@ export default function ShoppingList({
                 {allIngredients.length} items
               </Badge>
             </div>
-
-            <p className="text-sm text-muted-foreground mb-6">
-              {isFinalised ? (
-                <>
-                  Shopping list from {recipes.length}{" "}
-                  {recipes.length === 1 ? "recipe" : "recipes"}. Check off items
-                  as you shop.
-                </>
-              ) : (
-                <>
-                  Generated from {recipes.length}{" "}
-                  {recipes.length === 1 ? "recipe" : "recipes"}. Adjust
-                  quantities or remove items before confirming.
-                </>
-              )}
-            </p>
 
             {/* Shopping guidance for finalized lists */}
             {isFinalised && (
@@ -401,7 +362,7 @@ export default function ShoppingList({
                 </Button>
                 <Button
                   className="w-full sm:w-auto sm:flex-1"
-                  onClick={() => setShowDoneDialog(true)}
+                  onClick={onConfirm}
                 >
                   <Check className="h-4 w-4 mr-2" />
                   Done Shopping
@@ -415,7 +376,7 @@ export default function ShoppingList({
                 </Button>
                 <Button
                   className="flex-1"
-                  onClick={handleConfirm}
+                  onClick={onConfirm}
                   disabled={allIngredients.length === 0}
                 >
                   <Check className="h-4 w-4 mr-2" />
@@ -426,83 +387,6 @@ export default function ShoppingList({
           </CardContent>
         </Card>
       </div>
-
-      {/* Confirmation Dialog */}
-      <AlertDialog open={showDoneDialog} onOpenChange={setShowDoneDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Complete Shopping?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will remove your shopping list and return you to the recipe
-              selection. Are you sure you&apos;re done shopping?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDoneShopping}>
-              Yes, I&apos;m Done
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }
-
-type ShoppingListItem = {
-  id: string;
-  name: string;
-  unit?: string;
-  preparation?: string;
-  amount: number | string | undefined;
-};
-
-const normaliseKey = (ingredient: NonNullable<Recipe["ingredients"]>[number]) =>
-  [
-    ingredient?.name?.trim().toLowerCase() ?? "",
-    ingredient?.unit?.trim().toLowerCase() ?? "",
-    ingredient?.preparation?.trim().toLowerCase() ?? "",
-  ].join("|");
-
-const buildShoppingListItems = (recipes: Recipe[]): ShoppingListItem[] => {
-  const combined = new Map<string, ShoppingListItem>();
-
-  recipes.forEach((recipe) => {
-    recipe.ingredients?.forEach((ingredient) => {
-      if (!ingredient?.name) return;
-
-      const key = normaliseKey(ingredient);
-      const existing = combined.get(key);
-      const amountValue =
-        typeof ingredient.amount === "number"
-          ? ingredient.amount
-          : Number(ingredient.amount);
-
-      if (!existing) {
-        combined.set(key, {
-          id: crypto.randomUUID(),
-          name: ingredient.name,
-          unit: ingredient.unit,
-          preparation: ingredient.preparation,
-          amount: Number.isFinite(amountValue)
-            ? amountValue
-            : ingredient.amount,
-        });
-        return;
-      }
-
-      if (typeof existing.amount === "number" && Number.isFinite(amountValue)) {
-        existing.amount += amountValue;
-      } else if (ingredient.amount) {
-        const parts = [existing.amount, ingredient.amount]
-          .filter(Boolean)
-          .map(String);
-        existing.amount = parts.join(" + ");
-      }
-    });
-  });
-
-  return Array.from(combined.values()).sort((a, b) =>
-    a.name.localeCompare(b.name)
-  );
-};

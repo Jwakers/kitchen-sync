@@ -150,7 +150,7 @@ export default function Home() {
               </div>
               <h3 className="font-semibold text-lg mb-2">Recipes</h3>
               <p className="text-sm text-muted-foreground">
-                Create & organize your favorite family recipes
+                Create & organise your favorite family recipes
               </p>
             </Card>
 
@@ -170,7 +170,7 @@ export default function Home() {
               </div>
               <h3 className="font-semibold text-lg mb-2">Shopping Lists</h3>
               <p className="text-sm text-muted-foreground">
-                Smart, organized shopping lists
+                Smart, organised shopping lists
               </p>
             </Card>
 
@@ -238,7 +238,7 @@ export default function Home() {
                   KITCHEN SYNC SOLUTION
                 </h2>
                 <p className="text-xl text-muted-foreground">
-                  Everything organized, everyone informed, zero stress.
+                  Everything organised, everyone informed, zero stress.
                 </p>
               </div>
 

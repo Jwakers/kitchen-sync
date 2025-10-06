@@ -13,7 +13,7 @@ export function Footer() {
               <span className="font-bold text-xl">Kitchen Sync</span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-xs">
-              Making family meal planning simple, organized, and stress-free.
+              Making family meal planning simple, organised, and stress-free.
               Create recipes, plan meals, and generate smart shopping lists.
             </p>
             <div className="flex space-x-4">

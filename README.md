@@ -21,10 +21,11 @@
   - [x] Set up convex prod deployments
   - [x] Clerk still requires a custom (non vercel) domain
   - [x] Clerk users webhook
-- [ ] Shopping list
-  - [ ] UI
+- [x] Shopping list
+  - [x] UI
   - [ ] Persist shopping list in local storage
   - [ ] Add additional items
+- [ ] Add splash image
 - [ ] Image upload for method steps
 - [ ] Fix mobile UI issues site wide
 - [x] Generate a recipe with copy and pasting (fallback if first method fails)
@@ -69,6 +70,7 @@
 - [ ] AI image upscaler for poor quality images (PRO feature)
 - [ ] Stream the AI response for better perceived performance. This may involve two separate calls, one, a human readable response of recipe text, then a final call to coalesce it into structured JSON
 - [ ] Share to the app. Investigate whether it is possible that, if a website is shared to this app, it can be immediately added to the import URL field on the import URL field, with a popup asking for confirmation to import this recipe
+- [ ] Add notes to recipes. This should be a new table (with a by_recipe_id index) so notes can be used for wider use cases down the line. Notes are not comments, they are private to the user and that should be made clear in the UI
 
 ---
 

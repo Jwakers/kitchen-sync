@@ -223,7 +223,7 @@ export default function RecipeListing() {
                 My Recipes
               </h1>
               <p className="text-muted-foreground text-lg">
-                Manage and organize your culinary creations
+                Manage and organise your culinary creations
               </p>
             </div>
             <Button

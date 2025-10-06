@@ -72,8 +72,8 @@ export function TextToRecipeParser({
             </h2>
             <p className="text-sm text-muted-foreground">
               {showAsError
-                ? "Paste your recipe below and we&apos;ll organize it for you"
-                : "Copy and paste any recipe text, and we&apos;ll organize it"}
+                ? "Paste your recipe below and we&apos;ll organise it for you"
+                : "Copy and paste any recipe text, and we&apos;ll organise it"}
             </p>
           </div>
         </div>
@@ -87,7 +87,7 @@ export function TextToRecipeParser({
             <AlertTitle>How it works</AlertTitle>
             <AlertDescription>
               Copy recipe text from anywhere - a website, a message, or your own
-              notes. We&apos;ll organize the ingredients, instructions, and even
+              notes. We&apos;ll organise the ingredients, instructions, and even
               work out nutrition info for you.
             </AlertDescription>
           </Alert>
@@ -229,7 +229,7 @@ export function RecipeParsedSuccess({
       <AlertTitle>Recipe created successfully!</AlertTitle>
       <AlertDescription>
         <p className="mb-2">
-          Your recipe has been organized with ingredients, cooking steps, and
+          Your recipe has been organised with ingredients, cooking steps, and
           nutrition information.
         </p>
         <Button onClick={onContinue} size="sm" className="mt-2">

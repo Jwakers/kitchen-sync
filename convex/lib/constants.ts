@@ -84,7 +84,7 @@ export const PREPARATION_OPTIONS = [
   "dried",
 ] as const;
 
-// Units - organized by category for better maintainability
+// Units - organised by category for better maintainability
 export const UNITS = {
   volume: ["cups", "tsp", "tbsp", "fl oz", "gal", "ml", "l", "pt", "qt"],
   weight: ["lbs", "oz", "g", "kg", "mg"],

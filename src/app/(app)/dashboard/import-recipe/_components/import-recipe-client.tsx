@@ -550,7 +550,7 @@ export function ImportRecipeClient() {
                     <AlertDescription>
                       <p className="mb-2">
                         Try pasting the recipe text directly instead. We&apos;ll
-                        organize it for you automatically.
+                        organise it for you automatically.
                       </p>
                       <Button
                         variant="outline"
@@ -580,7 +580,7 @@ export function ImportRecipeClient() {
                         Have recipe text instead?
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Paste any recipe text and we&apos;ll organize it
+                        Paste any recipe text and we&apos;ll organise it
                       </p>
                     </div>
                   </div>
