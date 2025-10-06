@@ -1,12 +1,22 @@
 "use client";
 
-import { CATEGORY_COLORS, ROUTES } from "@/app/constants";
+import { CATEGORY_COLORS, ROUTES, STORAGE_KEYS } from "@/app/constants";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,19 +40,42 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import ShoppingList from "./shopping-list";
+import { ShoppingListItem } from "./types";
 
 type Recipe = FunctionReturnType<typeof api.recipes.getAllUserRecipes>[number];
 
+type LocalStorageShoppingList = {
+  dateStored: number;
+  allIngredients: ShoppingListItem[];
+  checkedItems: string[];
+};
+
 export default function ShoppingListClient() {
+  const recipes = useQuery(api.recipes.getAllUserRecipes);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRecipeIds, setSelectedRecipeIds] = useState<
     Set<Id<"recipes">>
   >(new Set());
   const [showShoppingList, setShowShoppingList] = useState(false);
-
-  const recipes = useQuery(api.recipes.getAllUserRecipes);
+  const selectedRecipes = useMemo(
+    () => recipes?.filter((r) => selectedRecipeIds.has(r._id)) || [],
+    [recipes, selectedRecipeIds]
+  );
+  const flatIngredients = useMemo(
+    () => buildShoppingListItems(selectedRecipes ?? []),
+    [selectedRecipes]
+  );
+  const [allIngredients, setAllIngredients] =
+    useState<ShoppingListItem[]>(flatIngredients);
+  const [isFinalised, setIsFinalised] = useState(false);
+  const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
+  const [showDoneDialog, setShowDoneDialog] = useState(false);
+  const [showLocalStorageDialog, setShowLocalStorageDialog] = useState(false);
+  const [localStorageData, setLocalStorageData] =
+    useState<LocalStorageShoppingList | null>(null);
 
   // Filter recipes based on search and only show published recipes
   const filteredRecipes =
@@ -54,9 +87,6 @@ export default function ShoppingListClient() {
           recipe.description?.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesSearch;
       }) || [];
-
-  const selectedRecipes =
-    recipes?.filter((r) => selectedRecipeIds.has(r._id)) || [];
 
   const handleToggleRecipe = (recipeId: Id<"recipes">) => {
     setSelectedRecipeIds((prev) => {
@@ -75,129 +105,259 @@ export default function ShoppingListClient() {
     setShowShoppingList(true);
   };
 
+  const handleLoadLocalStorage = () => {
+    if (!localStorageData) return;
+    setAllIngredients(localStorageData?.allIngredients ?? []);
+    setCheckedItems(new Set(localStorageData?.checkedItems ?? []));
+    setIsFinalised(true);
+    setShowShoppingList(true);
+  };
+
+  const getStoredShoppingList = () => {
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEYS.shoppingList);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (typeof parsed !== "object" || parsed === null) return null;
+      const { dateStored, allIngredients, checkedItems } =
+        parsed as Partial<LocalStorageShoppingList> & Record<string, unknown>;
+      if (typeof dateStored !== "number" || !Array.isArray(allIngredients)) {
+        console.error("Invalid shopping list stored", parsed);
+        return null;
+      }
+      const oneWeek = 7 * 24 * 60 * 60 * 1000;
+      if (Date.now() - dateStored > oneWeek) {
+        window.localStorage.removeItem(STORAGE_KEYS.shoppingList);
+        return null;
+      }
+      return {
+        dateStored,
+        allIngredients,
+        // tolerate older records without this field
+        checkedItems: Array.isArray(checkedItems) ? checkedItems : [],
+      } as LocalStorageShoppingList;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  };
+
+  const removeStoredShoppingList = () => {
+    window.localStorage.removeItem(STORAGE_KEYS.shoppingList);
+  };
+
+  const handleConfirm = () => {
+    if (isFinalised) {
+      setShowDoneDialog(true);
+      return;
+    }
+    setIsFinalised(true);
+  };
+
+  const handleDoneShopping = () => {
+    setShowDoneDialog(false);
+    setShowShoppingList(false);
+    setSelectedRecipeIds(new Set());
+    setAllIngredients([]);
+    setCheckedItems(new Set());
+    setIsFinalised(false);
+    removeStoredShoppingList();
+    toast.success("Shopping complete! Happy cooking!");
+  };
+
+  useEffect(() => {
+    const list = getStoredShoppingList();
+    if (!list) return;
+
+    setLocalStorageData(list);
+  }, []);
+
+  useEffect(() => {
+    if (!localStorageData) return;
+    setShowLocalStorageDialog(true);
+  }, [localStorageData]);
+
+  useEffect(() => {
+    if (selectedRecipes.length === 0) return;
+    setAllIngredients(buildShoppingListItems(selectedRecipes));
+  }, [selectedRecipes]);
+
+  useEffect(() => {
+    if (!isFinalised) return;
+    try {
+      window.localStorage.setItem(
+        STORAGE_KEYS.shoppingList,
+        JSON.stringify({
+          dateStored: Date.now(),
+          allIngredients,
+          checkedItems: Array.from(checkedItems),
+        })
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  }, [allIngredients, checkedItems, isFinalised]);
+
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        {showShoppingList ? (
-          /* Shopping List View */
-          <ShoppingList
-            onBack={() => setShowShoppingList(false)}
-            recipes={selectedRecipes}
-          />
-        ) : (
-          /* Recipe Selection View */
-          <>
-            {/* Header Section */}
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h1 className="text-4xl font-bold text-foreground mb-2">
-                    Create Shopping List
-                  </h1>
-                  <p className="text-muted-foreground text-lg">
-                    Select recipes to generate your shopping list
-                  </p>
-                </div>
-              </div>
-
-              {/* Info Banner */}
-              <Card className="bg-primary/5 border-primary/20 mb-6">
-                <CardContent className="p-4">
-                  <div className="flex gap-3">
-                    <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-sm mb-1">
-                        Smart Ingredient Combining
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        When you select multiple recipes, ingredients that
-                        appear across different recipes will be automatically
-                        combined and totaled. For example, if two recipes both
-                        require onions, you&apos;ll see a single combined amount
-                        on your shopping list.
-                      </p>
-                    </div>
+    <>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8">
+          {showShoppingList ? (
+            /* Shopping List View */
+            <ShoppingList
+              allIngredients={allIngredients}
+              setAllIngredients={setAllIngredients}
+              onConfirm={handleConfirm}
+              onDone={() => setShowDoneDialog(true)}
+              onBack={() => setShowShoppingList(false)}
+              checkedItems={checkedItems}
+              setCheckedItems={setCheckedItems}
+              isFinalised={isFinalised}
+              setIsFinalised={setIsFinalised}
+            />
+          ) : (
+            /* Recipe Selection View */
+            <>
+              {/* Header Section */}
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h1 className="text-4xl font-bold text-foreground mb-2">
+                      Create Shopping List
+                    </h1>
+                    <p className="text-muted-foreground text-lg">
+                      Select recipes to generate your shopping list
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Search and Actions */}
-              <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search your recipes..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
                 </div>
+
+                {/* Info Banner */}
+                <Card className="bg-primary/5 border-primary/20 mb-6">
+                  <CardContent className="p-4">
+                    <div className="flex gap-3">
+                      <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-sm mb-1">
+                          Smart Ingredient Combining
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          When you select multiple recipes, ingredients that
+                          appear across different recipes will be automatically
+                          combined and totaled. For example, if two recipes both
+                          require onions, you&apos;ll see a single combined
+                          amount on your shopping list.
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Search and Actions */}
+                <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search your recipes..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
+                {/* Selected Recipes Summary */}
+                <SelectedRecipesList recipes={selectedRecipes} />
               </div>
 
-              {/* Selected Recipes Summary */}
-              <SelectedRecipesList recipes={selectedRecipes} />
-            </div>
-
-            {/* Recipe List */}
-            {recipes === undefined ? (
-              <LoadingState />
-            ) : filteredRecipes.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-6 mx-auto">
-                  <ChefHat className="h-12 w-12 text-muted-foreground" />
-                </div>
-                <h3 className="text-2xl font-bold text-foreground mb-2">
-                  {recipes.length === 0
-                    ? "No recipes yet"
-                    : "No recipes match your search"}
-                </h3>
-                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                  {recipes.length === 0 ? (
-                    <>
-                      Start by creating some recipes, then come back here to
-                      generate your shopping list.
-                    </>
-                  ) : (
-                    <>Try adjusting your search terms to find recipes.</>
+              {/* Recipe List */}
+              {recipes === undefined ? (
+                <LoadingState />
+              ) : filteredRecipes.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-6 mx-auto">
+                    <ChefHat className="h-12 w-12 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-foreground mb-2">
+                    {recipes.length === 0
+                      ? "No recipes yet"
+                      : "No recipes match your search"}
+                  </h3>
+                  <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                    {recipes.length === 0 ? (
+                      <>
+                        Start by creating some recipes, then come back here to
+                        generate your shopping list.
+                      </>
+                    ) : (
+                      <>Try adjusting your search terms to find recipes.</>
+                    )}
+                  </p>
+                  {recipes.length === 0 && (
+                    <Button asChild size="lg">
+                      <Link href={ROUTES.MY_RECIPES}>Go to My Recipes</Link>
+                    </Button>
                   )}
-                </p>
-                {recipes.length === 0 && (
-                  <Button asChild size="lg">
-                    <Link href={ROUTES.MY_RECIPES}>Go to My Recipes</Link>
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {filteredRecipes.map((recipe) => (
-                  <RecipeSelectionCard
-                    key={recipe._id}
-                    recipe={recipe}
-                    isSelected={selectedRecipeIds.has(recipe._id)}
-                    onToggle={handleToggleRecipe}
-                  />
-                ))}
-              </div>
-            )}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredRecipes.map((recipe) => (
+                    <RecipeSelectionCard
+                      key={recipe._id}
+                      recipe={recipe}
+                      isSelected={selectedRecipeIds.has(recipe._id)}
+                      onToggle={handleToggleRecipe}
+                    />
+                  ))}
+                </div>
+              )}
 
-            {/* Generate Button */}
-            {selectedRecipeIds.size > 0 && (
-              <div className="sticky bottom-nav mt-8">
-                <Button
-                  size="lg"
-                  className="w-full shadow-lg"
-                  onClick={handleGenerateList}
-                >
-                  <ShoppingCart className="h-5 w-5 mr-2" />
-                  Create Shopping List ({selectedRecipeIds.size}{" "}
-                  {selectedRecipeIds.size === 1 ? "recipe" : "recipes"})
-                </Button>
-              </div>
-            )}
-          </>
-        )}
+              {/* Generate Button */}
+              {selectedRecipeIds.size > 0 && (
+                <div className="sticky bottom-nav mt-8">
+                  <Button
+                    size="lg"
+                    className="w-full shadow-lg"
+                    onClick={handleGenerateList}
+                  >
+                    <ShoppingCart className="h-5 w-5 mr-2" />
+                    Create Shopping List ({selectedRecipeIds.size}{" "}
+                    {selectedRecipeIds.size === 1 ? "recipe" : "recipes"})
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
-    </div>
+      <ConfirmLocalStorageDialog
+        open={showLocalStorageDialog}
+        onOpenChange={setShowLocalStorageDialog}
+        onConfirm={handleLoadLocalStorage}
+        data={localStorageData}
+        onCancel={() => {
+          removeStoredShoppingList();
+          setLocalStorageData(null);
+          setShowLocalStorageDialog(false);
+        }}
+      />
+      <AlertDialog open={showDoneDialog} onOpenChange={setShowDoneDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Complete Shopping?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove your shopping list and return you to the recipe
+              selection. Are you sure you&apos;re done shopping?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDoneShopping}>
+              Yes, I&apos;m Done
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
@@ -380,3 +540,92 @@ function SelectedRecipesList({ recipes }: { recipes: Recipe[] }) {
     </div>
   );
 }
+
+function ConfirmLocalStorageDialog({
+  open,
+  onOpenChange,
+  onConfirm,
+  onCancel,
+  data,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+  onCancel: () => void;
+  data: LocalStorageShoppingList | null;
+}) {
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            Found a shopping list from a previous session?
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            Shopping lists are saved for one week in device storage. Do you want
+            to load the list from the previous session on{" "}
+            {new Date(data?.dateStored ?? 0).toLocaleDateString()}?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={onCancel}>
+            No, start a new list
+          </AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm}>
+            Yes, load list
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+const normaliseKey = (ingredient: NonNullable<Recipe["ingredients"]>[number]) =>
+  [
+    ingredient?.name?.trim().toLowerCase() ?? "",
+    ingredient?.unit?.trim().toLowerCase() ?? "",
+    ingredient?.preparation?.trim().toLowerCase() ?? "",
+  ].join("|");
+
+const buildShoppingListItems = (recipes: Recipe[]) => {
+  const combined = new Map<string, ShoppingListItem>();
+
+  recipes.forEach((recipe) => {
+    recipe.ingredients?.forEach((ingredient) => {
+      if (!ingredient?.name) return;
+
+      const key = normaliseKey(ingredient);
+      const existing = combined.get(key);
+      const amountValue =
+        typeof ingredient.amount === "number"
+          ? ingredient.amount
+          : Number(ingredient.amount);
+
+      if (!existing) {
+        combined.set(key, {
+          id: crypto.randomUUID(),
+          name: ingredient.name,
+          unit: ingredient.unit,
+          preparation: ingredient.preparation,
+          amount: Number.isFinite(amountValue)
+            ? amountValue
+            : ingredient.amount,
+        });
+        return;
+      }
+
+      if (typeof existing.amount === "number" && Number.isFinite(amountValue)) {
+        existing.amount += amountValue;
+      } else if (ingredient.amount) {
+        const parts = [existing.amount, ingredient.amount]
+          .filter(Boolean)
+          .map(String);
+        existing.amount = parts.join(" + ");
+      }
+    });
+  });
+
+  return Array.from(combined.values()).sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+};
