@@ -47,10 +47,11 @@ import { ShoppingListItem } from "./types";
 
 type Recipe = FunctionReturnType<typeof api.recipes.getAllUserRecipes>[number];
 
-type LocalStorageShoppingList = {
+type LocalStorageShoppingList = Partial<{
   dateStored: number;
   allIngredients: ShoppingListItem[];
-};
+  checkedItems: string[];
+}>;
 
 export default function ShoppingListClient() {
   const recipes = useQuery(api.recipes.getAllUserRecipes);
@@ -104,58 +105,41 @@ export default function ShoppingListClient() {
     setShowShoppingList(true);
   };
 
-  const handleStore = () => {
-    try {
-      window.localStorage.setItem(
-        STORAGE_KEYS.shoppingList,
-        JSON.stringify({
-          dateStored: Date.now(),
-          allIngredients,
-        })
-      );
-      toast.success("Your shopping list has been saved", {
-        description:
-          "Shopping lists are stored for one week before being removed",
-      });
-    } catch (error) {
-      console.error(error);
-      toast.info("Unable to save shopping list", {
-        description: "The shopping list will be removed if you navigate away",
-      });
-    }
-  };
-
   const handleLoadLocalStorage = () => {
     if (!localStorageData) return;
-    setAllIngredients(localStorageData.allIngredients);
+    setAllIngredients(localStorageData?.allIngredients ?? []);
+    setCheckedItems(new Set(localStorageData?.checkedItems ?? []));
     setIsFinalised(true);
     setShowShoppingList(true);
   };
 
   const getStoredShoppingList = () => {
-    const storedShoppingList = window.localStorage.getItem(
-      STORAGE_KEYS.shoppingList
-    );
-    if (!storedShoppingList) return null;
-
-    const parsedShoppingList = JSON.parse(storedShoppingList);
-    if (
-      typeof parsedShoppingList !== "object" ||
-      parsedShoppingList === null ||
-      !("dateStored" in parsedShoppingList) ||
-      !("allIngredients" in parsedShoppingList)
-    ) {
-      console.error("Invalid shopping list stored", parsedShoppingList);
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEYS.shoppingList);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (typeof parsed !== "object" || parsed === null) return null;
+      const { dateStored, allIngredients, checkedItems } =
+        parsed as Partial<LocalStorageShoppingList> & Record<string, unknown>;
+      if (typeof dateStored !== "number" || !Array.isArray(allIngredients)) {
+        console.error("Invalid shopping list stored", parsed);
+        return null;
+      }
+      const oneWeek = 7 * 24 * 60 * 60 * 1000;
+      if (Date.now() - dateStored > oneWeek) {
+        window.localStorage.removeItem(STORAGE_KEYS.shoppingList);
+        return null;
+      }
+      return {
+        dateStored,
+        allIngredients,
+        // tolerate older records without this field
+        checkedItems: Array.isArray(checkedItems) ? checkedItems : [],
+      } as LocalStorageShoppingList;
+    } catch (err) {
+      console.error(err);
       return null;
     }
-
-    const oneWeek = 7 * 24 * 60 * 60 * 1000;
-    if (Date.now() - parsedShoppingList.dateStored > oneWeek) {
-      window.localStorage.removeItem(STORAGE_KEYS.shoppingList);
-      return null;
-    }
-
-    return parsedShoppingList as LocalStorageShoppingList;
   };
 
   const removeStoredShoppingList = () => {
@@ -163,16 +147,22 @@ export default function ShoppingListClient() {
   };
 
   const handleConfirm = () => {
+    if (isFinalised) {
+      setShowDoneDialog(true);
+      return;
+    }
     setIsFinalised(true);
-    handleStore();
   };
 
   const handleDoneShopping = () => {
     setShowDoneDialog(false);
+    setShowShoppingList(false);
+    setSelectedRecipeIds(new Set());
+    setAllIngredients([]);
+    setCheckedItems(new Set());
+    setIsFinalised(false);
     removeStoredShoppingList();
     toast.success("Shopping complete! Happy cooking!");
-    // Go back to recipe selection
-    setShowShoppingList(false);
   };
 
   useEffect(() => {
@@ -180,7 +170,7 @@ export default function ShoppingListClient() {
     if (!list) return;
 
     setLocalStorageData(list);
-  }, [setShowLocalStorageDialog]);
+  }, []);
 
   useEffect(() => {
     if (!localStorageData) return;
@@ -192,7 +182,21 @@ export default function ShoppingListClient() {
     setAllIngredients(buildShoppingListItems(selectedRecipes));
   }, [selectedRecipes]);
 
-  console.log({ allIngredients, selectedRecipes });
+  useEffect(() => {
+    if (!isFinalised) return;
+    try {
+      window.localStorage.setItem(
+        STORAGE_KEYS.shoppingList,
+        JSON.stringify({
+          dateStored: Date.now(),
+          allIngredients,
+          checkedItems: Array.from(checkedItems),
+        })
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  }, [allIngredients, checkedItems, isFinalised]);
 
   return (
     <>
@@ -204,6 +208,7 @@ export default function ShoppingListClient() {
               allIngredients={allIngredients}
               setAllIngredients={setAllIngredients}
               onConfirm={handleConfirm}
+              onDone={handleDoneShopping}
               onBack={() => setShowShoppingList(false)}
               checkedItems={checkedItems}
               setCheckedItems={setCheckedItems}

@@ -26,6 +26,7 @@ interface ShoppingListProps {
   setIsFinalised: React.Dispatch<React.SetStateAction<boolean>>;
   onConfirm: () => void;
   onBack: () => void;
+  onDone: () => void;
 }
 
 export default function ShoppingList({
@@ -36,6 +37,7 @@ export default function ShoppingList({
   isFinalised,
   setIsFinalised,
   onConfirm,
+  onDone,
   onBack,
 }: ShoppingListProps) {
   const handleAmountChange = (id: string, newAmount: number) => {
@@ -75,7 +77,10 @@ export default function ShoppingList({
     const listText = `Created: ${new Date().toLocaleDateString()}\n\n${allIngredients
       .map((item) => {
         const checked = checkedItems.has(item.id) ? "✓ " : "";
-        return `${checked}• ${item.amount}${item.unit ? ` ${item.unit}` : ""} ${item.name}`;
+        const amt = item.amount != null ? String(item.amount) : "";
+        const unit = item.unit ? ` ${item.unit}` : "";
+        const space = amt || unit ? " " : "";
+        return `${checked}• ${amt}${unit}${space}${item.name}`;
       })
       .join("\n")}`;
 
@@ -130,7 +135,7 @@ export default function ShoppingList({
                       {item.name}
                     </span>
                     <span className="ml-2">
-                      {item.amount} {item.unit}
+                      {item.amount ?? ""} {item.unit ?? ""}
                     </span>
                   </div>
                 </div>
@@ -260,7 +265,7 @@ export default function ShoppingList({
                       {isFinalised ? (
                         // Static display when finalized
                         <p className="text-sm text-muted-foreground capitalize">
-                          {item.amount} {item.unit}
+                          {item.amount ?? ""} {item.unit ?? ""}
                         </p>
                       ) : (
                         // Editable controls before finalized
@@ -270,6 +275,7 @@ export default function ShoppingList({
                               variant="ghost"
                               size="icon"
                               className="h-7 w-7"
+                              disabled={isNaN(Number(item.amount))}
                               onClick={() => {
                                 if (isNaN(Number(item.amount))) return;
                                 handleAmountChange(
@@ -282,7 +288,13 @@ export default function ShoppingList({
                             </Button>
                             <Input
                               type="number"
-                              value={item.amount}
+                              value={
+                                typeof item.amount === "number"
+                                  ? item.amount
+                                  : ""
+                              }
+                              min={0}
+                              step={1}
                               onChange={(e) =>
                                 handleAmountChange(
                                   item.id,
@@ -295,6 +307,7 @@ export default function ShoppingList({
                               variant="ghost"
                               size="icon"
                               className="h-7 w-7"
+                              disabled={isNaN(Number(item.amount))}
                               onClick={() => {
                                 if (isNaN(Number(item.amount))) return;
                                 handleAmountChange(
@@ -307,7 +320,7 @@ export default function ShoppingList({
                             </Button>
                           </div>
                           <span className="text-sm text-muted-foreground">
-                            {item.unit}
+                            {item.unit ?? ""}
                           </span>
                         </div>
                       )}
@@ -360,10 +373,7 @@ export default function ShoppingList({
                   <Share2 className="h-4 w-4 mr-2" />
                   Share
                 </Button>
-                <Button
-                  className="w-full sm:w-auto sm:flex-1"
-                  onClick={onConfirm}
-                >
+                <Button className="w-full sm:w-auto sm:flex-1" onClick={onDone}>
                   <Check className="h-4 w-4 mr-2" />
                   Done Shopping
                 </Button>

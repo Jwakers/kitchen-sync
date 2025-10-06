@@ -150,7 +150,7 @@ export default function Home() {
               </div>
               <h3 className="font-semibold text-lg mb-2">Recipes</h3>
               <p className="text-sm text-muted-foreground">
-                Create & organise your favorite family recipes
+                Create & organise your favourite family recipes
               </p>
             </Card>
 

@@ -29,4 +29,4 @@ export const CATEGORY_COLORS: Record<
 
 export const STORAGE_KEYS = {
   shoppingList: "shopping_list",
-};
+} as const;
