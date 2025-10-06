@@ -47,11 +47,11 @@ import { ShoppingListItem } from "./types";
 
 type Recipe = FunctionReturnType<typeof api.recipes.getAllUserRecipes>[number];
 
-type LocalStorageShoppingList = Partial<{
+type LocalStorageShoppingList = {
   dateStored: number;
   allIngredients: ShoppingListItem[];
   checkedItems: string[];
-}>;
+};
 
 export default function ShoppingListClient() {
   const recipes = useQuery(api.recipes.getAllUserRecipes);
