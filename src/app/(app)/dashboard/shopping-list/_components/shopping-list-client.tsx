@@ -208,7 +208,7 @@ export default function ShoppingListClient() {
               allIngredients={allIngredients}
               setAllIngredients={setAllIngredients}
               onConfirm={handleConfirm}
-              onDone={handleDoneShopping}
+              onDone={() => setShowDoneDialog(true)}
               onBack={() => setShowShoppingList(false)}
               checkedItems={checkedItems}
               setCheckedItems={setCheckedItems}
