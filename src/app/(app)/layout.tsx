@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="min-h-screen bg-background safe-area-inset"
+      className="bg-background safe-area-inset"
       data-vaul-drawer-wrapper="true"
     >
       <Header />

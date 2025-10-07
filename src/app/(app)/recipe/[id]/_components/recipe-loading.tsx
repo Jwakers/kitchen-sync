@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function RecipeLoading() {
   return (
     <div
-      className="min-h-screen bg-background"
+      className="bg-background"
       role="status"
       aria-live="polite"
       aria-busy="true"

@@ -376,7 +376,7 @@ export function ImportRecipeClient() {
   // Edit Mode
   if (isEditMode && parsedRecipe && !isSaved) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="bg-background">
         <div className="container mx-auto px-4 py-6 max-w-4xl">
           <EditImportedRecipe
             recipe={parsedRecipe}
@@ -392,7 +392,7 @@ export function ImportRecipeClient() {
   // Success State - Replace entire page content
   if (isSaved && savedRecipeId) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <div className="bg-background flex items-center justify-center p-6">
         <Card className="max-w-2xl w-full p-12 text-center">
           <div className="flex justify-center mb-6">
             <div className="rounded-full bg-primary/10 p-6">
@@ -460,10 +460,10 @@ export function ImportRecipeClient() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold text-foreground">
-              Import Recipe from URL
+              Import Recipe
             </h1>
             <p className="text-muted-foreground mt-1">
-              Import recipes from any cooking website
+              Import recipes from a variety of sources
             </p>
           </div>
         </div>
@@ -641,7 +641,7 @@ export function ImportRecipeClient() {
                 <LoadingStep
                   stage="categorising"
                   currentStage={loadingStage}
-                  title="Organizing the kitchen"
+                  title="Organising the kitchen"
                   description={
                     importSource === "url"
                       ? "Sorting ingredients, steps, and all the good stuff..."
