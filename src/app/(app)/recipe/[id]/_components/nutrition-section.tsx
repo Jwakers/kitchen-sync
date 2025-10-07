@@ -1,5 +1,6 @@
 "use client";
 
+import { Nutrition } from "@/app/(app)/_components.tsx/nutrition";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Recipe } from "./recipe-client";
 
@@ -33,36 +34,7 @@ export function NutritionSection({ recipe }: NutritionSectionProps) {
         <p className="text-sm text-muted-foreground">Per serving</p>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {calories !== undefined && (
-            <div className="text-center p-4 bg-muted/50 rounded-lg">
-              <div className="text-2xl font-bold text-primary">{calories}</div>
-              <div className="text-sm text-muted-foreground mt-1">Calories</div>
-            </div>
-          )}
-          {protein !== undefined && (
-            <div className="text-center p-4 bg-muted/50 rounded-lg">
-              <div className="text-2xl font-bold text-primary">{protein}g</div>
-              <div className="text-sm text-muted-foreground mt-1">Protein</div>
-            </div>
-          )}
-          {carbohydrates !== undefined && (
-            <div className="text-center p-4 bg-muted/50 rounded-lg">
-              <div className="text-2xl font-bold text-primary">
-                {carbohydrates}g
-              </div>
-              <div className="text-sm text-muted-foreground mt-1">
-                Carbohydrates
-              </div>
-            </div>
-          )}
-          {fat !== undefined && (
-            <div className="text-center p-4 bg-muted/50 rounded-lg">
-              <div className="text-2xl font-bold text-primary">{fat}g</div>
-              <div className="text-sm text-muted-foreground mt-1">Fat</div>
-            </div>
-          )}
-        </div>
+        <Nutrition nutrition={recipe.nutrition} />
       </CardContent>
     </Card>
   );
