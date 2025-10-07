@@ -1,5 +1,6 @@
 "use client";
 
+import { IngredientsList } from "@/app/(app)/_components.tsx/ingredients-list";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -202,18 +203,7 @@ export function IngredientsSection({
         <CardTitle>Ingredients</CardTitle>
       </CardHeader>
       <CardContent>
-        <ul className="space-y-3">
-          {recipe.ingredients.map((ingredient, index) => (
-            <li key={index} className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />
-              <span className="flex-1">
-                {ingredient.amount}
-                {ingredient.unit ?? ""} {ingredient.name}{" "}
-                {ingredient.preparation ? `- ${ingredient.preparation}` : ""}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <IngredientsList ingredients={recipe.ingredients} />
       </CardContent>
     </Card>
   );

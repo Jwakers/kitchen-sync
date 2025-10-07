@@ -87,7 +87,7 @@ export function RecipeHeader({
           />
         )}
 
-        <div className="absolute top-6 right-6 z-10">
+        <div className="absolute top-2 right-2 z-10">
           <Badge
             variant="secondary"
             className={`${categoryColor} border-0 font-medium text-sm px-3 py-1`}
@@ -111,57 +111,50 @@ export function RecipeHeader({
             </Button>
           </div>
         )}
-
-        <div className="absolute bottom-6 left-6 right-6 z-10">
-          {isEditMode ? (
-            <div className="space-y-4">
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        className="text-4xl font-bold bg-white/10 border-white/20 text-white placeholder-white/70 h-auto py-2 px-4"
-                        placeholder="Recipe title..."
-                      />
-                    </FormControl>
-                    <FormMessage className="text-white/90" />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        className="text-white/90 text-lg bg-white/10 border-white/20 placeholder-white/70 resize-none"
-                        placeholder="Recipe description..."
-                        rows={2}
-                      />
-                    </FormControl>
-                    <FormMessage className="text-white/90" />
-                  </FormItem>
-                )}
-              />
-            </div>
-          ) : (
-            <>
-              <h1 className="text-4xl font-bold text-white drop-shadow-lg mb-2">
-                {recipe.title}
-              </h1>
-              {recipe.description && (
-                <p className="text-white/90 text-lg drop-shadow max-w-2xl">
-                  {recipe.description}
-                </p>
+      </div>
+      <div className="mb-4">
+        {isEditMode ? (
+          <div className="space-y-4">
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input {...field} placeholder="Recipe title..." />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-            </>
-          )}
-        </div>
+            />
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      className="text-lg resize-none"
+                      placeholder="Recipe description..."
+                      rows={2}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <h1 className="md:text-4xl text-2xl font-bold">{recipe.title}</h1>
+            {recipe.description && (
+              <p className="md:text-lg text-sm max-w-2xl">
+                {recipe.description}
+              </p>
+            )}
+          </div>
+        )}
       </div>
       {/* Recipe Meta */}
       <div className="flex flex-wrap items-center gap-6 mb-6">

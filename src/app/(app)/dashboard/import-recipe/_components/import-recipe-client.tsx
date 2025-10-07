@@ -1,5 +1,8 @@
 "use client";
 
+import { IngredientsList } from "@/app/(app)/_components.tsx/ingredients-list";
+import { MethodList } from "@/app/(app)/_components.tsx/method-list";
+import { Nutrition } from "@/app/(app)/_components.tsx/nutrition";
 import { fetchImageServerSide } from "@/app/(app)/actions/fetch-image";
 import { getRecipeSchema } from "@/app/(app)/actions/get-recipe-schema";
 import { parseRecipeFromSiteWithAI } from "@/app/(app)/actions/parse-recipe-from-site-with-ai";
@@ -236,7 +239,6 @@ export function ImportRecipeClient() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedRecipe) {
         e.preventDefault();
-        e.returnValue = "";
         return "";
       }
     };
@@ -666,7 +668,15 @@ export function ImportRecipeClient() {
 
         {/* Save Buttons */}
         {parsedRecipe && loadingStage === "complete" && !isSaved && (
-          <div className="flex gap-3 mt-4">
+          <div className="sticky bottom-nav flex gap-3 mt-4">
+            <Button
+              variant="outline"
+              size="lg"
+              disabled={isLoading || isSaving}
+              onClick={() => setIsEditMode(true)}
+            >
+              Edit Recipe
+            </Button>
             <Button
               className="flex-1"
               size="lg"
@@ -681,14 +691,6 @@ export function ImportRecipeClient() {
               ) : (
                 "Save Recipe"
               )}
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              disabled={isLoading || isSaving}
-              onClick={() => setIsEditMode(true)}
-            >
-              Edit Recipe
             </Button>
           </div>
         )}
@@ -866,34 +868,7 @@ function RecipePreview({
             <h3 className="text-xl font-semibold">Nutrition Information</h3>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {recipe.nutrition.calories && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Calories</p>
-                  <p className="font-medium">{recipe.nutrition.calories}</p>
-                </div>
-              )}
-              {recipe.nutrition.protein && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Protein</p>
-                  <p className="font-medium">{recipe.nutrition.protein}g</p>
-                </div>
-              )}
-              {recipe.nutrition.fat && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Fat</p>
-                  <p className="font-medium">{recipe.nutrition.fat}g</p>
-                </div>
-              )}
-              {recipe.nutrition.carbohydrates && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Carbs</p>
-                  <p className="font-medium">
-                    {recipe.nutrition.carbohydrates}g
-                  </p>
-                </div>
-              )}
-            </div>
+            <Nutrition nutrition={recipe.nutrition} />
           </CardContent>
           <CardFooter>
             <p className="text-sm text-muted-foreground mb-4 italic">
@@ -909,23 +884,7 @@ function RecipePreview({
           <h3 className="text-xl font-semibold">Ingredients</h3>
         </CardHeader>
         <CardContent>
-          <ul className="space-y-2">
-            {recipe.ingredients.map((ingredient, index) => (
-              <li key={index} className="flex items-start gap-2">
-                <span className="text-muted-foreground mt-1">•</span>
-                <span>
-                  <span className="font-medium">{ingredient.amount}</span>
-                  {ingredient.unit && ` ${ingredient.unit}`}
-                  {ingredient.name && ` ${ingredient.name}`}
-                  {ingredient.preparation && (
-                    <span className="text-muted-foreground italic">
-                      , {ingredient.preparation}
-                    </span>
-                  )}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <IngredientsList ingredients={recipe.ingredients} />
         </CardContent>
       </Card>
 
@@ -935,23 +894,7 @@ function RecipePreview({
           <h3 className="text-xl font-semibold">Method</h3>
         </CardHeader>
         <CardContent>
-          <ol className="space-y-4">
-            {recipe.method.map((step, index) => (
-              <li key={index} className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
-                  {index + 1}
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium mb-1">{step.title}</p>
-                  {step.description && (
-                    <p className="text-muted-foreground text-sm">
-                      {step.description}
-                    </p>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ol>
+          <MethodList method={recipe.method} />
         </CardContent>
       </Card>
     </div>

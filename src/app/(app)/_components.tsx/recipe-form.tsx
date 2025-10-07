@@ -39,7 +39,7 @@ import {
   X,
 } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FieldErrors, useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -143,11 +143,9 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
     });
   };
 
-  const onSubmit = async (values: RecipeFormData) => {
-    try {
-      if (!recipeId) throw new Error("Recipe ID not found");
-
-      const method = await Promise.all(
+  const getMethodData = useCallback(
+    async (values: RecipeFormData) => {
+      return await Promise.all(
         values.method.map(async (step) => {
           const image = step.image;
           if (image) {
@@ -163,6 +161,15 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
           return { ...step, image: undefined };
         })
       );
+    },
+    [generateUploadUrl]
+  );
+
+  const onSubmit = async (values: RecipeFormData) => {
+    try {
+      if (!recipeId) throw new Error("Recipe ID not found");
+
+      const method = await getMethodData(values);
 
       // Update recipe data
       await updateRecipeMutation({
@@ -280,40 +287,32 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
   useEffect(() => {
     // Update the recipe at each step
     if (!recipeId) return;
-    const formValues = form.getValues();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { method, image, ...valuesToUpdate } = formValues;
+    if (!form.formState.isDirty) return;
 
-    updateRecipeMutation({
-      recipeId,
-      ...valuesToUpdate,
-    }).catch((error) => {
-      console.error(error);
-    });
-  }, [
-    createDraftRecipeMutation,
-    currentStep,
-    form,
-    recipeId,
-    updateRecipeMutation,
-  ]);
-
-  useEffect(() => {
-    // Update the recipe on unmount
-    return () => {
-      if (!recipeId) return;
+    const updateRecipe = async () => {
       const formValues = form.getValues();
+
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { ingredients, method, image, ...valuesToUpdate } = formValues;
+      const { image, ...valuesToUpdate } = formValues;
+      const methodData = await getMethodData(formValues);
 
       updateRecipeMutation({
         recipeId,
         ...valuesToUpdate,
+        method: methodData,
       }).catch((error) => {
         console.error(error);
       });
     };
-  }, [form, recipeId, updateRecipeMutation]);
+    updateRecipe();
+  }, [
+    createDraftRecipeMutation,
+    currentStep,
+    form,
+    getMethodData,
+    recipeId,
+    updateRecipeMutation,
+  ]);
 
   // Clean up image preview URL when component unmounts or when image changes
   useEffect(() => {
@@ -719,7 +718,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                           />
                         </motion.div>
                         <motion.div
-                          className="grid grid-cols-3 gap-2"
+                          className="grid grid-cols-2 sm:grid-cols-3 gap-2"
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.3 }}
@@ -763,7 +762,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                             control={form.control}
                             name={`ingredients.${index}.preparation`}
                             render={({ field }) => (
-                              <FormItem>
+                              <FormItem className="col-span-2 sm:col-span-1">
                                 <FormControl>
                                   <PreparationSelector
                                     value={field.value}

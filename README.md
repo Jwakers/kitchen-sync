@@ -23,11 +23,11 @@
   - [x] Clerk users webhook
 - [x] Shopping list
   - [x] UI
-  - [ ] Persist shopping list in local storage
+  - [x] Persist shopping list in local storage
   - [ ] Add additional items
-- [ ] Add splash image
+- [x] Add splash images
 - [ ] Image upload for method steps
-- [ ] Fix mobile UI issues site wide
+- [x] Fix mobile UI issues site wide
 - [x] Generate a recipe with copy and pasting (fallback if first method fails)
 - [x] Generate a recipe with scraping (fallback if first method fails)
 - [ ] **Ingredient Categories**: Add categorization to ingredients (meat, poultry, vegetable, spice etc) (or extract from an existing external ingredient DB while still allowing custom ingredients)
@@ -37,9 +37,11 @@
 
 <!-- Add bugs here as you encounter them -->
 
+- [ ] When the recipe form updates it will always upload images even if they already exists. The method should check for images first before uploading. In the recipe form, method image edits should not be possible and be handled in the recipe page.
+
 ## Tech debt
 
-- [ ] Consolidate how ingredients, method and nutrition data is rendered
+- [x] Consolidate how ingredients, method and nutrition data is rendered
 - [ ] Consolidate how cook time/serves/prep looks
 - [ ] Consolidate form schemas
 - [ ] Consolidate the two AI recipe parse functions
