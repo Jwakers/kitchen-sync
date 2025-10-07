@@ -8,8 +8,11 @@ type Ingredient = {
 export function IngredientsList(props: { ingredients: Ingredient[] }) {
   return (
     <ul className="space-y-2">
-      {props.ingredients.map((ingredient, index) => (
-        <li key={index} className="flex items-start gap-2">
+      {props.ingredients.map((ingredient) => (
+        <li
+          key={`${ingredient.name}-${ingredient.amount}-${ingredient.unit}`}
+          className="flex items-start gap-2"
+        >
           <span className="text-muted-foreground mt-1">•</span>
           <span>
             <span className="font-medium">{ingredient.amount}</span>

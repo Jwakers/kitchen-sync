@@ -123,7 +123,7 @@ export function RecipeHeader({
                   <FormControl>
                     <Input {...field} placeholder="Recipe title..." />
                   </FormControl>
-                  <FormMessage className="text-white/90" />
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -140,7 +140,7 @@ export function RecipeHeader({
                       rows={2}
                     />
                   </FormControl>
-                  <FormMessage className="text-white/90" />
+                  <FormMessage />
                 </FormItem>
               )}
             />
