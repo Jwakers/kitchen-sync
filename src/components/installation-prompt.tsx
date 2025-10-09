@@ -59,7 +59,7 @@ export default function InstallPrompt() {
           setDeferredPrompt(null);
           toast.success("App installed successfully", {
             description:
-              "Overload has been added to your home screen. Enjoy the app experience!",
+              "Kitchen Sync has been added to your home screen. Enjoy the app experience!",
           });
         } else {
           toast.info("Installation cancelled", {
@@ -159,12 +159,14 @@ export default function InstallPrompt() {
                 <Check className="w-3 h-3 text-primary-foreground" />
               </div>
               <div>
-                <p className="text-sm font-medium text-foreground mb-1">
-                  Enjoy the app experience
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Launch Overload from your home screen anytime
-                </p>
+                <div>
+                  <p className="text-sm font-medium text-foreground mb-1">
+                    Enjoy the app experience
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Launch Kitchen Sync from your home screen anytime
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -189,7 +191,7 @@ export default function InstallPrompt() {
           <div className="space-y-3">
             <Button onClick={handleInstallClick} className="w-full" size="lg">
               <Download className="w-4 h-4 mr-2" />
-              {deferredPrompt ? "Install Overload" : "Install via Browser"}
+              {deferredPrompt ? "Install Kitchen Sync" : "Install via Browser"}
             </Button>
           </div>
         </div>
