@@ -1,5 +1,6 @@
 "use client";
 
+import InstallPrompt from "@/components/installation-prompt";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -139,6 +140,10 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <div className="container mt-4">
+        <InstallPrompt />
+      </div>
 
       {/* Product Showcase Section */}
       <section className="py-20 bg-muted/30">

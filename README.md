@@ -108,11 +108,11 @@
 
 #### Shopping List System
 
-- [ ] **Shopping List Generation**: Create shopping lists from selected recipes with quantities
-- [ ] **Ingredient Deduplication**: Smart merging of similar ingredients (e.g., "tomatoes" + "cherry tomatoes" = "tomatoes")
-- [ ] **Editable Shopping Lists**: Allow manual editing, adding, and removing items from generated lists
-- [ ] **Shopping List Persistence**: Save and load shopping lists in Convex database
-- [ ] **Shopping List Sharing**: Share lists with household members for collaborative shopping
+- [x] **Shopping List Generation**: Create shopping lists from selected recipes with quantities
+- [ ] **Ingredient Deduplication**: Smart merging of similar ingredients
+- [x] **Editable Shopping Lists**: Allow manual editing, adding, and removing items from generated lists
+- [x] **Shopping List Persistence**: Save and load shopping lists in Convex database/local storage
+- [x] **Shopping List Sharing**: Share lists with household members for collaborative shopping
 - [ ] Normalise units to make it easier to combine ingredients
 
 #### Dashboard
@@ -138,11 +138,11 @@
 
 #### PWA & Offline Support
 
-- [ ] **Next PWA Plugin**: Install and configure PWA functionality for mobile app-like experience
+- [x] **Next PWA Plugin**: Install and configure PWA functionality for mobile app-like experience
 - [ ] **Offline Caching**: Cache recipes and shopping lists in IndexedDB for offline access
 - [ ] **Offline-First Design**: Ensure core features work without internet connection
-- [ ] **Manual Recipe Entry**: Fallback for when AI scraping fails - allow copy/paste text parsing
-- [ ] Add context sensitive installation instructions to the home page
+- [x] **Manual Recipe Entry**: Fallback for when AI scraping fails - allow copy/paste text parsing
+- [x] Add context sensitive installation instructions to the home page
 
 ### 📅 Post-Launch Phase 1 (4-8 Months)
 

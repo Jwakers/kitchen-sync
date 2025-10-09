@@ -511,7 +511,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                                     Click to upload image
                                   </span>
                                   <span className="text-xs text-muted-foreground mt-1">
-                                    Max 5MB
+                                    Max 10MB
                                   </span>
                                 </label>
                                 <Input
@@ -522,8 +522,8 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                                   onChange={(e) => {
                                     const file = e.target.files?.[0];
                                     if (file) {
-                                      // Check file size (5MB limit)
-                                      const maxSizeInBytes = 5 * 1024 * 1024; // 5MB
+                                      // Check file size (10MB limit)
+                                      const maxSizeInBytes = 10 * 1024 * 1024; // 10MB
                                       if (!file.type?.startsWith("image/")) {
                                         toast.error("Invalid file type", {
                                           description:
@@ -537,7 +537,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                                       if (file.size > maxSizeInBytes) {
                                         toast.error("Image too large", {
                                           description:
-                                            "Please select an image smaller than 5MB",
+                                            "Please select an image smaller than 10MB",
                                         });
                                         e.target.value = "";
                                         onChange(undefined);
@@ -581,8 +581,8 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                                   onChange={(e) => {
                                     const file = e.target.files?.[0];
                                     if (file) {
-                                      // Check file size (5MB limit)
-                                      const maxSizeInBytes = 5 * 1024 * 1024; // 5MB
+                                      // Check file size (10MB limit)
+                                      const maxSizeInBytes = 5 * 1024 * 1024; // 10MB
                                       if (!file.type?.startsWith("image/")) {
                                         toast.error("Invalid file type", {
                                           description:
@@ -596,7 +596,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                                       if (file.size > maxSizeInBytes) {
                                         toast.error("Image too large", {
                                           description:
-                                            "Please select an image smaller than 5MB",
+                                            "Please select an image smaller than 10MB",
                                         });
                                         e.target.value = "";
                                         onChange(undefined);
@@ -907,8 +907,8 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                                     onChange={(e) => {
                                       const file = e.target.files?.[0];
                                       if (file) {
-                                        // Check file size (5MB limit)
-                                        const maxSizeInBytes = 5 * 1024 * 1024; // 5MB
+                                        // Check file size (10MB limit)
+                                        const maxSizeInBytes = 5 * 1024 * 1024; // 10MB
                                         if (!file.type?.startsWith("image/")) {
                                           toast.error("Invalid file type", {
                                             description:
@@ -922,7 +922,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                                         if (file.size > maxSizeInBytes) {
                                           toast.error("Image too large", {
                                             description:
-                                              "Please select an image smaller than 5MB",
+                                              "Please select an image smaller than 10MB",
                                           });
                                           e.target.value = ""; // Reset the input
                                           onChange(undefined);
