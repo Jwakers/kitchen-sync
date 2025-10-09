@@ -13,11 +13,11 @@ export const metadata: Metadata = {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="bg-background safe-area-inset"
+      className="bg-background safe-area-inset relative grid grid-rows-[auto_1fr_auto] min-h-dvh"
       data-vaul-drawer-wrapper="true"
     >
       <Header />
-      <main className="pb-20">{children}</main>
+      <main>{children}</main>
       <Navbar />
     </div>
   );

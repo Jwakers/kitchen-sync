@@ -8,12 +8,26 @@ import { AuthLoading } from "convex/react";
 import { Utensils } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 
 export function Header() {
   const { resolvedTheme } = useTheme();
+  const headerRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (headerRef.current) {
+      document.body.style.setProperty(
+        "--header-height",
+        `${headerRef.current.clientHeight}px`
+      );
+    }
+  }, []);
 
   return (
-    <header className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header
+      ref={headerRef}
+      className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+    >
       <div className="container flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <Link href={ROUTES.DASHBOARD} className="flex items-center space-x-2">

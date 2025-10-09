@@ -23,9 +23,14 @@ export default function InstallPrompt() {
     const isIOSDevice =
       /iPad|iPhone|iPod/.test(ua) ||
       (ua.includes("Mac") && "ontouchend" in window);
-    const isStandaloneMode = window.matchMedia(
+    const standaloneMedia = window.matchMedia(
       "(display-mode: standalone)"
     ).matches;
+    const iosStandalone =
+      typeof (navigator as unknown as { standalone?: boolean }).standalone ===
+        "boolean" &&
+      (navigator as unknown as { standalone?: boolean }).standalone;
+    const isStandaloneMode = Boolean(standaloneMedia || iosStandalone);
 
     setIsIOS(isIOSDevice);
     setIsStandalone(isStandaloneMode);
@@ -56,7 +61,6 @@ export default function InstallPrompt() {
         const { outcome } = await deferredPrompt.userChoice;
 
         if (outcome === "accepted") {
-          setDeferredPrompt(null);
           toast.success("App installed successfully", {
             description:
               "Kitchen Sync has been added to your home screen. Enjoy the app experience!",
@@ -72,6 +76,8 @@ export default function InstallPrompt() {
         toast.error("Installation failed", {
           description: "There was an error with the installation prompt.",
         });
+      } finally {
+        setDeferredPrompt(null);
       }
     } else {
       // Fallback for when beforeinstallprompt is not available

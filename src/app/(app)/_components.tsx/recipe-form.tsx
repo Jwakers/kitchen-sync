@@ -604,7 +604,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                                     const file = e.target.files?.[0];
                                     if (file) {
                                       // Check file size (10MB limit)
-                                      const maxSizeInBytes = 5 * 1024 * 1024; // 10MB
+                                      const maxSizeInBytes = 10 * 1024 * 1024; // 10MB
                                       if (!file.type?.startsWith("image/")) {
                                         toast.error("Invalid file type", {
                                           description:
