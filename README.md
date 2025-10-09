@@ -2,33 +2,7 @@
 
 ### Next Immediate Steps
 
-- [x] **Connect Recipe Form**: Submit recipe data to Convex
-- [x] **Build Recipe List**: Display user recipes in dashboard (with CRUD features)
-  - [x] View recipe page
-  - [x] Action dropdown, edit, delete etc
-  - [x] Image upload, storage and edit (from form and page)
-  - [x] Method image upload and edit
-- [x] Recipe main page
-  - [x] Display ingredients and methods
-  - [x] Edit ingredients and methods
-- [x] Generate a recipe with recipe schema (parsed with AI)
-  - [x] Save recipe
-  - [x] Edit before saving
-  - [x] Handle main image
-  - [x] Data parser should be aware nutrition values should be returns as integers that represent gram values. So some conversion may be needed.
-- [x] Production deployment and PWA
-  - [x] Set up on Vercel
-  - [x] Set up convex prod deployments
-  - [x] Clerk still requires a custom (non vercel) domain
-  - [x] Clerk users webhook
-- [x] Shopping list
-  - [x] UI
-  - [x] Persist shopping list in local storage
-- [x] Add splash images
-- [ ] Image upload for method steps
-- [x] Fix mobile UI issues site wide
-- [x] Generate a recipe with copy and pasting (fallback if first method fails)
-- [x] Generate a recipe with scraping (fallback if first method fails)
+- [ ] Households
 
 ## 🐛 Bug Tracking
 
