@@ -24,20 +24,19 @@
 - [x] Shopping list
   - [x] UI
   - [x] Persist shopping list in local storage
-  - [ ] Add additional items
 - [x] Add splash images
 - [ ] Image upload for method steps
 - [x] Fix mobile UI issues site wide
 - [x] Generate a recipe with copy and pasting (fallback if first method fails)
 - [x] Generate a recipe with scraping (fallback if first method fails)
-- [ ] **Ingredient Categories**: Add categorization to ingredients (meat, poultry, vegetable, spice etc) (or extract from an existing external ingredient DB while still allowing custom ingredients)
-- [ ] **Recipe Tags**: Auto-detect dietary tags like plant-based, coeliac friendly, gluten free from ingredients
 
 ## 🐛 Bug Tracking
 
 <!-- Add bugs here as you encounter them -->
 
 - [ ] When the recipe form updates it will always upload images even if they already exists. The method should check for images first before uploading. In the recipe form, method image edits should not be possible and be handled in the recipe page.
+- [ ] On desktop when opening the drawer on dashboard, the nav shoots up the page. Need a new utility class that handles 100% full dynamic height - navigation height
+- [ ] Form inputs are awkward for required number values like prep time with leading zeros (note cook time is no longer required)
 
 ## Tech debt
 
@@ -45,6 +44,8 @@
 - [ ] Consolidate how cook time/serves/prep looks
 - [ ] Consolidate form schemas
 - [ ] Consolidate the two AI recipe parse functions
+- [ ] Create limits and restrictions rules like image uploads in one place and share across the app. Single source of truth
+- [ ] Consolidate all image upload UI and functionality
 
 ## Minor updates
 
@@ -62,6 +63,7 @@
 - [ ] Add OpenGraph meta information to all pages.
 - [ ] Separate 404 for home (site) and app. They need different redirects and copy
 - [x] Update sticky bottom calc accounting for navbar; currently: `bottom-[calc(64px+env(safe-area-inset-bottom))]`
+- [ ] On saving a recipe from teh create recipe form the users should be guided to it and the form drawer should close
 
 ## Major updates
 
@@ -114,6 +116,17 @@
 - [x] **Shopping List Persistence**: Save and load shopping lists in Convex database/local storage
 - [x] **Shopping List Sharing**: Share lists with household members for collaborative shopping
 - [ ] Normalise units to make it easier to combine ingredients
+- [ ] Add additional items
+
+### Kitchen Chalkboard
+
+A place to ad hoc add things you need for your kitchen, this can be optionally merged into shopping lists when they are created. You should also be able to have shared boards with households so everyone can add to it. Guiding principles of this feature is that it should be fast and very efficient, make use of optimistic updates and get out of the users way so they can add things quickly.
+
+- [ ] Create basic UI
+- [ ] Create add remove edit features
+- [ ] Add to database + schema setup
+- [ ] Household sharing options (these should be a separate board generated automatically / Or shown automatically if already made)
+- [ ] When the board is added to the shopping list all items should be scheduled to be removed from the DB after prompting (can use a toast undo action for this with a longer timer on the scheduling to give us chance to undo the action)
 
 #### Dashboard
 
@@ -129,6 +142,7 @@
 - [ ] **Recipe Sharing**: Share recipes within household (all members can access)
 - [ ] **Collaborative Shopping Lists**: Multiple users can edit same shopping list in real-time
 - [ ] **Household Invites**: Email-based invitation system using Clerk user management
+- [ ] Users notifications for relevant actions (requires setup in PWA section first)
 
 #### AI Features
 
@@ -143,6 +157,7 @@
 - [ ] **Offline-First Design**: Ensure core features work without internet connection
 - [x] **Manual Recipe Entry**: Fallback for when AI scraping fails - allow copy/paste text parsing
 - [x] Add context sensitive installation instructions to the home page
+- [ ] Notifications system
 
 ### 📅 Post-Launch Phase 1 (4-8 Months)
 
