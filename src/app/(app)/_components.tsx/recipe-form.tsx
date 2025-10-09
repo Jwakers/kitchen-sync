@@ -151,9 +151,16 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
     if (methodImagePreviews[index]) {
       URL.revokeObjectURL(methodImagePreviews[index]);
       setMethodImagePreviews((prev) => {
-        const newPreviews = { ...prev };
-        delete newPreviews[index];
-        return newPreviews;
+        const next: Record<number, string> = {};
+        Object.entries(prev).forEach(([key, value]) => {
+          const numericKey = Number(key);
+          if (numericKey === index) {
+            return;
+          }
+          const nextKey = numericKey > index ? numericKey - 1 : numericKey;
+          next[nextKey] = value;
+        });
+        return next;
       });
     }
     removeMethodStep(index);
