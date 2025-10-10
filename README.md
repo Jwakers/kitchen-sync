@@ -1,9 +1,5 @@
 # Kitchen Sync - Family Meal Planning Made Simple
 
-### App name ideas
-
-- Hearth OR Home and Hearth
-
 ### Next Immediate Steps
 
 - [x] Households
@@ -68,6 +64,10 @@
 - [ ] Add notes to recipes. This should be a new table (with a by_recipe_id index) so notes can be used for wider use cases down the line. Notes are not comments, they are private to the user and that should be made clear in the UI
 
 ---
+
+## App name ideas
+
+- Hearth OR Home and Hearth
 
 ## 📋 Development Roadmap
 

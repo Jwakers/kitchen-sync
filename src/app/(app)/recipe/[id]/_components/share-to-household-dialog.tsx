@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { useMutation, useQuery } from "convex/react";
 import { Check, Users } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 interface ShareToHouseholdDialogProps {
@@ -79,6 +79,11 @@ export function ShareToHouseholdDialog({
       setIsSharing(false);
     }
   };
+
+  useEffect(() => {
+    if (open) return;
+    setSelectedHouseholds(new Set());
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
