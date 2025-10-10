@@ -2,7 +2,7 @@
 
 import { ROUTES } from "@/app/constants";
 import { Button } from "@/components/ui/button";
-import { Ellipsis, Home, Plus, ShoppingCart, User } from "lucide-react";
+import { Ellipsis, Home, Plus, ShoppingCart, Users } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { AddRecipeDrawer } from "./add-recipe-drawer";
@@ -51,16 +51,13 @@ export function Navbar() {
             <Plus className="h-6 w-6" />
           </Button>
 
-          {/* Profile */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-12 w-12"
-            aria-label="Profile"
-            disabled
-          >
-            <User className="h-5 w-5" />
-          </Button>
+          {/* Households */}
+          <Link href={ROUTES.HOUSEHOLDS}>
+            <Button variant="ghost" size="icon" className="h-12 w-12">
+              <Users className="h-5 w-5" />
+              <span className="sr-only">Households</span>
+            </Button>
+          </Link>
 
           {/* More menu - could be expanded later */}
           <Button variant="ghost" size="icon" className="h-12 w-12" disabled>

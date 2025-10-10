@@ -25,6 +25,7 @@ import {
   Edit,
   ImageIcon,
   MoreVertical,
+  Share2,
   Trash2,
   Users,
   X,
@@ -36,10 +37,12 @@ import { UseFormReturn } from "react-hook-form";
 import { ChangeImageModal } from "./change-image-modal";
 import { Recipe } from "./recipe-client";
 import { RecipeEditFormData } from "./schema";
+import { ShareToHouseholdDialog } from "./share-to-household-dialog";
 
 interface RecipeHeaderProps {
   recipe: NonNullable<Recipe>;
   isEditMode: boolean;
+  canEdit: boolean;
   onToggleEditMode: () => void;
   onDelete: (recipe: NonNullable<Recipe>) => void;
   form: UseFormReturn<RecipeEditFormData>;
@@ -48,11 +51,13 @@ interface RecipeHeaderProps {
 export function RecipeHeader({
   recipe,
   isEditMode,
+  canEdit,
   onToggleEditMode,
   onDelete,
   form,
 }: RecipeHeaderProps) {
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
 
   const prepMinutes = recipe.prepTime ?? 0;
   const cookMinutes = recipe.cookTime ?? 0;
@@ -204,38 +209,54 @@ export function RecipeHeader({
           </>
         ) : (
           <>
-            <Button
-              type="button"
-              size="lg"
-              className="gap-2"
-              onClick={onToggleEditMode}
-            >
-              <Edit className="h-4 w-4" />
-              Edit Recipe
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+            {canEdit && (
+              <>
+                <Button
+                  type="button"
+                  size="lg"
+                  className="gap-2"
+                  onClick={onToggleEditMode}
+                >
+                  <Edit className="h-4 w-4" />
+                  Edit Recipe
+                </Button>
                 <Button
                   type="button"
                   size="lg"
                   variant="outline"
                   className="gap-2"
+                  onClick={() => setIsShareDialogOpen(true)}
                 >
-                  <MoreVertical className="h-4 w-4" />
-                  More Actions
+                  <Share2 className="h-4 w-4" />
+                  Share
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  variant="destructive"
-                  onClick={() => onDelete(recipe)}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </>
+            )}
+            {canEdit && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    size="lg"
+                    variant="outline"
+                    className="gap-2"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                    More Actions
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => onDelete(recipe)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </>
         )}
       </div>
@@ -246,6 +267,16 @@ export function RecipeHeader({
         isOpen={isImageModalOpen}
         onClose={() => setIsImageModalOpen(false)}
       />
+
+      {/* Share to Household Dialog */}
+      {canEdit && (
+        <ShareToHouseholdDialog
+          recipeId={recipe._id}
+          recipeTitle={recipe.title}
+          open={isShareDialogOpen}
+          onOpenChange={setIsShareDialogOpen}
+        />
+      )}
     </div>
   );
 }
