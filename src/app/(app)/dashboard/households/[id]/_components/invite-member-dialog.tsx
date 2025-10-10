@@ -99,7 +99,7 @@ export function InviteMemberDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Invite Member</DialogTitle>
           <DialogDescription>
