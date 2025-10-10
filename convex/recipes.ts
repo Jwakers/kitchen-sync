@@ -1,6 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import { Doc } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
+import { canAccessRecipe } from "./households";
 import { categoriesUnion, preparationUnion, unitsUnion } from "./schema";
 import { getCurrentUser, getCurrentUserOrThrow } from "./users";
 
@@ -14,7 +15,14 @@ export const getRecipe = query({
     const recipe = await ctx.db.get(args.recipeId);
 
     if (!recipe) return null;
-    if (recipe.userId !== user._id) return null;
+
+    // Check if user can access this recipe (owns it or it's shared to their household)
+    const { canAccess, isOwner } = await canAccessRecipe(
+      ctx,
+      user._id,
+      args.recipeId
+    );
+    if (!canAccess) return null;
 
     let image = null;
     if (recipe.image) {
@@ -32,7 +40,14 @@ export const getRecipe = query({
       })
     );
 
-    return { ...recipe, image, method: methodWithUrls };
+    // Get owner name if not the current user
+    let ownerName = null;
+    if (!isOwner) {
+      const owner = await ctx.db.get(recipe.userId);
+      ownerName = owner?.name ?? "Unknown User";
+    }
+
+    return { ...recipe, image, method: methodWithUrls, isOwner, ownerName };
   },
 });
 
@@ -258,7 +273,7 @@ export const updateRecipe = mutation({
       throw new ConvexError("Recipe not found");
     }
     if (recipe.userId !== user._id) {
-      throw new ConvexError("Unauthorized");
+      throw new ConvexError("Unauthorised - only the recipe owner can edit it");
     }
 
     let ingredients = recipe.ingredients;
@@ -436,7 +451,9 @@ export const publishRecipe = mutation({
       throw new ConvexError("Recipe not found");
     }
     if (recipe.userId !== user._id) {
-      throw new ConvexError("Unauthorized");
+      throw new ConvexError(
+        "Unauthorised - only the recipe owner can publish it"
+      );
     }
 
     const errors = _validateRecipe(recipe);
@@ -463,10 +480,22 @@ export const deleteRecipe = mutation({
       throw new ConvexError("Recipe not found");
     }
     if (recipe.userId !== user._id) {
-      throw new ConvexError("Unauthorized");
+      throw new ConvexError(
+        "Unauthorised - only the recipe owner can delete it"
+      );
     }
 
-    // Delete the recipe from the database first
+    // Delete any household shares of this recipe
+    const householdShares = await ctx.db
+      .query("householdRecipes")
+      .withIndex("by_recipe", (q) => q.eq("recipeId", args.recipeId))
+      .collect();
+
+    for (const share of householdShares) {
+      await ctx.db.delete(share._id);
+    }
+
+    // Delete the recipe from the database
     await ctx.db.delete(args.recipeId);
 
     // Delete main recipe image
@@ -522,7 +551,7 @@ export const updateRecipeImageAndDeleteOld = mutation({
       throw new ConvexError("Recipe not found");
     }
     if (recipe.userId !== user._id) {
-      throw new ConvexError("Unauthorized");
+      throw new ConvexError("Unauthorised");
     }
 
     // Store the old image ID before updating

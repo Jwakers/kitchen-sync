@@ -76,4 +76,47 @@ export default defineSchema({
     foodSubGroup: v.optional(v.string()),
     isCustom: v.boolean(),
   }),
+
+  households: defineTable({
+    name: v.string(),
+    ownerId: v.id("users"),
+    updatedAt: v.number(),
+  }).index("by_owner", ["ownerId"]),
+
+  householdMembers: defineTable({
+    householdId: v.id("households"),
+    userId: v.id("users"),
+    role: v.union(v.literal("owner"), v.literal("member")),
+    joinedAt: v.number(),
+  })
+    .index("by_household", ["householdId"])
+    .index("by_user", ["userId"])
+    .index("by_user_and_household", ["userId", "householdId"]),
+
+  householdInvitations: defineTable({
+    householdId: v.id("households"),
+    invitedByUserId: v.id("users"),
+    invitedUserId: v.optional(v.id("users")), // Set when invitation is accepted
+    status: v.union(
+      v.literal("pending"),
+      v.literal("accepted"),
+      v.literal("expired")
+    ),
+    token: v.string(),
+    expiresAt: v.number(),
+  })
+    .index("by_household", ["householdId"])
+    .index("by_token", ["token"])
+    .index("by_user", ["invitedUserId"])
+    .index("by_status", ["status"]),
+
+  householdRecipes: defineTable({
+    householdId: v.id("households"),
+    recipeId: v.id("recipes"),
+    sharedByUserId: v.id("users"),
+    sharedAt: v.number(),
+  })
+    .index("by_household", ["householdId"])
+    .index("by_recipe", ["recipeId"])
+    .index("by_household_and_recipe", ["householdId", "recipeId"]),
 });

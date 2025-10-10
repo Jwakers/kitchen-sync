@@ -130,14 +130,27 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
     return <RecipeNotFound />;
   }
 
+  // Only allow editing if user is the owner
+  const canEdit = recipe.isOwner !== false; // Default to true if isOwner is not set (backward compatibility)
+
   return (
     <div className="bg-background">
       <div className="container mx-auto px-4 py-8">
+        {!canEdit && recipe.ownerName && (
+          <div className="mb-4 p-4 bg-muted rounded-lg border">
+            <p className="text-sm text-muted-foreground">
+              This recipe is shared with you by{" "}
+              <strong>{recipe.ownerName}</strong>. You can view it but not edit
+              it.
+            </p>
+          </div>
+        )}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSave)}>
             <RecipeHeader
               recipe={recipe}
               isEditMode={isEditMode}
+              canEdit={canEdit}
               onToggleEditMode={handleToggleEditMode}
               onDelete={handleDelete}
               form={form}

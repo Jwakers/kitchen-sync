@@ -1,8 +1,21 @@
 # Kitchen Sync - Family Meal Planning Made Simple
 
+### App name ideas
+
+- Hearth OR Home and Hearth
+
 ### Next Immediate Steps
 
-- [ ] Households
+- [x] Households
+- [ ] Make households a link sharing thing, not an email thing (that can come later). Anyone that gets the link can join (link can be used once). Email not required. Add a native share button so users can choose how they want to share, include open graph information so this makes sense to the user too.
+- [ ] UI refinements from initial build
+- [ ] Fix redirect after sign in/up
+- [ ] Notifications in navigation. Invitations should sit in users inbox whereby they can accept or decline them
+- [ ] Clicking the share button does not consider the recipe being already shared.
+- [ ] Add an error boundary
+- [ ] The link sharing was successful however I was shown an error state on the receiving end
+- [ ] Clean up stale invitations from the DB (cron)
+- [ ] Link styling, open graph does not look good
 
 ## 🐛 Bug Tracking
 
@@ -20,6 +33,8 @@
 - [ ] Consolidate the two AI recipe parse functions
 - [ ] Create limits and restrictions rules like image uploads in one place and share across the app. Single source of truth
 - [ ] Consolidate all image upload UI and functionality
+- [ ] Store app name in a global const and replace all instances with it
+- [ ] Consolidate recipe card designs and reusability
 
 ## Minor updates
 
@@ -38,6 +53,7 @@
 - [ ] Separate 404 for home (site) and app. They need different redirects and copy
 - [x] Update sticky bottom calc accounting for navbar; currently: `bottom-[calc(64px+env(safe-area-inset-bottom))]`
 - [ ] On saving a recipe from teh create recipe form the users should be guided to it and the form drawer should close
+- [ ] Pages that have been made server side just for meta data and then export a client component for all logic can now include that logic directly and shift any metadata or server information to the layout file of the page (see invitations page).
 
 ## Major updates
 
