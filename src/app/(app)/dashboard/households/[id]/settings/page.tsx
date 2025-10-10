@@ -26,7 +26,7 @@ import { useMutation, useQuery } from "convex/react";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 interface HouseholdSettingsPageProps {
@@ -41,7 +41,7 @@ export default function HouseholdSettingsPage({
   const { id } = use(params);
   const router = useRouter();
   const household = useQuery(api.households.getHousehold, { householdId: id });
-  const [name, setName] = useState("");
+  const [name, setName] = useState(household?.name ?? "");
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -49,9 +49,10 @@ export default function HouseholdSettingsPage({
   const deleteHousehold = useMutation(api.households.deleteHousehold);
 
   // Update local name when household data loads
-  if (household && name === "" && household.name) {
+  useEffect(() => {
+    if (!household?.name) return;
     setName(household.name);
-  }
+  }, [household?.name]);
 
   const handleUpdateName = async (e: React.FormEvent) => {
     e.preventDefault();

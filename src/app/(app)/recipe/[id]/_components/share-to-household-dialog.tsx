@@ -2,6 +2,7 @@
 
 import { api } from "@/../convex/_generated/api";
 import { Id } from "@/../convex/_generated/dataModel";
+import { ROUTES } from "@/app/constants";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -14,7 +15,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { useMutation, useQuery } from "convex/react";
 import { Check, Users } from "lucide-react";
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useState } from "react";
 import { toast } from "sonner";
 
 interface ShareToHouseholdDialogProps {
@@ -36,21 +38,6 @@ export function ShareToHouseholdDialog({
   >(new Set());
   const [isSharing, setIsSharing] = useState(false);
   const shareRecipe = useMutation(api.households.shareRecipeToHousehold);
-
-  // Load which households already have this recipe shared
-  useEffect(() => {
-    if (households && open) {
-      const fetchSharedHouseholds = async () => {
-        const shared = new Set<Id<"households">>();
-        for (const household of households) {
-          // We don't have a way to check this efficiently yet
-          // In production, you might want to add a query for this
-        }
-        setSelectedHouseholds(shared);
-      };
-      fetchSharedHouseholds();
-    }
-  }, [households, recipeId, open]);
 
   const handleToggleHousehold = (householdId: Id<"households">) => {
     const newSelected = new Set(selectedHouseholds);
@@ -95,7 +82,7 @@ export function ShareToHouseholdDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Share Recipe</DialogTitle>
           <DialogDescription>
@@ -114,37 +101,32 @@ export function ShareToHouseholdDialog({
               <p className="text-muted-foreground mb-4">
                 You don&apos;t have any households yet
               </p>
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                Create a Household
-              </Button>
+              <Link href={ROUTES.HOUSEHOLDS}>
+                <Button variant="outline">Create a Household</Button>
+              </Link>
             </div>
           ) : (
             <div className="space-y-3">
               {households.map((household) => (
-                <div
+                <Label
                   key={household._id}
-                  className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-accent transition-colors cursor-pointer"
-                  onClick={() => handleToggleHousehold(household._id)}
+                  htmlFor={household._id}
+                  className="w-full flex items-center space-x-3 p-3 rounded-lg border transition-colors cursor-pointer"
                 >
                   <Checkbox
                     id={household._id}
                     checked={selectedHouseholds.has(household._id)}
                     onCheckedChange={() => handleToggleHousehold(household._id)}
                   />
-                  <Label
-                    htmlFor={household._id}
-                    className="flex-1 cursor-pointer"
-                  >
-                    <div className="font-medium">{household.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {household.memberCount}{" "}
-                      {household.memberCount === 1 ? "member" : "members"}
-                    </div>
-                  </Label>
+                  <div className="font-medium">{household.name}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {household.memberCount}{" "}
+                    {household.memberCount === 1 ? "member" : "members"}
+                  </div>
                   {selectedHouseholds.has(household._id) && (
-                    <Check className="h-4 w-4 text-primary" />
+                    <Check className="h-4 w-4 text-primary ml-auto" />
                   )}
-                </div>
+                </Label>
               ))}
             </div>
           )}

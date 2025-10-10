@@ -16,6 +16,7 @@
 - [ ] The link sharing was successful however I was shown an error state on the receiving end
 - [ ] Clean up stale invitations from the DB (cron)
 - [ ] Link styling, open graph does not look good
+- [ ] Add loading page for all household pages
 
 ## 🐛 Bug Tracking
 
