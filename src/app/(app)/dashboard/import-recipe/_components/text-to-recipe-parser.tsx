@@ -173,8 +173,6 @@ Instructions:
             disabled={
               !text.trim() || isLoading || text.length < 50 || isOverLimit
             }
-            className="flex-1"
-            size="lg"
           >
             {isLoading ? (
               <>
@@ -193,7 +191,6 @@ Instructions:
             variant="outline"
             onClick={handleClear}
             disabled={isLoading}
-            size="lg"
           >
             Clear
           </Button>

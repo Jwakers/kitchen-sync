@@ -213,7 +213,7 @@ export default function RecipeListing() {
   const draftCount = recipes?.filter((r) => r.status === "draft").length || 0;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <div className="container mx-auto px-4 py-8">
         {/* Header Section */}
         <div className="mb-8">

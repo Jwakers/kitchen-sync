@@ -1,5 +1,6 @@
 "use client";
 
+import InstallPrompt from "@/components/installation-prompt";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -29,7 +30,7 @@ export default function Home() {
   return (
     <div className="flex flex-col">
       {/* Hero Section - Split Layout */}
-      <section className="min-h-screen flex flex-col md:flex-row">
+      <section className="flex flex-col md:flex-row">
         {/* Left Side - Dark Background */}
         <div className="flex-1 bg-primary text-primary-foreground flex items-center justify-center p-8 lg:p-16">
           <div className="max-w-lg space-y-8">
@@ -139,6 +140,10 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <div className="container mt-4">
+        <InstallPrompt />
+      </div>
 
       {/* Product Showcase Section */}
       <section className="py-20 bg-muted/30">

@@ -45,11 +45,11 @@ export function ChangeImageModal({
       return;
     }
 
-    // Check file size (5MB limit)
-    const maxSizeInBytes = 5 * 1024 * 1024; // 5MB
+    // Check file size (10MB limit)
+    const maxSizeInBytes = 10 * 1024 * 1024; // 10M
     if (file.size > maxSizeInBytes) {
       toast.error("Image too large", {
-        description: "Please select an image smaller than 5MB",
+        description: "Please select an image smaller than 10MB",
       });
       return;
     }
@@ -181,8 +181,8 @@ export function ChangeImageModal({
               isDragging
                 ? "border-primary bg-primary/10"
                 : previewUrl
-                ? "border bg-muted"
-                : "border-dashed border-muted-foreground/25 bg-muted/50"
+                  ? "border bg-muted"
+                  : "border-dashed border-muted-foreground/25 bg-muted/50"
             }`}
           >
             {previewUrl ? (

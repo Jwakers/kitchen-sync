@@ -18,7 +18,7 @@ export default function RecipeError({ error, reset }: ErrorProps) {
   }, [error]);
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
+    <div className="h-full py-10 bg-background flex items-center justify-center">
       <div className="text-center max-w-md px-4">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-destructive/10 mb-6">
           <AlertCircle className="h-8 w-8 text-destructive" />
