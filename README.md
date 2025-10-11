@@ -6,9 +6,9 @@
 - [x] Make households a link sharing thing, not an email thing (that can come later). Anyone that gets the link can join (link can be used once). Email not required. Add a native share button so users can choose how they want to share, include open graph information so this makes sense to the user too.
 - [x] UI refinements from initial build
 - [x] Clicking the share button does not consider the recipe being already shared.
-- [ ] Add an error boundary
-- [ ] Add loading page for all household pages
-- [ ] The link sharing was successful however I was shown an error state on the receiving end
+- [x] Add an error boundary
+- [x] Add loading page for all household pages
+- [x] The link sharing was successful however I was shown an error state on the receiving end
 - [ ] Clean up stale invitations from the DB (cron)
 - [ ] Link styling, open graph does not look good
 - [ ] The user needs to copy the link into the browser, or when they click it, it will open the browser, instead, it should open their app.

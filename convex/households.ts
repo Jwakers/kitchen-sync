@@ -236,12 +236,24 @@ export const getInvitationDetails = query({
 
     // Check if expired
     if (invitation.expiresAt < Date.now()) {
-      return { ...invitation, isExpired: true };
+      return {
+        ...invitation,
+        householdName: undefined,
+        invitedByName: undefined,
+        isExpired: true,
+        isConsumed: false,
+      };
     }
 
     // Check if already used (consumed)
     if (invitation.status === "accepted") {
-      return { ...invitation, isConsumed: true };
+      return {
+        ...invitation,
+        householdName: undefined,
+        invitedByName: undefined,
+        isExpired: false,
+        isConsumed: true,
+      };
     }
 
     const household = await ctx.db.get(invitation.householdId);
