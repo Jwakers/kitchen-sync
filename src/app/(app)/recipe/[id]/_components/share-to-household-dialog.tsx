@@ -36,54 +36,78 @@ export function ShareToHouseholdDialog({
   const [selectedHouseholds, setSelectedHouseholds] = useState<
     Set<Id<"households">>
   >(new Set());
-  const [isSharing, setIsSharing] = useState(false);
-  const shareRecipe = useMutation(api.households.shareRecipeToHousehold);
+  const [isPending, setIsPending] = useState(false);
 
-  const handleToggleHousehold = (householdId: Id<"households">) => {
+  const shareRecipe = useMutation(api.households.shareRecipeToHousehold);
+  const unshareRecipe = useMutation(api.households.unshareRecipeFromHousehold);
+  const householdsByRecipeId = useQuery(
+    api.households.getHouseholdsByRecipeId,
+    {
+      recipeId,
+    }
+  );
+
+  const handleCheckboxChange = async (
+    householdId: Id<"households">,
+    isChecked: boolean
+  ) => {
+    console.log("Household ID:", householdId);
+    console.log("Is Checked:", isChecked);
+
+    // Add to pending state
+    setIsPending(true);
+
+    // Optimistically update UI
     const newSelected = new Set(selectedHouseholds);
-    if (newSelected.has(householdId)) {
-      newSelected.delete(householdId);
-    } else {
+    if (isChecked) {
       newSelected.add(householdId);
+    } else {
+      newSelected.delete(householdId);
     }
     setSelectedHouseholds(newSelected);
-  };
-
-  const handleShare = async () => {
-    if (selectedHouseholds.size === 0) {
-      toast.error("Please select at least one household");
-      return;
-    }
-
-    setIsSharing(true);
 
     try {
-      const promises = Array.from(selectedHouseholds).map((householdId) =>
-        shareRecipe({ recipeId, householdId })
-      );
-
-      await Promise.all(promises);
-
-      toast.success(
-        `Recipe shared to ${selectedHouseholds.size} ${
-          selectedHouseholds.size === 1 ? "household" : "households"
-        }!`
-      );
-      onOpenChange(false);
+      if (isChecked) {
+        // Share recipe to household
+        await shareRecipe({ recipeId, householdId });
+        toast.success("Recipe shared to household");
+      } else {
+        // Unshare recipe from household
+        await unshareRecipe({ recipeId, householdId });
+        toast.success("Recipe removed from household");
+      }
     } catch (error: unknown) {
-      console.error("Error sharing recipe:", error);
+      console.error("Error updating recipe share:", error);
+
+      // Revert optimistic update on error
+      const revertedSelected = new Set(selectedHouseholds);
+      if (isChecked) {
+        revertedSelected.delete(householdId);
+      } else {
+        revertedSelected.add(householdId);
+      }
+      setSelectedHouseholds(revertedSelected);
+
       toast.error(
         error instanceof Error ? error.message : "Failed to share recipe"
       );
     } finally {
-      setIsSharing(false);
+      // Remove from pending state
+      setIsPending(false);
     }
   };
 
   useEffect(() => {
     if (open) return;
     setSelectedHouseholds(new Set());
+    setIsPending(false);
   }, [open]);
+
+  useEffect(() => {
+    const householdsIds =
+      householdsByRecipeId?.map((household) => household.householdId) ?? [];
+    setSelectedHouseholds(new Set(householdsIds));
+  }, [householdsByRecipeId]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -112,48 +136,54 @@ export function ShareToHouseholdDialog({
             </div>
           ) : (
             <div className="space-y-3">
-              {households.map((household) => (
-                <Label
-                  key={household._id}
-                  htmlFor={household._id}
-                  className="w-full flex items-center space-x-3 p-3 rounded-lg border transition-colors cursor-pointer"
-                >
-                  <Checkbox
-                    id={household._id}
-                    checked={selectedHouseholds.has(household._id)}
-                    onCheckedChange={() => handleToggleHousehold(household._id)}
-                  />
-                  <div className="font-medium">{household.name}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {household.memberCount}{" "}
-                    {household.memberCount === 1 ? "member" : "members"}
-                  </div>
-                  {selectedHouseholds.has(household._id) && (
-                    <Check className="h-4 w-4 text-primary ml-auto" />
-                  )}
-                </Label>
-              ))}
+              {households.map((household) => {
+                return (
+                  <Label
+                    key={household._id}
+                    htmlFor={household._id}
+                    className={`w-full flex items-center space-x-3 p-3 rounded-lg border transition-colors ${
+                      isPending
+                        ? "opacity-50 cursor-not-allowed"
+                        : "cursor-pointer"
+                    }`}
+                  >
+                    <Checkbox
+                      id={household._id}
+                      checked={selectedHouseholds.has(household._id)}
+                      disabled={isPending}
+                      onCheckedChange={(checked) =>
+                        handleCheckboxChange(household._id, checked === true)
+                      }
+                    />
+                    <div className="font-medium">{household.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {household.memberCount}{" "}
+                      {household.memberCount === 1 ? "member" : "members"}
+                    </div>
+                    {isPending ? (
+                      <div className="ml-auto text-sm text-muted-foreground">
+                        Updating...
+                      </div>
+                    ) : (
+                      selectedHouseholds.has(household._id) && (
+                        <Check className="h-4 w-4 text-primary ml-auto" />
+                      )
+                    )}
+                  </Label>
+                );
+              })}
             </div>
           )}
         </div>
 
         {households && households.length > 0 && (
-          <div className="flex gap-2">
+          <div className="flex justify-end">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={isSharing}
-              className="flex-1"
             >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleShare}
-              disabled={isSharing || selectedHouseholds.size === 0}
-              className="flex-1"
-            >
-              {isSharing ? "Sharing..." : "Share Recipe"}
+              {isPending ? "Updating..." : "Close"}
             </Button>
           </div>
         )}

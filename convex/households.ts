@@ -306,6 +306,24 @@ export const getHouseholdRecipes = query({
   },
 });
 
+export const getHouseholdsByRecipeId = query({
+  args: {
+    recipeId: v.id("recipes"),
+  },
+  handler: async (ctx, args) => {
+    const households = await ctx.db
+      .query("householdRecipes")
+      .withIndex("by_recipe", (q) => q.eq("recipeId", args.recipeId))
+      .collect();
+
+    if (!households.length) {
+      return null;
+    }
+
+    return households;
+  },
+});
+
 // ============================================================================
 // MUTATIONS
 // ============================================================================
