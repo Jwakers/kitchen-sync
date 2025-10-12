@@ -125,6 +125,7 @@ export function HouseholdMemberList({
                     variant="ghost"
                     size="icon"
                     onClick={() => setMemberToRemove(member)}
+                    aria-label={`Remove ${member.name}`}
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>

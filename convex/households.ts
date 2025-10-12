@@ -75,17 +75,19 @@ export async function canAccessRecipe(
 
   const householdIds = userMemberships.map((m) => m.householdId);
 
-  for (const householdId of householdIds) {
-    const sharedRecipe = await ctx.db
-      .query("householdRecipes")
-      .withIndex("by_household_and_recipe", (q) =>
-        q.eq("householdId", householdId).eq("recipeId", recipeId)
-      )
-      .unique();
+  const sharedRecipes = await Promise.all(
+    householdIds.map((householdId) =>
+      ctx.db
+        .query("householdRecipes")
+        .withIndex("by_household_and_recipe", (q) =>
+          q.eq("householdId", householdId).eq("recipeId", recipeId)
+        )
+        .unique()
+    )
+  );
 
-    if (sharedRecipe) {
-      return { canAccess: true, isOwner: false };
-    }
+  if (sharedRecipes.some((recipe) => recipe != null)) {
+    return { canAccess: true, isOwner: false };
   }
 
   return { canAccess: false, isOwner: false };

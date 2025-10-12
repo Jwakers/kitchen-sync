@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import useShare from "@/lib/hooks/use-share";
 import { useMutation } from "convex/react";
 import { AlertCircle, Check, Copy, Share2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 interface InviteMemberDialogProps {
@@ -87,14 +87,27 @@ export function InviteMemberDialog({
     }
   };
 
-  const handleClose = () => {
+  const resetDialogState = () => {
     setInvitationToken(null);
     setCopied(false);
-    onOpenChange(false);
   };
 
+  const handleDialogOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      resetDialogState();
+    }
+    onOpenChange(nextOpen);
+  };
+
+  const handleClose = () => handleDialogOpenChange(false);
+
+  useEffect(() => {
+    if (open) return;
+    resetDialogState();
+  }, [open]);
+
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Invite Member</DialogTitle>
