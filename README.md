@@ -3,16 +3,15 @@
 ### Next Immediate Steps
 
 - [x] Households
-- [ ] Make households a link sharing thing, not an email thing (that can come later). Anyone that gets the link can join (link can be used once). Email not required. Add a native share button so users can choose how they want to share, include open graph information so this makes sense to the user too.
-- [ ] UI refinements from initial build
-- [ ] Fix redirect after sign in/up
-- [ ] Notifications in navigation. Invitations should sit in users inbox whereby they can accept or decline them
-- [ ] Clicking the share button does not consider the recipe being already shared.
-- [ ] Add an error boundary
-- [ ] The link sharing was successful however I was shown an error state on the receiving end
-- [ ] Clean up stale invitations from the DB (cron)
-- [ ] Link styling, open graph does not look good
-- [ ] Add loading page for all household pages
+- [x] Make households a link sharing thing, not an email thing (that can come later). Anyone that gets the link can join (link can be used once). Email not required. Add a native share button so users can choose how they want to share, include open graph information so this makes sense to the user too.
+- [x] UI refinements from initial build
+- [x] Clicking the share button does not consider the recipe being already shared.
+- [x] Add an error boundary
+- [x] Add loading page for all household pages
+- [x] The link sharing was successful however I was shown an error state on the receiving end
+- [x] Clean up stale invitations from the DB (scheduler)
+- [x] Link styling, open graph does not look good
+- [x] No option to actually share the recipe, as in send the link to someone else.
 
 ## 🐛 Bug Tracking
 
@@ -62,6 +61,7 @@
 - [ ] Stream the AI response for better perceived performance. This may involve two separate calls, one, a human readable response of recipe text, then a final call to coalesce it into structured JSON
 - [ ] Share to the app. Investigate whether it is possible that, if a website is shared to this app, it can be immediately added to the import URL field on the import URL field, with a popup asking for confirmation to import this recipe
 - [ ] Add notes to recipes. This should be a new table (with a by_recipe_id index) so notes can be used for wider use cases down the line. Notes are not comments, they are private to the user and that should be made clear in the UI
+- [ ] Invites sent to users should open their app, not the browser. This may be possible with protocol handlers but it is not well supported at time of writing. Else a PWA app wrapper will need to be used.
 
 ---
 

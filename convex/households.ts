@@ -1,6 +1,12 @@
 import { ConvexError, v } from "convex/values";
+import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
-import { mutation, query, QueryCtx } from "./_generated/server";
+import {
+  internalMutation,
+  mutation,
+  query,
+  QueryCtx,
+} from "./_generated/server";
 import { getCurrentUserOrThrow } from "./users";
 
 // ============================================================================
@@ -236,12 +242,24 @@ export const getInvitationDetails = query({
 
     // Check if expired
     if (invitation.expiresAt < Date.now()) {
-      return { ...invitation, isExpired: true };
+      return {
+        ...invitation,
+        householdName: undefined,
+        invitedByName: undefined,
+        isExpired: true,
+        isConsumed: false,
+      };
     }
 
     // Check if already used (consumed)
     if (invitation.status === "accepted") {
-      return { ...invitation, isConsumed: true };
+      return {
+        ...invitation,
+        householdName: undefined,
+        invitedByName: undefined,
+        isExpired: false,
+        isConsumed: true,
+      };
     }
 
     const household = await ctx.db.get(invitation.householdId);
@@ -303,6 +321,31 @@ export const getHouseholdRecipes = query({
     );
 
     return recipes.filter((r) => r !== null);
+  },
+});
+
+export const getHouseholdsByRecipeId = query({
+  args: {
+    recipeId: v.id("recipes"),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+    const { canAccess } = await canAccessRecipe(ctx, user._id, args.recipeId);
+
+    if (!canAccess) {
+      throw new ConvexError("You do not have access to this recipe");
+    }
+
+    const households = await ctx.db
+      .query("householdRecipes")
+      .withIndex("by_recipe", (q) => q.eq("recipeId", args.recipeId))
+      .collect();
+
+    if (!households.length) {
+      return null;
+    }
+
+    return households;
   },
 });
 
@@ -457,7 +500,28 @@ export const createInvitationLink = mutation({
       expiresAt,
     });
 
+    // Schedule to delete the invitation after it expires
+    await ctx.scheduler.runAt(
+      expiresAt,
+      internal.households.deleteInvitationLink,
+      {
+        invitationId,
+      }
+    );
+
     return { invitationId, token };
+  },
+});
+
+/**
+ * Delete invitation link (internal)
+ */
+export const deleteInvitationLink = internalMutation({
+  args: {
+    invitationId: v.id("householdInvitations"),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.invitationId);
   },
 });
 

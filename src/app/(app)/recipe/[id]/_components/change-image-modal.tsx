@@ -154,7 +154,7 @@ export function ChangeImageModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Change Recipe Image</DialogTitle>
           <DialogDescription>
