@@ -12,6 +12,7 @@
 - [ ] Clean up stale invitations from the DB (cron)
 - [ ] Link styling, open graph does not look good
 - [ ] The user needs to copy the link into the browser, or when they click it, it will open the browser, instead, it should open their app.
+- [ ] No option to actually share the recipe, as in send the link to someone else.
 
 ## 🐛 Bug Tracking
 

@@ -1,6 +1,12 @@
 import { ConvexError, v } from "convex/values";
+import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
-import { mutation, query, QueryCtx } from "./_generated/server";
+import {
+  internalMutation,
+  mutation,
+  query,
+  QueryCtx,
+} from "./_generated/server";
 import { getCurrentUserOrThrow } from "./users";
 
 // ============================================================================
@@ -487,7 +493,28 @@ export const createInvitationLink = mutation({
       expiresAt,
     });
 
+    // Schedule to delete the invitation after it expires
+    await ctx.scheduler.runAt(
+      expiresAt,
+      internal.households.deleteInvitationLink,
+      {
+        invitationId,
+      }
+    );
+
     return { invitationId, token };
+  },
+});
+
+/**
+ * Delete invitation link (internal)
+ */
+export const deleteInvitationLink = internalMutation({
+  args: {
+    invitationId: v.id("householdInvitations"),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.invitationId);
   },
 });
 

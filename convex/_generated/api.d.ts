@@ -8,16 +8,17 @@
  * @module
  */
 
-import type {
-  ApiFromModules,
-  FilterApi,
-  FunctionReference,
-} from "convex/server";
 import type * as households from "../households.js";
 import type * as http from "../http.js";
 import type * as lib_constants from "../lib/constants.js";
 import type * as recipes from "../recipes.js";
 import type * as users from "../users.js";
+
+import type {
+  ApiFromModules,
+  FilterApi,
+  FunctionReference,
+} from "convex/server";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -34,11 +35,67 @@ declare const fullApi: ApiFromModules<{
   recipes: typeof recipes;
   users: typeof users;
 }>;
+declare const fullApiWithMounts: typeof fullApi;
+
 export declare const api: FilterApi<
-  typeof fullApi,
+  typeof fullApiWithMounts,
   FunctionReference<any, "public">
 >;
 export declare const internal: FilterApi<
-  typeof fullApi,
+  typeof fullApiWithMounts,
   FunctionReference<any, "internal">
 >;
+
+export declare const components: {
+  crons: {
+    public: {
+      del: FunctionReference<
+        "mutation",
+        "internal",
+        { identifier: { id: string } | { name: string } },
+        null
+      >;
+      get: FunctionReference<
+        "query",
+        "internal",
+        { identifier: { id: string } | { name: string } },
+        {
+          args: Record<string, any>;
+          functionHandle: string;
+          id: string;
+          name?: string;
+          schedule:
+            | { kind: "interval"; ms: number }
+            | { cronspec: string; kind: "cron"; tz?: string };
+        } | null
+      >;
+      list: FunctionReference<
+        "query",
+        "internal",
+        {},
+        Array<{
+          args: Record<string, any>;
+          functionHandle: string;
+          id: string;
+          name?: string;
+          schedule:
+            | { kind: "interval"; ms: number }
+            | { cronspec: string; kind: "cron"; tz?: string };
+        }>
+      >;
+      register: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          args: Record<string, any>;
+          functionHandle: string;
+          name?: string;
+          schedule:
+            | { kind: "interval"; ms: number }
+            | { cronspec: string; kind: "cron"; tz?: string };
+        },
+        string
+      >;
+    };
+  };
+};
