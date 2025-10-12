@@ -2,16 +2,10 @@
 
 ### Next Immediate Steps
 
-- [x] Households
-- [x] Make households a link sharing thing, not an email thing (that can come later). Anyone that gets the link can join (link can be used once). Email not required. Add a native share button so users can choose how they want to share, include open graph information so this makes sense to the user too.
-- [x] UI refinements from initial build
-- [x] Clicking the share button does not consider the recipe being already shared.
-- [x] Add an error boundary
-- [x] Add loading page for all household pages
-- [x] The link sharing was successful however I was shown an error state on the receiving end
-- [x] Clean up stale invitations from the DB (scheduler)
-- [x] Link styling, open graph does not look good
-- [x] No option to actually share the recipe, as in send the link to someone else.
+- [ ] Kitchen chalkboard
+- [ ] UI
+- [ ] DB or local storage
+- [ ] Feature to combine with the shopping list
 
 ## 🐛 Bug Tracking
 

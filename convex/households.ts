@@ -86,7 +86,7 @@ export async function canAccessRecipe(
     )
   );
 
-  if (sharedRecipes?.length) {
+  if (sharedRecipes.some((recipe) => recipe != null)) {
     return { canAccess: true, isOwner: false };
   }
 
