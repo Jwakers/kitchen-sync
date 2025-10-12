@@ -57,6 +57,7 @@ export default function InvitePage({ params }: InvitePageProps) {
 
   const handleAcceptInvitation = async () => {
     setIsAccepting(true);
+    setError(null);
     try {
       const result = await acceptInvitation({ token });
       setAcceptedHouseholdId(result.householdId);

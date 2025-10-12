@@ -18,7 +18,10 @@ export default function useShare() {
   };
 
   const copyToClipboard = async (text: string) => {
-    if (!navigator.clipboard) return;
+    if (!navigator.clipboard) {
+      toast.error("Copy to clipboard isn't supported in this browser.");
+      return;
+    }
 
     try {
       await navigator.clipboard.writeText(text);

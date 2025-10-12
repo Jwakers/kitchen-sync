@@ -51,9 +51,6 @@ export function ShareToHouseholdDialog({
     householdId: Id<"households">,
     isChecked: boolean
   ) => {
-    console.log("Household ID:", householdId);
-    console.log("Is Checked:", isChecked);
-
     // Add to pending state
     setIsPending(true);
 

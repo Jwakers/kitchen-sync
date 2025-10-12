@@ -36,7 +36,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
-import { toast } from "sonner";
 import { ChangeImageModal } from "./change-image-modal";
 import { Recipe } from "./recipe-client";
 import { RecipeEditFormData } from "./schema";
@@ -84,7 +83,6 @@ export function RecipeHeader({
       );
     } else {
       await copyToClipboard(recipeUrl);
-      toast.success("Recipe link copied to clipboard!");
     }
   };
 

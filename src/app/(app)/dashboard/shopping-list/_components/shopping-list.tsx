@@ -94,7 +94,6 @@ export default function ShoppingList({
     } else {
       // Fallback to clipboard
       await copyToClipboard(listText);
-      toast.success("Shopping list copied to clipboard!");
     }
   };
 

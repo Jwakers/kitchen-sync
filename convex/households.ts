@@ -329,6 +329,13 @@ export const getHouseholdsByRecipeId = query({
     recipeId: v.id("recipes"),
   },
   handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+    const { canAccess } = await canAccessRecipe(ctx, user._id, args.recipeId);
+
+    if (!canAccess) {
+      throw new ConvexError("You do not have access to this recipe");
+    }
+
     const households = await ctx.db
       .query("householdRecipes")
       .withIndex("by_recipe", (q) => q.eq("recipeId", args.recipeId))

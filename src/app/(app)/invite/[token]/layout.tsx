@@ -26,7 +26,6 @@ export async function generateMetadata({
     title: "Join Household",
     description:
       "You've been invited to join a household on Kitchen Sync. Share and discover recipes together!",
-    images: "/favicon.svg",
     openGraph: {
       title: "Join Household",
       description:
