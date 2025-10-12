@@ -10,9 +10,8 @@
 - [x] Add loading page for all household pages
 - [x] The link sharing was successful however I was shown an error state on the receiving end
 - [x] Clean up stale invitations from the DB (scheduler)
-- [ ] Link styling, open graph does not look good
-- [ ] The user needs to copy the link into the browser, or when they click it, it will open the browser, instead, it should open their app.
-- [ ] No option to actually share the recipe, as in send the link to someone else.
+- [x] Link styling, open graph does not look good
+- [x] No option to actually share the recipe, as in send the link to someone else.
 
 ## 🐛 Bug Tracking
 
@@ -62,6 +61,7 @@
 - [ ] Stream the AI response for better perceived performance. This may involve two separate calls, one, a human readable response of recipe text, then a final call to coalesce it into structured JSON
 - [ ] Share to the app. Investigate whether it is possible that, if a website is shared to this app, it can be immediately added to the import URL field on the import URL field, with a popup asking for confirmation to import this recipe
 - [ ] Add notes to recipes. This should be a new table (with a by_recipe_id index) so notes can be used for wider use cases down the line. Notes are not comments, they are private to the user and that should be made clear in the UI
+- [ ] Invites sent to users should open their app, not the browser. This may be possible with protocol handlers but it is not well supported at time of writing. Else a PWA app wrapper will need to be used.
 
 ---
 

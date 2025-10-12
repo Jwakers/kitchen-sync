@@ -17,15 +17,17 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import useShare from "@/lib/hooks/use-share";
 import { titleCase } from "@/lib/utils";
 import {
   ArrowLeft,
   Calendar,
   Clock,
+  Copy,
   Edit,
   ImageIcon,
+  Link2,
   MoreVertical,
-  Share2,
   Trash2,
   Users,
   X,
@@ -34,6 +36,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
+import { toast } from "sonner";
 import { ChangeImageModal } from "./change-image-modal";
 import { Recipe } from "./recipe-client";
 import { RecipeEditFormData } from "./schema";
@@ -58,6 +61,7 @@ export function RecipeHeader({
 }: RecipeHeaderProps) {
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const { canShare, share, copyToClipboard } = useShare();
 
   const prepMinutes = recipe.prepTime ?? 0;
   const cookMinutes = recipe.cookTime ?? 0;
@@ -68,6 +72,21 @@ export function RecipeHeader({
       : `${cookMinutes} cook`;
   const categoryLabel = titleCase(recipe.category);
   const categoryColor = CATEGORY_COLORS[recipe.category];
+
+  const handleShareLink = async () => {
+    const recipeUrl = `${window.location.origin}/recipe/${recipe._id}`;
+
+    if (canShare) {
+      await share(
+        recipe.title,
+        `Check out this recipe: ${recipe.title}`,
+        recipeUrl
+      );
+    } else {
+      await copyToClipboard(recipeUrl);
+      toast.success("Recipe link copied to clipboard!");
+    }
+  };
 
   return (
     <div className="mb-8">
@@ -220,16 +239,40 @@ export function RecipeHeader({
                   <Edit className="h-4 w-4" />
                   Edit Recipe
                 </Button>
-                <Button
-                  type="button"
-                  size="lg"
-                  variant="outline"
-                  className="gap-2"
-                  onClick={() => setIsShareDialogOpen(true)}
-                >
-                  <Share2 className="h-4 w-4" />
-                  Share
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      type="button"
+                      size="lg"
+                      variant="outline"
+                      className="gap-2"
+                    >
+                      <Users className="h-4 w-4" />
+                      Share
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={() => setIsShareDialogOpen(true)}
+                    >
+                      <Users className="h-4 w-4 mr-2" />
+                      Share to Households
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleShareLink}>
+                      {canShare ? (
+                        <>
+                          <Link2 className="h-4 w-4 mr-2" />
+                          Share Link
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copy Link
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             )}
             {canEdit && (

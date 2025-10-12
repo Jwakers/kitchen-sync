@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import useShare from "@/lib/hooks/use-share";
 import { useMutation } from "convex/react";
 import { AlertCircle, Check, Copy, Share2 } from "lucide-react";
 import { useState } from "react";
@@ -35,6 +36,7 @@ export function InviteMemberDialog({
   const [invitationToken, setInvitationToken] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const createInvitation = useMutation(api.households.createInvitationLink);
+  const { canShare, copyToClipboard, share } = useShare();
 
   const handleCreateInvitation = async () => {
     setIsLoading(true);
@@ -61,7 +63,7 @@ export function InviteMemberDialog({
 
   const handleCopyLink = async () => {
     if (invitationUrl) {
-      await navigator.clipboard.writeText(invitationUrl);
+      await copyToClipboard(invitationUrl);
       setCopied(true);
       toast.success("Invitation link copied!");
       setTimeout(() => setCopied(false), 2000);
@@ -71,20 +73,14 @@ export function InviteMemberDialog({
   const handleShare = async () => {
     if (!invitationUrl) return;
 
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `Join ${householdName} on Kitchen Sync`,
-          text: `You've been invited to join ${householdName}! Click the link to accept.`,
-          url: invitationUrl,
-        });
-        toast.success("Invitation shared!");
-      } catch (error) {
-        // User cancelled or error occurred
-        if (error instanceof Error && error.name !== "AbortError") {
-          console.error("Error sharing:", error);
-        }
-      }
+    if (canShare) {
+      await share(
+        `Join ${householdName} on Kitchen Sync`,
+        `You've been invited to join ${householdName}! Click the link to accept.`,
+        invitationUrl
+      );
+
+      toast.success("Invitation shared!");
     } else {
       // Fallback to copy
       handleCopyLink();

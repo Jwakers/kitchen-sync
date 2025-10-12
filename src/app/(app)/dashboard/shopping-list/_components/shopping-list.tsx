@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import useShare from "@/lib/hooks/use-share";
 import {
   ArrowLeft,
   Check,
@@ -40,6 +41,8 @@ export default function ShoppingList({
   onDone,
   onBack,
 }: ShoppingListProps) {
+  const { canShare, copyToClipboard, share } = useShare();
+
   const handleAmountChange = (id: string, newAmount: number) => {
     setAllIngredients((prev) =>
       prev.map((item) =>
@@ -85,27 +88,13 @@ export default function ShoppingList({
       .join("\n")}`;
 
     // Check if Web Share API is available (primarily mobile)
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "Shopping List",
-          text: listText,
-        });
-        toast.success("Shopping list shared successfully!");
-      } catch (error) {
-        // User cancelled or error occurred
-        if ((error as Error).name !== "AbortError") {
-          toast.error("Failed to share shopping list");
-        }
-      }
+    if (canShare) {
+      await share("Shopping List", listText);
+      toast.success("Shopping list shared successfully!");
     } else {
       // Fallback to clipboard
-      try {
-        await navigator.clipboard.writeText(listText);
-        toast.success("Shopping list copied to clipboard!");
-      } catch {
-        toast.error("Failed to copy shopping list");
-      }
+      await copyToClipboard(listText);
+      toast.success("Shopping list copied to clipboard!");
     }
   };
 
