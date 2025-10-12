@@ -17,7 +17,13 @@ const APP_TITLE_TEMPLATE = "%s | Kitchen Sync";
 const APP_DESCRIPTION =
   "Create recipes, plan weekly meals, and generate smart shopping lists. Take the pain out of family meal planning with Kitchen Sync.";
 
+const APP_URL = new URL(
+  (process.env.NODE_ENV === "production" ? "https://" : "http://") +
+    process.env.VERCEL_URL || "https://kitchen-sync-app.com"
+);
+
 export const metadata: Metadata = {
+  metadataBase: APP_URL,
   applicationName: APP_NAME,
   title: {
     default: APP_DEFAULT_TITLE,

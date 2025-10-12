@@ -4,35 +4,18 @@ import { api } from "@/../convex/_generated/api";
 import { ROUTES } from "@/app/constants";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { useMutation, useQuery } from "convex/react";
 import { AlertCircle, CheckCircle, Loader2, XCircle } from "lucide-react";
 import Link from "next/link";
-import { use, useRef, useState, type ReactNode } from "react";
+import { use, useRef, useState } from "react";
 import { toast } from "sonner";
+import InviteCard from "./invite-card";
+import InviteLoading from "./loading";
 
 interface InvitePageProps {
   params: Promise<{
     token: string;
   }>;
-}
-
-function InviteCard({
-  children,
-  className = "",
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <div className="container mx-auto py-16 flex items-center justify-center min-h-[60vh]">
-      <Card className={`max-w-md w-full ${className}`}>
-        <CardContent className="flex flex-col items-center justify-center py-16">
-          {children}
-        </CardContent>
-      </Card>
-    </div>
-  );
 }
 
 export default function InvitePage({ params }: InvitePageProps) {
@@ -89,15 +72,7 @@ export default function InvitePage({ params }: InvitePageProps) {
   };
 
   if (isLoading) {
-    return (
-      <InviteCard>
-        <Loader2 className="h-16 w-16 text-primary animate-spin mb-4" />
-        <h3 className="text-xl font-semibold mb-2">Loading Invitation...</h3>
-        <p className="text-muted-foreground text-center">
-          Please wait whilst we verify your invitation
-        </p>
-      </InviteCard>
-    );
+    return <InviteLoading />;
   }
 
   if (errorMessage) {
