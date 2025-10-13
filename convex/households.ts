@@ -417,70 +417,60 @@ export const updateHousehold = mutation({
       name: args.name.trim(),
       updatedAt: Date.now(),
     });
+  },
+});
 
-    export const deleteHousehold = mutation({
-      args: {
-        householdId: v.id("households"),
-      },
-      handler: async (ctx, args) => {
-        const user = await getCurrentUserOrThrow(ctx);
+/**
+ * Delete a household and all related data (owner only)
+ */
+export const deleteHousehold = mutation({
+  args: {
+    householdId: v.id("households"),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
 
-        // Check ownership
-        const isOwner = await isHouseholdOwner(ctx, user._id, args.householdId);
-        if (!isOwner) {
-          throw new ConvexError(
-            "Only the household owner can delete the household"
-          );
-        }
+    // Check ownership
+    const isOwner = await isHouseholdOwner(ctx, user._id, args.householdId);
+    if (!isOwner) {
+      throw new ConvexError(
+        "Only the household owner can delete the household"
+      );
+    }
 
-        // Delete all members
-        const members = await ctx.db
-          .query("householdMembers")
-          .withIndex("by_household", (q) =>
-            q.eq("householdId", args.householdId)
-          )
-          .collect();
+    // Delete all members
+    const members = await ctx.db
+      .query("householdMembers")
+      .withIndex("by_household", (q) => q.eq("householdId", args.householdId))
+      .collect();
 
-        // Delete all invitations
-        const invitations = await ctx.db
-          .query("householdInvitations")
-          .withIndex("by_household", (q) =>
-            q.eq("householdId", args.householdId)
-          )
-          .collect();
+    // Delete all invitations
+    const invitations = await ctx.db
+      .query("householdInvitations")
+      .withIndex("by_household", (q) => q.eq("householdId", args.householdId))
+      .collect();
 
-        // Delete all shared recipes
-        const sharedRecipes = await ctx.db
-          .query("householdRecipes")
-          .withIndex("by_household", (q) =>
-            q.eq("householdId", args.householdId)
-          )
-          .collect();
+    // Delete all shared recipes
+    const sharedRecipes = await ctx.db
+      .query("householdRecipes")
+      .withIndex("by_household", (q) => q.eq("householdId", args.householdId))
+      .collect();
 
-        // Delete chalkboard items for this household
-        const chalkboardItems = await ctx.db
-          .query("chalkboardItems")
-          .withIndex("by_household", (q) =>
-            q.eq("householdId", args.householdId)
-          )
-          .collect();
+    // Delete chalkboard items for this household
+    const chalkboardItems = await ctx.db
+      .query("chalkboardItems")
+      .withIndex("by_household", (q) => q.eq("householdId", args.householdId))
+      .collect();
 
-        // Delete all related items
-        const idsForDeletion = [
-          ...members.map((member) => member._id),
-          ...invitations.map((invitation) => invitation._id),
-          ...sharedRecipes.map((sharedRecipe) => sharedRecipe._id),
-          ...chalkboardItems.map((item) => item._id),
-        ];
+    // Delete all related items
+    const idsForDeletion = [
+      ...members.map((member) => member._id),
+      ...invitations.map((invitation) => invitation._id),
+      ...sharedRecipes.map((sharedRecipe) => sharedRecipe._id),
+      ...chalkboardItems.map((item) => item._id),
+    ];
 
-        await Promise.all(idsForDeletion.map((id) => ctx.db.delete(id)));
-
-        // Finally, delete the household
-        await ctx.db.delete(args.householdId);
-
-        return { success: true };
-      },
-    });
+    await Promise.all(idsForDeletion.map((id) => ctx.db.delete(id)));
 
     // Finally, delete the household
     await ctx.db.delete(args.householdId);
