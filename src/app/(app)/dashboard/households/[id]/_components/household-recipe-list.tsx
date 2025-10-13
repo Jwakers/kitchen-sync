@@ -28,7 +28,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Recipe } from "../page";
+import type { Recipe } from "../page";
 
 interface HouseholdRecipeListProps {
   recipes: Recipe[];

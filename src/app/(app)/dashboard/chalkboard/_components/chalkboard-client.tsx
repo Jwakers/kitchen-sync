@@ -66,7 +66,7 @@ export default function ChalkboardClient() {
   );
 
   useEffect(() => {
-    if (!households?.length || selectedHouseholdId === null) return;
+    if (!households?.length || selectedHouseholdId !== null) return;
     setSelectedHouseholdId(households[0]._id);
   }, [households, selectedHouseholdId]);
 

@@ -15,7 +15,7 @@
       THEN
 - Recipe mode (a easy to use, screen always on mode to run you through recipes)
   THEN
-- Dahsboard and homepage updates in preparation for first real previews
+- Dashboard and homepage updates in preparation for first real previews
 
 ## 🐛 Bug Tracking
 
