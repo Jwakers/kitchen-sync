@@ -28,7 +28,7 @@ import {
   Trash2,
   User,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ChalkboardItem } from "./types";
 
@@ -42,11 +42,6 @@ export default function ChalkboardClient() {
   const personalItems = useQuery(api.chalkboard.getPersonalChalkboard);
   const [selectedHouseholdId, setSelectedHouseholdId] =
     useState<Id<"households"> | null>(null);
-
-  // Set default household when data loads
-  if (households && households.length > 0 && selectedHouseholdId === null) {
-    setSelectedHouseholdId(households[0]._id);
-  }
 
   const householdItems = useQuery(
     api.chalkboard.getHouseholdChalkboard,
@@ -69,6 +64,11 @@ export default function ChalkboardClient() {
   const clearHouseholdChalkboard = useMutation(
     api.chalkboard.clearHouseholdChalkboard
   );
+
+  useEffect(() => {
+    if (!households?.length || selectedHouseholdId === null) return;
+    setSelectedHouseholdId(households[0]._id);
+  }, [households, selectedHouseholdId]);
 
   const handleAddPersonalItem = async (e: React.FormEvent) => {
     e.preventDefault();

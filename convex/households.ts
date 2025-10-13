@@ -523,6 +523,9 @@ export const deleteInvitationLink = internalMutation({
     invitationId: v.id("householdInvitations"),
   },
   handler: async (ctx, args) => {
+    const invitation = await ctx.db.get(args.invitationId);
+    if (!invitation) return;
+
     await ctx.db.delete(args.invitationId);
   },
 });

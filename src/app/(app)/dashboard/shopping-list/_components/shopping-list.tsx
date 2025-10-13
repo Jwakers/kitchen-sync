@@ -159,7 +159,11 @@ export default function ShoppingList({
     setAllIngredients((prev) => [...prev, ...newIngredients]);
 
     // Track which items to delete later
-    setSelectedChalkboardItems(new Set(itemsToAdd));
+    setSelectedChalkboardItems((prev) => {
+      const next = new Set(prev);
+      itemsToAdd.forEach((id) => next.add(id));
+      return next;
+    });
 
     // Close dialog
     setShowChalkboardDialog(false);

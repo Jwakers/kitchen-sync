@@ -54,15 +54,6 @@ export function ShareToHouseholdDialog({
     // Add to pending state
     setIsPending(true);
 
-    // Optimistically update UI
-    const newSelected = new Set(selectedHouseholds);
-    if (isChecked) {
-      newSelected.add(householdId);
-    } else {
-      newSelected.delete(householdId);
-    }
-    setSelectedHouseholds(newSelected);
-
     try {
       if (isChecked) {
         // Share recipe to household
@@ -75,16 +66,6 @@ export function ShareToHouseholdDialog({
       }
     } catch (error: unknown) {
       console.error("Error updating recipe share:", error);
-
-      // Revert optimistic update on error
-      const revertedSelected = new Set(selectedHouseholds);
-      if (isChecked) {
-        revertedSelected.delete(householdId);
-      } else {
-        revertedSelected.add(householdId);
-      }
-      setSelectedHouseholds(revertedSelected);
-
       toast.error(
         error instanceof Error ? error.message : "Failed to share recipe"
       );

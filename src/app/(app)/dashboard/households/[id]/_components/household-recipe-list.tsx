@@ -71,9 +71,9 @@ export function HouseholdRecipeList({
           <p className="text-muted-foreground text-center max-w-md mb-4">
             Share your recipes with this household to get started
           </p>
-          <Link href={ROUTES.MY_RECIPES}>
-            <Button>Go to My Recipes</Button>
-          </Link>
+          <Button asChild>
+            <Link href={ROUTES.MY_RECIPES}>Go to My Recipes</Link>
+          </Button>
         </CardContent>
       </Card>
     );
