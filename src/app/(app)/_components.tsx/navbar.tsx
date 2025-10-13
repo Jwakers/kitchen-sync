@@ -2,7 +2,7 @@
 
 import { ROUTES } from "@/app/constants";
 import { Button } from "@/components/ui/button";
-import { Ellipsis, Home, Plus, ShoppingCart, Users } from "lucide-react";
+import { Clipboard, Home, Plus, ShoppingCart, Users } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { AddRecipeDrawer } from "./add-recipe-drawer";
@@ -51,6 +51,14 @@ export function Navbar() {
             <Plus className="h-6 w-6" />
           </Button>
 
+          {/* Chalkboard */}
+          <Link href={ROUTES.CHALKBOARD}>
+            <Button variant="ghost" size="icon" className="h-12 w-12">
+              <Clipboard className="h-5 w-5" />
+              <span className="sr-only">Chalkboard</span>
+            </Button>
+          </Link>
+
           {/* Households */}
           <Link href={ROUTES.HOUSEHOLDS}>
             <Button variant="ghost" size="icon" className="h-12 w-12">
@@ -58,12 +66,6 @@ export function Navbar() {
               <span className="sr-only">Households</span>
             </Button>
           </Link>
-
-          {/* More menu - could be expanded later */}
-          <Button variant="ghost" size="icon" className="h-12 w-12" disabled>
-            <Ellipsis />
-            <span className="sr-only">More</span>
-          </Button>
         </div>
       </nav>
 

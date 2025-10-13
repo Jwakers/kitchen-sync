@@ -4,8 +4,18 @@
 
 - [ ] Kitchen chalkboard
 - [ ] UI
+- [ ] Share a chalkboard between households
 - [ ] DB or local storage
 - [ ] Feature to combine with the shopping list
+- [ ] Chalkboard UI should be more user facing like a sticky banner.
+- [ ] Before finalising there should be a dialog that warns user they have not added their chalkboard items to their shopping list
+- [ ] In the chalkboard dialog, all households should be toggle options, not pick one.
+- [ ] When combined with the shopping list some of the items look bad with the unit missing
+- [ ] Preserve dialog hight to screen hight to prevent issues with seeing CTAs
+      THEN
+- Recipe mode (a easy to use, screen always on mode to run you through recipes)
+  THEN
+- Dashboard and homepage updates in preparation for first real previews
 
 ## 🐛 Bug Tracking
 
@@ -25,6 +35,7 @@
 - [ ] Consolidate all image upload UI and functionality
 - [ ] Store app name in a global const and replace all instances with it
 - [ ] Consolidate recipe card designs and reusability
+- [ ] Check and centralise all site validations, text limits, image limits etc. Store these on the server and share across the site
 
 ## Minor updates
 

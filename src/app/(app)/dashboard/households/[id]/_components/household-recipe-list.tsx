@@ -28,7 +28,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Recipe } from "../page";
+import type { Recipe } from "../page";
 
 interface HouseholdRecipeListProps {
   recipes: Recipe[];
@@ -71,9 +71,9 @@ export function HouseholdRecipeList({
           <p className="text-muted-foreground text-center max-w-md mb-4">
             Share your recipes with this household to get started
           </p>
-          <Link href={ROUTES.MY_RECIPES}>
-            <Button>Go to My Recipes</Button>
-          </Link>
+          <Button asChild>
+            <Link href={ROUTES.MY_RECIPES}>Go to My Recipes</Link>
+          </Button>
         </CardContent>
       </Card>
     );

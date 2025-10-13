@@ -119,4 +119,13 @@ export default defineSchema({
     .index("by_household", ["householdId"])
     .index("by_recipe", ["recipeId"])
     .index("by_household_and_recipe", ["householdId", "recipeId"]),
+
+  chalkboardItems: defineTable({
+    text: v.string(),
+    addedBy: v.id("users"),
+    householdId: v.optional(v.id("households")),
+  })
+    .index("by_user", ["addedBy"])
+    .index("by_household", ["householdId"])
+    .index("by_user_and_household", ["addedBy", "householdId"]),
 });
