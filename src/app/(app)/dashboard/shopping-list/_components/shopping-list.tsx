@@ -2,12 +2,26 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import useShare from "@/lib/hooks/use-share";
+import { api } from "convex/_generated/api";
+import { Id } from "convex/_generated/dataModel";
+import { useQuery } from "convex/react";
 import {
   ArrowLeft,
   Check,
+  Clipboard,
   Minus,
   Plus,
   Printer,
@@ -15,6 +29,7 @@ import {
   ShoppingCart,
   X,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ShoppingListItem } from "./types";
 
@@ -28,6 +43,10 @@ interface ShoppingListProps {
   onConfirm: () => void;
   onBack: () => void;
   onDone: () => void;
+  selectedChalkboardItems: Set<Id<"chalkboardItems">>;
+  setSelectedChalkboardItems: React.Dispatch<
+    React.SetStateAction<Set<Id<"chalkboardItems">>>
+  >;
 }
 
 export default function ShoppingList({
@@ -40,8 +59,30 @@ export default function ShoppingList({
   onConfirm,
   onDone,
   onBack,
+  setSelectedChalkboardItems,
 }: ShoppingListProps) {
   const { canShare, copyToClipboard, share } = useShare();
+  const [showChalkboardDialog, setShowChalkboardDialog] = useState(false);
+  const [includePersonal, setIncludePersonal] = useState(true);
+  const [includeHousehold, setIncludeHousehold] = useState(true);
+
+  // Get chalkboard data
+  const households = useQuery(api.households.getUserHouseholds);
+  const personalChalkboard = useQuery(api.chalkboard.getPersonalChalkboard);
+  const [selectedHouseholdId, setSelectedHouseholdId] =
+    useState<Id<"households"> | null>(null);
+
+  // Auto-select first household if available
+  useEffect(() => {
+    if (households && households.length > 0 && selectedHouseholdId === null) {
+      setSelectedHouseholdId(households[0]._id);
+    }
+  }, [households, selectedHouseholdId]);
+
+  const householdChalkboard = useQuery(
+    api.chalkboard.getHouseholdChalkboard,
+    selectedHouseholdId ? { householdId: selectedHouseholdId } : "skip"
+  );
 
   const handleAmountChange = (id: string, newAmount: number) => {
     setAllIngredients((prev) =>
@@ -69,6 +110,63 @@ export default function ShoppingList({
 
   const handleEdit = () => {
     setIsFinalised(false);
+  };
+
+  const handleAddFromChalkboard = () => {
+    const itemsToAdd: Id<"chalkboardItems">[] = [];
+    const newIngredients: ShoppingListItem[] = [];
+
+    // Add personal chalkboard items if enabled
+    if (
+      includePersonal &&
+      personalChalkboard &&
+      personalChalkboard.length > 0
+    ) {
+      personalChalkboard.forEach((item) => {
+        itemsToAdd.push(item._id);
+        newIngredients.push({
+          id: `chalkboard-${item._id}`,
+          name: item.text,
+          amount: undefined,
+          unit: undefined,
+        });
+      });
+    }
+
+    // Add household chalkboard items if enabled
+    if (
+      includeHousehold &&
+      householdChalkboard &&
+      householdChalkboard.length > 0
+    ) {
+      householdChalkboard.forEach((item) => {
+        itemsToAdd.push(item._id);
+        newIngredients.push({
+          id: `chalkboard-${item._id}`,
+          name: item.text,
+          amount: undefined,
+          unit: undefined,
+        });
+      });
+    }
+
+    if (newIngredients.length === 0) {
+      toast.info("No items to add from chalkboard");
+      return;
+    }
+
+    // Add to shopping list
+    setAllIngredients((prev) => [...prev, ...newIngredients]);
+
+    // Track which items to delete later
+    setSelectedChalkboardItems(new Set(itemsToAdd));
+
+    // Close dialog
+    setShowChalkboardDialog(false);
+
+    toast.success(
+      `Added ${newIngredients.length} item${newIngredients.length > 1 ? "s" : ""} from chalkboard`
+    );
   };
 
   const handlePrint = () => {
@@ -173,6 +271,33 @@ export default function ShoppingList({
                 {allIngredients.length} items
               </Badge>
             </div>
+
+            {/* Chalkboard section for non-finalized lists */}
+            {!isFinalised && (
+              <div className="mb-6">
+                <Button
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={() => setShowChalkboardDialog(true)}
+                  disabled={
+                    (!personalChalkboard || personalChalkboard.length === 0) &&
+                    (!householdChalkboard || householdChalkboard.length === 0)
+                  }
+                >
+                  <Clipboard className="h-4 w-4" />
+                  Add from Kitchen Chalkboard
+                  {((personalChalkboard && personalChalkboard.length > 0) ||
+                    (householdChalkboard &&
+                      householdChalkboard.length > 0)) && (
+                    <Badge variant="secondary" className="ml-1">
+                      {(personalChalkboard?.length || 0) +
+                        (householdChalkboard?.length || 0)}{" "}
+                      available
+                    </Badge>
+                  )}
+                </Button>
+              </div>
+            )}
 
             {/* Shopping guidance for finalized lists */}
             {isFinalised && (
@@ -385,6 +510,146 @@ export default function ShoppingList({
           </CardContent>
         </Card>
       </div>
+
+      {/* Chalkboard Dialog */}
+      <Dialog
+        open={showChalkboardDialog}
+        onOpenChange={setShowChalkboardDialog}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add from Kitchen Chalkboard</DialogTitle>
+            <DialogDescription>
+              Select which chalkboards to add to your shopping list. All items
+              will be added and cleared from the chalkboard.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Personal Chalkboard Toggle */}
+            <div className="flex items-center justify-between space-x-4">
+              <div className="flex-1">
+                <Label
+                  htmlFor="personal-toggle"
+                  className="text-base font-medium"
+                >
+                  Personal Chalkboard
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  {personalChalkboard && personalChalkboard.length > 0
+                    ? `${personalChalkboard.length} item${personalChalkboard.length > 1 ? "s" : ""}`
+                    : "No items"}
+                </p>
+              </div>
+              <Switch
+                id="personal-toggle"
+                checked={includePersonal}
+                onCheckedChange={setIncludePersonal}
+                disabled={
+                  !personalChalkboard || personalChalkboard.length === 0
+                }
+              />
+            </div>
+
+            {/* Household Chalkboard Toggle */}
+            {households && households.length > 0 && (
+              <>
+                {households.length > 1 && (
+                  <div>
+                    <Label className="text-sm font-medium mb-2 block">
+                      Select Household
+                    </Label>
+                    <div className="flex gap-2 flex-wrap">
+                      {households.map((household) => (
+                        <Button
+                          key={household._id}
+                          variant={
+                            selectedHouseholdId === household._id
+                              ? "default"
+                              : "outline"
+                          }
+                          onClick={() => setSelectedHouseholdId(household._id)}
+                          size="sm"
+                        >
+                          {household.name}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between space-x-4">
+                  <div className="flex-1">
+                    <Label
+                      htmlFor="household-toggle"
+                      className="text-base font-medium"
+                    >
+                      {households.find((h) => h._id === selectedHouseholdId)
+                        ?.name || "Household"}{" "}
+                      Chalkboard
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      {householdChalkboard && householdChalkboard.length > 0
+                        ? `${householdChalkboard.length} item${householdChalkboard.length > 1 ? "s" : ""}`
+                        : "No items"}
+                    </p>
+                  </div>
+                  <Switch
+                    id="household-toggle"
+                    checked={includeHousehold}
+                    onCheckedChange={setIncludeHousehold}
+                    disabled={
+                      !householdChalkboard || householdChalkboard.length === 0
+                    }
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Preview of what will be added */}
+            {((includePersonal &&
+              personalChalkboard &&
+              personalChalkboard.length > 0) ||
+              (includeHousehold &&
+                householdChalkboard &&
+                householdChalkboard.length > 0)) && (
+              <div className="border rounded-lg p-3 bg-muted/30">
+                <p className="text-sm font-medium mb-2">Items to be added:</p>
+                <div className="space-y-1 max-h-48 overflow-y-auto">
+                  {includePersonal &&
+                    personalChalkboard?.map((item) => (
+                      <p
+                        key={item._id}
+                        className="text-sm text-muted-foreground"
+                      >
+                        • {item.text}
+                      </p>
+                    ))}
+                  {includeHousehold &&
+                    householdChalkboard?.map((item) => (
+                      <p
+                        key={item._id}
+                        className="text-sm text-muted-foreground"
+                      >
+                        • {item.text}
+                      </p>
+                    ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowChalkboardDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleAddFromChalkboard}>Add to List</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

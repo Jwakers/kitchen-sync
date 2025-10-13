@@ -7,6 +7,7 @@ export const ROUTES = {
   IMPORT_RECIPE: "/dashboard/import-recipe",
   SHOPPING_LIST: "/dashboard/shopping-list",
   HOUSEHOLDS: "/dashboard/households",
+  CHALKBOARD: "/dashboard/chalkboard",
 } as const;
 
 export const CATEGORY_COLORS: Record<

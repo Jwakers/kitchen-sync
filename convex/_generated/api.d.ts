@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as chalkboard from "../chalkboard.js";
 import type * as households from "../households.js";
 import type * as http from "../http.js";
 import type * as lib_constants from "../lib/constants.js";
@@ -29,6 +30,7 @@ import type {
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  chalkboard: typeof chalkboard;
   households: typeof households;
   http: typeof http;
   "lib/constants": typeof lib_constants;

@@ -25,7 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { titleCase } from "@/lib/utils";
 import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import type { FunctionReturnType } from "convex/server";
 import {
   AlertCircle,
@@ -76,6 +76,11 @@ export default function ShoppingListClient() {
   const [showLocalStorageDialog, setShowLocalStorageDialog] = useState(false);
   const [localStorageData, setLocalStorageData] =
     useState<LocalStorageShoppingList | null>(null);
+  const [selectedChalkboardItems, setSelectedChalkboardItems] = useState<
+    Set<Id<"chalkboardItems">>
+  >(new Set());
+
+  const deleteChalkboardItems = useMutation(api.chalkboard.deleteItemsByIds);
 
   // Filter recipes based on search and only show published recipes
   const filteredRecipes =
@@ -146,11 +151,32 @@ export default function ShoppingListClient() {
     window.localStorage.removeItem(STORAGE_KEYS.shoppingList);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (isFinalised) {
       setShowDoneDialog(true);
       return;
     }
+
+    // Delete selected chalkboard items
+    if (selectedChalkboardItems.size > 0) {
+      try {
+        const result = await deleteChalkboardItems({
+          itemIds: Array.from(selectedChalkboardItems),
+        });
+        if (result.deletedCount > 0) {
+          toast.success(
+            `Added ${result.deletedCount} item${
+              result.deletedCount > 1 ? "s" : ""
+            } from chalkboard and cleared them`
+          );
+        }
+      } catch (error) {
+        console.error("Failed to delete chalkboard items:", error);
+        // Don't block finalization if deletion fails
+        toast.error("Failed to clear some chalkboard items");
+      }
+    }
+
     setIsFinalised(true);
   };
 
@@ -161,6 +187,7 @@ export default function ShoppingListClient() {
     setAllIngredients([]);
     setCheckedItems(new Set());
     setIsFinalised(false);
+    setSelectedChalkboardItems(new Set());
     removeStoredShoppingList();
     toast.success("Shopping complete! Happy cooking!");
   };
@@ -214,6 +241,8 @@ export default function ShoppingListClient() {
               setCheckedItems={setCheckedItems}
               isFinalised={isFinalised}
               setIsFinalised={setIsFinalised}
+              selectedChalkboardItems={selectedChalkboardItems}
+              setSelectedChalkboardItems={setSelectedChalkboardItems}
             />
           ) : (
             /* Recipe Selection View */
