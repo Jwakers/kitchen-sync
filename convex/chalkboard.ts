@@ -1,6 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { Doc, Id } from "./_generated/dataModel";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, QueryCtx } from "./_generated/server";
 import { isHouseholdMember } from "./households";
 import { getCurrentUserOrThrow } from "./users";
 
@@ -61,15 +61,7 @@ export const getHouseholdChalkboard = query({
       .collect();
 
     // Get user details for each item
-    const itemsWithUser = await Promise.all(
-      items.map(async (item) => {
-        const addedByUser = await ctx.db.get(item.addedBy);
-        return {
-          ...item,
-          addedByName: addedByUser?.name ?? "Unknown User",
-        };
-      })
-    );
+    const itemsWithUser = await enrichItemsWithUserNames(ctx, items);
 
     return itemsWithUser.sort((a, b) => b._creationTime - a._creationTime);
   },
@@ -104,15 +96,7 @@ export const getAllHouseholdChalkboards = query({
         .collect();
 
       // Get user details for each item
-      const itemsWithUser = await Promise.all(
-        items.map(async (item) => {
-          const addedByUser = await ctx.db.get(item.addedBy);
-          return {
-            ...item,
-            addedByName: addedByUser?.name ?? "Unknown User",
-          };
-        })
-      );
+      const itemsWithUser = await enrichItemsWithUserNames(ctx, items);
 
       householdChalkboards.set(
         membership.householdId,
@@ -351,3 +335,23 @@ export const deleteItemsByIds = mutation({
     return { deletedCount };
   },
 });
+
+// ============================================================================
+// HELPERS
+// ============================================================================
+
+async function enrichItemsWithUserNames(
+  ctx: QueryCtx,
+  items: Doc<"chalkboardItems">[]
+) {
+  const itemsWithUser = await Promise.all(
+    items.map(async (item) => {
+      const addedByUser = await ctx.db.get(item.addedBy);
+      return {
+        ...item,
+        addedByName: addedByUser?.name ?? "Unknown User",
+      };
+    })
+  );
+  return itemsWithUser.sort((a, b) => b._creationTime - a._creationTime);
+}
