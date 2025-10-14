@@ -10,7 +10,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
@@ -427,68 +426,59 @@ export default function ShoppingList({
                       </div>
 
                       {/* Amount Display/Controls */}
-                      {isFinalised ? (
-                        // Static display when finalized
-                        <p className="text-sm text-muted-foreground capitalize">
-                          {item.amount ?? ""} {item.unit ?? ""}
-                        </p>
-                      ) : (
-                        // Editable controls before finalized
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center gap-1 bg-muted rounded-md">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7"
-                              disabled={isNaN(Number(item.amount))}
-                              onClick={() => {
-                                if (isNaN(Number(item.amount))) return;
-                                handleAmountChange(
-                                  item.id,
-                                  (item.amount as number) - 1
-                                );
-                              }}
-                            >
-                              <Minus className="h-3 w-3" />
-                            </Button>
-                            <Input
-                              type="number"
-                              value={
-                                typeof item.amount === "number"
-                                  ? item.amount
-                                  : ""
-                              }
-                              min={0}
-                              step={1}
-                              onChange={(e) =>
-                                handleAmountChange(
-                                  item.id,
-                                  parseFloat(e.target.value) || 0
-                                )
-                              }
-                              className="h-7 w-16 text-center border-0 bg-transparent p-0 text-sm font-medium"
-                            />
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7"
-                              disabled={isNaN(Number(item.amount))}
-                              onClick={() => {
-                                if (isNaN(Number(item.amount))) return;
-                                handleAmountChange(
-                                  item.id,
-                                  (item.amount as number) + 1
-                                );
-                              }}
-                            >
-                              <Plus className="h-3 w-3" />
-                            </Button>
+                      {item.amount !== undefined || item.unit !== undefined ? (
+                        isFinalised ? (
+                          // Static display when finalized
+                          <p className="text-sm text-muted-foreground capitalize">
+                            {item.amount ?? ""} {item.unit ?? ""}
+                          </p>
+                        ) : (
+                          // Editable controls before finalized
+                          <div className="flex items-center gap-1.5">
+                            {typeof item.amount === "number" &&
+                            !isNaN(item.amount) ? (
+                              <>
+                                <button
+                                  onClick={() =>
+                                    handleAmountChange(
+                                      item.id,
+                                      (item.amount as number) - 1
+                                    )
+                                  }
+                                  className="flex items-center justify-center w-6 h-6 rounded hover:bg-muted transition-colors"
+                                  aria-label="Decrease amount"
+                                >
+                                  <Minus className="h-3.5 w-3.5 text-muted-foreground" />
+                                </button>
+                                <span className="min-w-[2rem] text-center text-sm font-medium tabular-nums">
+                                  {item.amount}
+                                </span>
+                                <button
+                                  onClick={() =>
+                                    handleAmountChange(
+                                      item.id,
+                                      (item.amount as number) + 1
+                                    )
+                                  }
+                                  className="flex items-center justify-center w-6 h-6 rounded hover:bg-muted transition-colors"
+                                  aria-label="Increase amount"
+                                >
+                                  <Plus className="h-3.5 w-3.5 text-muted-foreground" />
+                                </button>
+                              </>
+                            ) : (
+                              <span className="text-sm text-muted-foreground">
+                                {item.amount}
+                              </span>
+                            )}
+                            {item.unit && (
+                              <span className="text-sm text-muted-foreground ml-0.5">
+                                {item.unit}
+                              </span>
+                            )}
                           </div>
-                          <span className="text-sm text-muted-foreground">
-                            {item.unit ?? ""}
-                          </span>
-                        </div>
-                      )}
+                        )
+                      ) : null}
                     </div>
 
                     {/* Remove Button (only in editing state) */}

@@ -9,8 +9,8 @@
 - [x] Feature to combine with the shopping list
 - [x] Chalkboard UI in the shopping list should be more user facing like a sticky banner.
 - [x] In the chalkboard dialog, all households should be toggle options, not pick one.
-- [ ] When combined with the shopping list some of the items look bad with the unit missing
-- [ ] Preserve dialog height to screen hight to prevent issues with seeing CTAs
+- [x] When combined with the shopping list some of the items look bad with the unit missing
+- [x] Preserve dialog height to screen hight to prevent issues with seeing CTAs
       THEN
 - Refactor shopping list to use the DB
   THEN
@@ -37,6 +37,7 @@
 - [ ] Store app name in a global const and replace all instances with it
 - [ ] Consolidate recipe card designs and reusability
 - [ ] Check and centralise all site validations, text limits, image limits etc. Store these on the server and share across the site
+- [ ] Shopping list is very complex. A refactor is needed keeping all state at the root and reducing complexity where possible. Components should be abstracted where possible and optimistic updates should also be added. This needs to be done manually and not with AI.
 
 ## Minor updates
 
