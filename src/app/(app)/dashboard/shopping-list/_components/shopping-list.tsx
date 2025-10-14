@@ -111,7 +111,7 @@ export default function ShoppingList({
 
     // Count household items not yet added
     if (allHouseholdChalkboards) {
-      Object.values(allHouseholdChalkboards).forEach((items) => {
+      Array.from(allHouseholdChalkboards.values()).forEach((items) => {
         count += items.filter(
           (item) =>
             !allIngredients.some((ing) => ing.id === `chalkboard-${item._id}`)
@@ -182,7 +182,7 @@ export default function ShoppingList({
     // Add household chalkboard items for selected households
     if (allHouseholdChalkboards) {
       selectedHouseholdIds.forEach((householdId) => {
-        const householdItems = allHouseholdChalkboards[householdId];
+        const householdItems = allHouseholdChalkboards.get(householdId);
         if (householdItems && householdItems.length > 0) {
           householdItems.forEach((item) => {
             // Only add if not already in shopping list
@@ -618,7 +618,7 @@ export default function ShoppingList({
                   </Label>
                   {households.map((household) => {
                     const householdItems =
-                      allHouseholdChalkboards?.[household._id] || [];
+                      allHouseholdChalkboards?.get(household._id) || [];
                     const availableItems = householdItems.filter(
                       (item) =>
                         !allIngredients.some(
@@ -676,7 +676,8 @@ export default function ShoppingList({
 
               if (allHouseholdChalkboards) {
                 Array.from(selectedHouseholdIds).forEach((householdId) => {
-                  const householdItems = allHouseholdChalkboards[householdId];
+                  const householdItems =
+                    allHouseholdChalkboards.get(householdId);
                   householdItems?.forEach((item) => {
                     if (
                       !allIngredients.some(

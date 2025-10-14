@@ -1,4 +1,5 @@
 import { ConvexError, v } from "convex/values";
+import { Doc, Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
 import { isHouseholdMember } from "./households";
 import { getCurrentUserOrThrow } from "./users";
@@ -89,17 +90,10 @@ export const getAllHouseholdChalkboards = query({
       .collect();
 
     // Fetch chalkboard items for each household
-    const householdChalkboards: Record<
-      string,
-      Array<{
-        _id: string;
-        _creationTime: number;
-        text: string;
-        addedBy: string;
-        householdId?: string;
-        addedByName: string;
-      }>
-    > = {};
+    const householdChalkboards = new Map<
+      Id<"households">,
+      (Doc<"chalkboardItems"> & { addedByName: string })[]
+    >();
 
     for (const membership of memberships) {
       const items = await ctx.db
@@ -120,8 +114,9 @@ export const getAllHouseholdChalkboards = query({
         })
       );
 
-      householdChalkboards[membership.householdId] = itemsWithUser.sort(
-        (a, b) => b._creationTime - a._creationTime
+      householdChalkboards.set(
+        membership.householdId,
+        itemsWithUser.sort((a, b) => b._creationTime - a._creationTime)
       );
     }
 
