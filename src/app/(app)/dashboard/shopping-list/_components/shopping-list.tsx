@@ -64,25 +64,66 @@ export default function ShoppingList({
   const { canShare, copyToClipboard, share } = useShare();
   const [showChalkboardDialog, setShowChalkboardDialog] = useState(false);
   const [includePersonal, setIncludePersonal] = useState(true);
-  const [includeHousehold, setIncludeHousehold] = useState(true);
+  const [selectedHouseholdIds, setSelectedHouseholdIds] = useState<
+    Set<Id<"households">>
+  >(new Set());
 
   // Get chalkboard data
   const households = useQuery(api.households.getUserHouseholds);
   const personalChalkboard = useQuery(api.chalkboard.getPersonalChalkboard);
-  const [selectedHouseholdId, setSelectedHouseholdId] =
-    useState<Id<"households"> | null>(null);
-
-  // Auto-select first household if available
-  useEffect(() => {
-    if (households && households.length > 0 && selectedHouseholdId === null) {
-      setSelectedHouseholdId(households[0]._id);
-    }
-  }, [households, selectedHouseholdId]);
-
-  const householdChalkboard = useQuery(
-    api.chalkboard.getHouseholdChalkboard,
-    selectedHouseholdId ? { householdId: selectedHouseholdId } : "skip"
+  const allHouseholdChalkboards = useQuery(
+    api.chalkboard.getAllHouseholdChalkboards
   );
+
+  // Auto-select all households by default
+  useEffect(() => {
+    if (
+      households &&
+      households.length > 0 &&
+      selectedHouseholdIds.size === 0
+    ) {
+      setSelectedHouseholdIds(new Set(households.map((h) => h._id)));
+    }
+  }, [households, selectedHouseholdIds]);
+
+  const toggleHousehold = (householdId: Id<"households">) => {
+    setSelectedHouseholdIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(householdId)) {
+        newSet.delete(householdId);
+      } else {
+        newSet.add(householdId);
+      }
+      return newSet;
+    });
+  };
+
+  // Calculate available items (excluding those already added to shopping list)
+  const getAvailableChalkboardCount = () => {
+    let count = 0;
+
+    // Count personal items not yet added
+    if (personalChalkboard) {
+      count += personalChalkboard.filter(
+        (item) =>
+          !allIngredients.some((ing) => ing.id === `chalkboard-${item._id}`)
+      ).length;
+    }
+
+    // Count household items not yet added
+    if (allHouseholdChalkboards) {
+      Object.values(allHouseholdChalkboards).forEach((items) => {
+        count += items.filter(
+          (item) =>
+            !allIngredients.some((ing) => ing.id === `chalkboard-${item._id}`)
+        ).length;
+      });
+    }
+
+    return count;
+  };
+
+  const availableChalkboardItemsCount = getAvailableChalkboardCount();
 
   const handleAmountChange = (id: string, newAmount: number) => {
     setAllIngredients((prev) =>
@@ -123,35 +164,49 @@ export default function ShoppingList({
       personalChalkboard.length > 0
     ) {
       personalChalkboard.forEach((item) => {
-        itemsToAdd.push(item._id);
-        newIngredients.push({
-          id: `chalkboard-${item._id}`,
-          name: item.text,
-          amount: undefined,
-          unit: undefined,
-        });
+        // Only add if not already in shopping list
+        const alreadyAdded = allIngredients.some(
+          (ing) => ing.id === `chalkboard-${item._id}`
+        );
+        if (!alreadyAdded) {
+          itemsToAdd.push(item._id);
+          newIngredients.push({
+            id: `chalkboard-${item._id}`,
+            name: item.text,
+            amount: undefined,
+            unit: undefined,
+          });
+        }
       });
     }
 
-    // Add household chalkboard items if enabled
-    if (
-      includeHousehold &&
-      householdChalkboard &&
-      householdChalkboard.length > 0
-    ) {
-      householdChalkboard.forEach((item) => {
-        itemsToAdd.push(item._id);
-        newIngredients.push({
-          id: `chalkboard-${item._id}`,
-          name: item.text,
-          amount: undefined,
-          unit: undefined,
-        });
+    // Add household chalkboard items for selected households
+    if (allHouseholdChalkboards) {
+      selectedHouseholdIds.forEach((householdId) => {
+        const householdItems = allHouseholdChalkboards[householdId];
+        if (householdItems && householdItems.length > 0) {
+          householdItems.forEach((item) => {
+            // Only add if not already in shopping list
+            const alreadyAdded = allIngredients.some(
+              (ing) => ing.id === `chalkboard-${item._id}`
+            );
+            if (!alreadyAdded) {
+              itemsToAdd.push(item._id as Id<"chalkboardItems">);
+              newIngredients.push({
+                id: `chalkboard-${item._id}`,
+                name: item.text,
+                amount: undefined,
+                unit: undefined,
+              });
+            }
+          });
+        }
       });
     }
 
     if (newIngredients.length === 0) {
-      toast.info("No items to add from chalkboard");
+      toast.info("All items have already been added to your shopping list");
+      setShowChalkboardDialog(false);
       return;
     }
 
@@ -277,28 +332,21 @@ export default function ShoppingList({
             </div>
 
             {/* Chalkboard section for non-finalized lists */}
-            {!isFinalised && (
-              <div className="mb-6">
+            {!isFinalised && availableChalkboardItemsCount > 0 && (
+              <div className="sticky top-4 mb-6 z-10">
                 <Button
-                  variant="outline"
-                  className="w-full gap-2"
+                  size="lg"
+                  className="w-full shadow-lg"
                   onClick={() => setShowChalkboardDialog(true)}
-                  disabled={
-                    (!personalChalkboard || personalChalkboard.length === 0) &&
-                    (!householdChalkboard || householdChalkboard.length === 0)
-                  }
                 >
-                  <Clipboard className="h-4 w-4" />
+                  <Clipboard className="h-5 w-5" />
                   Add from Kitchen Chalkboard
-                  {((personalChalkboard && personalChalkboard.length > 0) ||
-                    (householdChalkboard &&
-                      householdChalkboard.length > 0)) && (
-                    <Badge variant="secondary" className="ml-1">
-                      {(personalChalkboard?.length || 0) +
-                        (householdChalkboard?.length || 0)}{" "}
-                      available
-                    </Badge>
-                  )}
+                  <Badge
+                    variant="secondary"
+                    className="ml-1 bg-white/20 text-primary-foreground border-0 px-2.5 py-0.5"
+                  >
+                    {availableChalkboardItemsCount}
+                  </Badge>
                 </Button>
               </div>
             )}
@@ -540,9 +588,18 @@ export default function ShoppingList({
                   Personal Chalkboard
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  {personalChalkboard && personalChalkboard.length > 0
-                    ? `${personalChalkboard.length} item${personalChalkboard.length > 1 ? "s" : ""}`
-                    : "No items"}
+                  {(() => {
+                    const availableItems = personalChalkboard?.filter(
+                      (item) =>
+                        !allIngredients.some(
+                          (ing) => ing.id === `chalkboard-${item._id}`
+                        )
+                    );
+                    const count = availableItems?.length || 0;
+                    return count > 0
+                      ? `${count} item${count > 1 ? "s" : ""}`
+                      : "No items";
+                  })()}
                 </p>
               </div>
               <Switch
@@ -550,97 +607,119 @@ export default function ShoppingList({
                 checked={includePersonal}
                 onCheckedChange={setIncludePersonal}
                 disabled={
-                  !personalChalkboard || personalChalkboard.length === 0
+                  !personalChalkboard ||
+                  personalChalkboard.filter(
+                    (item) =>
+                      !allIngredients.some(
+                        (ing) => ing.id === `chalkboard-${item._id}`
+                      )
+                  ).length === 0
                 }
               />
             </div>
 
-            {/* Household Chalkboard Toggle */}
+            {/* Household Chalkboard Toggles */}
             {households && households.length > 0 && (
               <>
-                {households.length > 1 && (
-                  <div>
-                    <Label className="text-sm font-medium mb-2 block">
-                      Select Household
-                    </Label>
-                    <div className="flex gap-2 flex-wrap">
-                      {households.map((household) => (
-                        <Button
-                          key={household._id}
-                          variant={
-                            selectedHouseholdId === household._id
-                              ? "default"
-                              : "outline"
-                          }
-                          onClick={() => setSelectedHouseholdId(household._id)}
-                          size="sm"
-                        >
-                          {household.name}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between space-x-4">
-                  <div className="flex-1">
-                    <Label
-                      htmlFor="household-toggle"
-                      className="text-base font-medium"
-                    >
-                      {households.find((h) => h._id === selectedHouseholdId)
-                        ?.name || "Household"}{" "}
-                      Chalkboard
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      {householdChalkboard && householdChalkboard.length > 0
-                        ? `${householdChalkboard.length} item${householdChalkboard.length > 1 ? "s" : ""}`
-                        : "No items"}
-                    </p>
-                  </div>
-                  <Switch
-                    id="household-toggle"
-                    checked={includeHousehold}
-                    onCheckedChange={setIncludeHousehold}
-                    disabled={
-                      !householdChalkboard || householdChalkboard.length === 0
-                    }
-                  />
+                <Separator />
+                <div className="space-y-4">
+                  <Label className="text-sm font-medium">
+                    Household Chalkboards
+                  </Label>
+                  {households.map((household) => {
+                    const householdItems =
+                      allHouseholdChalkboards?.[household._id] || [];
+                    const availableItems = householdItems.filter(
+                      (item) =>
+                        !allIngredients.some(
+                          (ing) => ing.id === `chalkboard-${item._id}`
+                        )
+                    );
+                    const isSelected = selectedHouseholdIds.has(household._id);
+                    return (
+                      <div
+                        key={household._id}
+                        className="flex items-center justify-between space-x-4"
+                      >
+                        <div className="flex-1">
+                          <Label
+                            htmlFor={`household-toggle-${household._id}`}
+                            className="text-base font-medium"
+                          >
+                            {household.name}
+                          </Label>
+                          <p className="text-sm text-muted-foreground">
+                            {availableItems.length > 0
+                              ? `${availableItems.length} item${availableItems.length > 1 ? "s" : ""}`
+                              : "No items"}
+                          </p>
+                        </div>
+                        <Switch
+                          id={`household-toggle-${household._id}`}
+                          checked={isSelected}
+                          onCheckedChange={() => toggleHousehold(household._id)}
+                          disabled={availableItems.length === 0}
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
               </>
             )}
 
             {/* Preview of what will be added */}
-            {((includePersonal &&
-              personalChalkboard &&
-              personalChalkboard.length > 0) ||
-              (includeHousehold &&
-                householdChalkboard &&
-                householdChalkboard.length > 0)) && (
-              <div className="border rounded-lg p-3 bg-muted/30">
-                <p className="text-sm font-medium mb-2">Items to be added:</p>
-                <div className="space-y-1 max-h-48 overflow-y-auto">
-                  {includePersonal &&
-                    personalChalkboard?.map((item) => (
-                      <p
-                        key={item._id}
-                        className="text-sm text-muted-foreground"
-                      >
-                        • {item.text}
-                      </p>
-                    ))}
-                  {includeHousehold &&
-                    householdChalkboard?.map((item) => (
-                      <p
-                        key={item._id}
-                        className="text-sm text-muted-foreground"
-                      >
-                        • {item.text}
-                      </p>
-                    ))}
-                </div>
-              </div>
-            )}
+            {(() => {
+              // Calculate items to preview (only items not already added)
+              const previewItems: Array<{ id: string; text: string }> = [];
+
+              if (includePersonal && personalChalkboard) {
+                personalChalkboard.forEach((item) => {
+                  if (
+                    !allIngredients.some(
+                      (ing) => ing.id === `chalkboard-${item._id}`
+                    )
+                  ) {
+                    previewItems.push({ id: item._id, text: item.text });
+                  }
+                });
+              }
+
+              if (allHouseholdChalkboards) {
+                Array.from(selectedHouseholdIds).forEach((householdId) => {
+                  const householdItems = allHouseholdChalkboards[householdId];
+                  householdItems?.forEach((item) => {
+                    if (
+                      !allIngredients.some(
+                        (ing) => ing.id === `chalkboard-${item._id}`
+                      )
+                    ) {
+                      previewItems.push({ id: item._id, text: item.text });
+                    }
+                  });
+                });
+              }
+
+              return previewItems.length > 0 ? (
+                <>
+                  <Separator />
+                  <div className="border rounded-lg p-3 bg-muted/30">
+                    <p className="text-sm font-medium mb-2">
+                      Items to be added ({previewItems.length}):
+                    </p>
+                    <div className="space-y-1 max-h-48 overflow-y-auto">
+                      {previewItems.map((item) => (
+                        <p
+                          key={item.id}
+                          className="text-sm text-muted-foreground"
+                        >
+                          • {item.text}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : null;
+            })()}
           </div>
 
           <DialogFooter>

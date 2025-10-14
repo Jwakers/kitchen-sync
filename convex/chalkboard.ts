@@ -74,6 +74,61 @@ export const getHouseholdChalkboard = query({
   },
 });
 
+/**
+ * Get all chalkboard items for all households the user is a member of
+ */
+export const getAllHouseholdChalkboards = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUserOrThrow(ctx);
+
+    // Get all household memberships for the user
+    const memberships = await ctx.db
+      .query("householdMembers")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+
+    // Fetch chalkboard items for each household
+    const householdChalkboards: Record<
+      string,
+      Array<{
+        _id: string;
+        _creationTime: number;
+        text: string;
+        addedBy: string;
+        householdId?: string;
+        addedByName: string;
+      }>
+    > = {};
+
+    for (const membership of memberships) {
+      const items = await ctx.db
+        .query("chalkboardItems")
+        .withIndex("by_household", (q) =>
+          q.eq("householdId", membership.householdId)
+        )
+        .collect();
+
+      // Get user details for each item
+      const itemsWithUser = await Promise.all(
+        items.map(async (item) => {
+          const addedByUser = await ctx.db.get(item.addedBy);
+          return {
+            ...item,
+            addedByName: addedByUser?.name ?? "Unknown User",
+          };
+        })
+      );
+
+      householdChalkboards[membership.householdId] = itemsWithUser.sort(
+        (a, b) => b._creationTime - a._creationTime
+      );
+    }
+
+    return householdChalkboards;
+  },
+});
+
 // ============================================================================
 // MUTATIONS
 // ============================================================================

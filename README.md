@@ -2,20 +2,21 @@
 
 ### Next Immediate Steps
 
-- [ ] Kitchen chalkboard
-- [ ] UI
-- [ ] Share a chalkboard between households
-- [ ] DB or local storage
-- [ ] Feature to combine with the shopping list
-- [ ] Chalkboard UI should be more user facing like a sticky banner.
-- [ ] Before finalising there should be a dialog that warns user they have not added their chalkboard items to their shopping list
-- [ ] In the chalkboard dialog, all households should be toggle options, not pick one.
+- [x] Kitchen chalkboard
+- [x] UI
+- [x] Share a chalkboard between households
+- [x] DB or local storage
+- [x] Feature to combine with the shopping list
+- [x] Chalkboard UI in the shopping list should be more user facing like a sticky banner.
+- [x] In the chalkboard dialog, all households should be toggle options, not pick one.
 - [ ] When combined with the shopping list some of the items look bad with the unit missing
-- [ ] Preserve dialog hight to screen hight to prevent issues with seeing CTAs
+- [ ] Preserve dialog height to screen hight to prevent issues with seeing CTAs
       THEN
-- Recipe mode (a easy to use, screen always on mode to run you through recipes)
+- Refactor shopping list to use the DB
   THEN
 - Dashboard and homepage updates in preparation for first real previews
+  THEN
+- Recipe mode (a easy to use, screen always on mode to run you through recipes)
 
 ## 🐛 Bug Tracking
 
