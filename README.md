@@ -2,20 +2,13 @@
 
 ### Next Immediate Steps
 
-- [ ] Kitchen chalkboard
-- [ ] UI
-- [ ] Share a chalkboard between households
-- [ ] DB or local storage
-- [ ] Feature to combine with the shopping list
-- [ ] Chalkboard UI should be more user facing like a sticky banner.
-- [ ] Before finalising there should be a dialog that warns user they have not added their chalkboard items to their shopping list
-- [ ] In the chalkboard dialog, all households should be toggle options, not pick one.
-- [ ] When combined with the shopping list some of the items look bad with the unit missing
-- [ ] Preserve dialog hight to screen hight to prevent issues with seeing CTAs
-      THEN
-- Recipe mode (a easy to use, screen always on mode to run you through recipes)
+- Refactor shopping list to use the DB
   THEN
 - Dashboard and homepage updates in preparation for first real previews
+  THEN
+- Contact form (part of a mobile menu)
+  THEN
+- How to use the app page
 
 ## 🐛 Bug Tracking
 
@@ -36,6 +29,7 @@
 - [ ] Store app name in a global const and replace all instances with it
 - [ ] Consolidate recipe card designs and reusability
 - [ ] Check and centralise all site validations, text limits, image limits etc. Store these on the server and share across the site
+- [ ] Shopping list is very complex. A refactor is needed keeping all state at the root and reducing complexity where possible. Components should be abstracted where possible and optimistic updates should also be added. This needs to be done manually and not with AI.
 
 ## Minor updates
 
@@ -118,11 +112,11 @@
 
 A place to ad hoc add things you need for your kitchen, this can be optionally merged into shopping lists when they are created. You should also be able to have shared boards with households so everyone can add to it. Guiding principles of this feature is that it should be fast and very efficient, make use of optimistic updates and get out of the users way so they can add things quickly.
 
-- [ ] Create basic UI
-- [ ] Create add remove edit features
-- [ ] Add to database + schema setup
-- [ ] Household sharing options (these should be a separate board generated automatically / Or shown automatically if already made)
-- [ ] When the board is added to the shopping list all items should be scheduled to be removed from the DB after prompting (can use a toast undo action for this with a longer timer on the scheduling to give us chance to undo the action)
+- [x] Create basic UI
+- [x] Create add remove edit features
+- [x] Add to database + schema setup
+- [x] Household sharing options (these should be a separate board generated automatically / Or shown automatically if already made)
+- [x] When the board is added to the shopping list all items should be scheduled to be removed from the DB after prompting (can use a toast undo action for this with a longer timer on the scheduling to give us chance to undo the action)
 
 #### Dashboard
 
@@ -133,11 +127,11 @@ A place to ad hoc add things you need for your kitchen, this can be optionally m
 
 #### Household Collaboration
 
-- [ ] **Household Schema**: Add houses table to Convex schema with member management
-- [ ] **Household Creation**: Allow users to create/join households with unique codes
-- [ ] **Recipe Sharing**: Share recipes within household (all members can access)
-- [ ] **Collaborative Shopping Lists**: Multiple users can edit same shopping list in real-time
-- [ ] **Household Invites**: Email-based invitation system using Clerk user management
+- [x] **Household Schema**: Add houses table to Convex schema with member management
+- [x] **Household Creation**: Allow users to create/join households with unique codes
+- [x] **Recipe Sharing**: Share recipes within household (all members can access)
+- [x] **Collaborative Shopping Lists**: Multiple users can edit same shopping list in real-time
+- [x] **Household Invites**: Email-based invitation system using Clerk user management
 - [ ] Users notifications for relevant actions (requires setup in PWA section first)
 
 #### AI Features
@@ -157,11 +151,19 @@ A place to ad hoc add things you need for your kitchen, this can be optionally m
 
 ### 📅 Post-Launch Phase 1 (4-8 Months)
 
+#### Recipe reader mode
+
+This is to help users use recipes to cook meals
+
+- [ ] UI
+- [ ] Keep screen on
+
 #### Recipe Enhancement
 
 - [ ] **Recipe Editing**: Edit existing recipes
 - [ ] **Recipe Cloning**: Duplicate recipes with modifications
 - [ ] **Recipe Versioning**: Track recipe changes over time
+- [ ] Recipe notes
 
 #### Meal Planning
 
