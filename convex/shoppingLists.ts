@@ -1,5 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
+import { isHouseholdMember } from "./households";
 import { getCurrentUserOrThrow } from "./users";
 
 // ============================================================================
@@ -400,9 +401,15 @@ export const finaliseShoppingList = mutation({
     for (const chalkboardItemId of list.chalkboardItemIds) {
       try {
         const item = await ctx.db.get(chalkboardItemId);
-        if (item && item.addedBy === user._id) {
-          await ctx.db.delete(chalkboardItemId);
-        }
+        if (!item) continue;
+
+        const canDelete =
+          item.householdId === undefined
+            ? item.addedBy === user._id
+            : await isHouseholdMember(ctx, user._id, item.householdId);
+        if (!canDelete) continue;
+
+        await ctx.db.delete(chalkboardItemId);
       } catch (error) {
         // Item might have been deleted already, continue
         console.error("Failed to delete chalkboard item:", error);

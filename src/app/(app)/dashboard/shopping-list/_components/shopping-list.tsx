@@ -106,10 +106,13 @@ export default function ShoppingList({
   const getAvailableChalkboardCount = () => {
     let count = 0;
 
+    const namesEqual = (a: string, b: string) =>
+      a.trim().toLowerCase() === b.trim().toLowerCase();
+
     // Count personal items not yet added
     if (personalChalkboard) {
       count += personalChalkboard.filter(
-        (item) => !allIngredients.some((ing) => ing.name === item.text)
+        (item) => !allIngredients.some((ing) => namesEqual(ing.name, item.text))
       ).length;
     }
 
@@ -117,7 +120,8 @@ export default function ShoppingList({
     if (allHouseholdChalkboards) {
       Object.values(allHouseholdChalkboards).forEach((items) => {
         count += items.filter(
-          (item) => !allIngredients.some((ing) => ing.name === item.text)
+          (item) =>
+            !allIngredients.some((ing) => namesEqual(ing.name, item.text))
         ).length;
       });
     }
@@ -665,7 +669,10 @@ export default function ShoppingList({
             {/* Preview of what will be added */}
             {(() => {
               // Calculate items to preview (only items not already added)
-              const previewItems: Array<{ id: string; text: string }> = [];
+              const previewItems: Array<{
+                id: Id<"chalkboardItems">;
+                text: string;
+              }> = [];
 
               if (includePersonal && personalChalkboard) {
                 personalChalkboard.forEach((item) => {

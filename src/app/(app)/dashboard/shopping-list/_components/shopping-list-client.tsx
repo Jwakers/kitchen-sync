@@ -106,7 +106,12 @@ export default function ShoppingListClient() {
   };
 
   const handleGenerateList = async () => {
-    // If there's already an active list, just show it
+    // Wait for query to load to avoid creating while loading
+    if (activeShoppingList === undefined) {
+      toast.info("Loading your current shopping list…");
+      return;
+    }
+    // If there's already a draft/active list, just show it
     if (activeShoppingList) {
       setShowShoppingList(true);
       return;

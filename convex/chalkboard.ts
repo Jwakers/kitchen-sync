@@ -98,10 +98,7 @@ export const getAllHouseholdChalkboards = query({
       // Get user details for each item
       const itemsWithUser = await enrichItemsWithUserNames(ctx, items);
 
-      householdChalkboards.set(
-        membership.householdId,
-        itemsWithUser.sort((a, b) => b._creationTime - a._creationTime)
-      );
+      householdChalkboards.set(membership.householdId, itemsWithUser);
     }
 
     // Convert Map to plain object for Convex serialization
