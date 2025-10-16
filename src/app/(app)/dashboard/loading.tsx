@@ -3,11 +3,22 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardLoading() {
   return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl">
+    <div
+      role="region"
+      aria-label="Loading dashboard"
+      aria-busy="true"
+      className="container mx-auto px-4 py-6 max-w-7xl"
+    >
       {/* Hero Section Skeleton */}
       <div className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-primary/5 to-background rounded-xl border border-primary/20 p-6 mb-6">
-        <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-primary/10 blur-2xl" />
-        <div className="absolute bottom-0 left-0 -mb-4 -ml-4 h-24 w-24 rounded-full bg-primary/10 blur-2xl" />
+        <div
+          aria-hidden="true"
+          className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-primary/10 blur-2xl"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute bottom-0 left-0 -mb-4 -ml-4 h-24 w-24 rounded-full bg-primary/10 blur-2xl"
+        />
 
         <div className="relative">
           <Skeleton className="h-8 w-64 mb-2" />
@@ -21,8 +32,14 @@ export default function DashboardLoading() {
 
       {/* Households Section Skeleton */}
       <div className="relative overflow-hidden bg-gradient-to-br from-primary/15 via-primary/8 to-background rounded-xl border border-primary/25 p-6 mb-6">
-        <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-primary/15 blur-2xl" />
-        <div className="absolute bottom-0 left-0 -mb-4 -ml-4 h-24 w-24 rounded-full bg-primary/15 blur-2xl" />
+        <div
+          aria-hidden="true"
+          className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-primary/15 blur-2xl"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute bottom-0 left-0 -mb-4 -ml-4 h-24 w-24 rounded-full bg-primary/15 blur-2xl"
+        />
 
         <div className="relative">
           <div className="flex items-center gap-3 mb-4">

@@ -113,7 +113,10 @@ function ActivityCard({
         </div>
       </div>
       <Button size="sm" variant="ghost" asChild className="flex-shrink-0">
-        <Link href={`${ROUTES.RECIPE}/${recipe._id}`}>
+        <Link
+          href={`${ROUTES.RECIPE}/${recipe._id}`}
+          aria-label={`Edit ${recipe.title || "recipe"}`}
+        >
           <Edit3 className="h-3 w-3" />
         </Link>
       </Button>
