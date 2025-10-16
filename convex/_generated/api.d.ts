@@ -9,10 +9,12 @@
  */
 
 import type * as chalkboard from "../chalkboard.js";
+import type * as crons from "../crons.js";
 import type * as households from "../households.js";
 import type * as http from "../http.js";
 import type * as lib_constants from "../lib/constants.js";
 import type * as recipes from "../recipes.js";
+import type * as shoppingLists from "../shoppingLists.js";
 import type * as users from "../users.js";
 
 import type {
@@ -31,10 +33,12 @@ import type {
  */
 declare const fullApi: ApiFromModules<{
   chalkboard: typeof chalkboard;
+  crons: typeof crons;
   households: typeof households;
   http: typeof http;
   "lib/constants": typeof lib_constants;
   recipes: typeof recipes;
+  shoppingLists: typeof shoppingLists;
   users: typeof users;
 }>;
 declare const fullApiWithMounts: typeof fullApi;

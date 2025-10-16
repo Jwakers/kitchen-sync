@@ -128,4 +128,31 @@ export default defineSchema({
     .index("by_user", ["addedBy"])
     .index("by_household", ["householdId"])
     .index("by_user_and_household", ["addedBy", "householdId"]),
+
+  shoppingLists: defineTable({
+    userId: v.id("users"),
+    status: v.union(
+      v.literal("draft"),
+      v.literal("active"),
+      v.literal("completed")
+    ),
+    finalisedAt: v.optional(v.number()),
+    completedAt: v.optional(v.number()),
+    expiresAt: v.number(), // Auto-delete after 1 week
+    // Track chalkboard items to delete on finalization
+    chalkboardItemIds: v.array(v.id("chalkboardItems")),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_and_status", ["userId", "status"])
+    .index("by_expires", ["expiresAt"]),
+
+  shoppingListItems: defineTable({
+    shoppingListId: v.id("shoppingLists"),
+    name: v.string(),
+    amount: v.union(v.number(), v.string(), v.null()),
+    unit: v.optional(v.string()),
+    preparation: v.optional(v.string()),
+    checked: v.boolean(),
+    order: v.number(), // Preserve item order
+  }).index("by_shopping_list", ["shoppingListId"]),
 });

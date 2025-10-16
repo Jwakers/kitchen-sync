@@ -28,7 +28,3 @@ export const CATEGORY_COLORS: Record<
     "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
   dinner: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
 };
-
-export const STORAGE_KEYS = {
-  shoppingList: "shopping_list",
-} as const;

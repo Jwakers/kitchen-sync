@@ -1,6 +1,6 @@
 "use client";
 
-import { CATEGORY_COLORS, ROUTES, STORAGE_KEYS } from "@/app/constants";
+import { CATEGORY_COLORS, ROUTES } from "@/app/constants";
 import {
   Accordion,
   AccordionContent,
@@ -43,18 +43,13 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import ShoppingList from "./shopping-list";
-import { ShoppingListItem } from "./types";
 
 type Recipe = FunctionReturnType<typeof api.recipes.getAllUserRecipes>[number];
 
-type LocalStorageShoppingList = {
-  dateStored: number;
-  allIngredients: ShoppingListItem[];
-  checkedItems: string[];
-};
-
 export default function ShoppingListClient() {
   const recipes = useQuery(api.recipes.getAllUserRecipes);
+  const activeShoppingList = useQuery(api.shoppingLists.getActiveShoppingList);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRecipeIds, setSelectedRecipeIds] = useState<
     Set<Id<"recipes">>
@@ -68,19 +63,23 @@ export default function ShoppingListClient() {
     () => buildShoppingListItems(selectedRecipes ?? []),
     [selectedRecipes]
   );
-  const [allIngredients, setAllIngredients] =
-    useState<ShoppingListItem[]>(flatIngredients);
-  const [isFinalised, setIsFinalised] = useState(false);
-  const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [showDoneDialog, setShowDoneDialog] = useState(false);
-  const [showLocalStorageDialog, setShowLocalStorageDialog] = useState(false);
-  const [localStorageData, setLocalStorageData] =
-    useState<LocalStorageShoppingList | null>(null);
   const [selectedChalkboardItems, setSelectedChalkboardItems] = useState<
     Set<Id<"chalkboardItems">>
   >(new Set());
 
-  const deleteChalkboardItems = useMutation(api.chalkboard.deleteItemsByIds);
+  // Mutations
+  const createShoppingList = useMutation(api.shoppingLists.createShoppingList);
+  const finaliseShoppingList = useMutation(
+    api.shoppingLists.finaliseShoppingList
+  );
+  const completeShoppingList = useMutation(
+    api.shoppingLists.completeShoppingList
+  );
+  const unfinaliseShoppingList = useMutation(
+    api.shoppingLists.unfinaliseShoppingList
+  );
+  const deleteShoppingList = useMutation(api.shoppingLists.deleteShoppingList);
 
   // Filter recipes based on search and only show published recipes
   const filteredRecipes =
@@ -106,141 +105,131 @@ export default function ShoppingListClient() {
     setShowShoppingList(false);
   };
 
-  const handleGenerateList = () => {
-    setShowShoppingList(true);
-  };
+  const handleGenerateList = async () => {
+    // If there's already an active list, just show it
+    if (activeShoppingList) {
+      setShowShoppingList(true);
+      return;
+    }
 
-  const handleLoadLocalStorage = () => {
-    if (!localStorageData) return;
-    setAllIngredients(localStorageData?.allIngredients ?? []);
-    setCheckedItems(new Set(localStorageData?.checkedItems ?? []));
-    setIsFinalised(true);
-    setShowShoppingList(true);
-  };
-
-  const getStoredShoppingList = () => {
+    // Create new shopping list
     try {
-      const raw = window.localStorage.getItem(STORAGE_KEYS.shoppingList);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw);
-      if (typeof parsed !== "object" || parsed === null) return null;
-      const { dateStored, allIngredients, checkedItems } =
-        parsed as Partial<LocalStorageShoppingList> & Record<string, unknown>;
-      if (typeof dateStored !== "number" || !Array.isArray(allIngredients)) {
-        console.error("Invalid shopping list stored", parsed);
-        return null;
-      }
-      const oneWeek = 7 * 24 * 60 * 60 * 1000;
-      if (Date.now() - dateStored > oneWeek) {
-        window.localStorage.removeItem(STORAGE_KEYS.shoppingList);
-        return null;
-      }
-      return {
-        dateStored,
-        allIngredients,
-        // tolerate older records without this field
-        checkedItems: Array.isArray(checkedItems) ? checkedItems : [],
-      } as LocalStorageShoppingList;
-    } catch (err) {
-      console.error(err);
-      return null;
+      await createShoppingList({
+        items: flatIngredients.map((item) => ({
+          name: item.name,
+          amount: item.amount ?? null,
+          unit: item.unit,
+          preparation: item.preparation,
+        })),
+        chalkboardItemIds: Array.from(selectedChalkboardItems),
+      });
+      setShowShoppingList(true);
+      toast.success("Shopping list created!");
+    } catch (error) {
+      console.error("Failed to create shopping list:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to create shopping list"
+      );
     }
   };
 
-  const removeStoredShoppingList = () => {
-    window.localStorage.removeItem(STORAGE_KEYS.shoppingList);
-  };
-
   const handleConfirm = async () => {
-    if (isFinalised) {
+    if (!activeShoppingList) return;
+
+    if (activeShoppingList.status === "active") {
       setShowDoneDialog(true);
       return;
     }
 
-    // Delete selected chalkboard items
-    if (selectedChalkboardItems.size > 0) {
+    // Finalise the shopping list (this will delete chalkboard items)
+    try {
+      await finaliseShoppingList({ listId: activeShoppingList._id });
+
+      if (selectedChalkboardItems.size > 0) {
+        toast.success(
+          `Shopping list confirmed! ${selectedChalkboardItems.size} chalkboard item${
+            selectedChalkboardItems.size > 1 ? "s" : ""
+          } cleared.`
+        );
+      } else {
+        toast.success("Shopping list confirmed!");
+      }
+    } catch (error) {
+      console.error("Failed to finalise shopping list:", error);
+      toast.error("Failed to confirm shopping list");
+    }
+  };
+
+  const handleDoneShopping = async () => {
+    if (!activeShoppingList) return;
+
+    try {
+      await completeShoppingList({ listId: activeShoppingList._id });
+      setShowDoneDialog(false);
+      setShowShoppingList(false);
+      setSelectedRecipeIds(new Set());
+      setSelectedChalkboardItems(new Set());
+      toast.success("Shopping complete! Happy cooking!");
+    } catch (error) {
+      console.error("Failed to complete shopping list:", error);
+      toast.error("Failed to complete shopping");
+    }
+  };
+
+  const handleEditList = async () => {
+    if (!activeShoppingList) return;
+
+    try {
+      await unfinaliseShoppingList({ listId: activeShoppingList._id });
+    } catch (error) {
+      console.error("Failed to edit shopping list:", error);
+      toast.error("Failed to edit shopping list");
+    }
+  };
+
+  const handleBack = async () => {
+    if (!activeShoppingList) return;
+
+    // If it's a draft list, delete it so user can start fresh
+    if (activeShoppingList.status === "draft") {
       try {
-        const result = await deleteChalkboardItems({
-          itemIds: Array.from(selectedChalkboardItems),
-        });
-        if (result.deletedCount > 0) {
-          toast.success(
-            `Added ${result.deletedCount} item${
-              result.deletedCount > 1 ? "s" : ""
-            } from chalkboard and cleared them`
-          );
-        }
+        await deleteShoppingList({ listId: activeShoppingList._id });
+        toast.success("Shopping list cancelled");
       } catch (error) {
-        console.error("Failed to delete chalkboard items:", error);
-        // Don't block finalization if deletion fails
-        toast.error("Failed to clear some chalkboard items");
+        console.error("Failed to delete shopping list:", error);
+        toast.error("Failed to cancel shopping list");
       }
     }
 
-    setIsFinalised(true);
-  };
-
-  const handleDoneShopping = () => {
-    setShowDoneDialog(false);
+    // Go back to recipe selection
     setShowShoppingList(false);
     setSelectedRecipeIds(new Set());
-    setAllIngredients([]);
-    setCheckedItems(new Set());
-    setIsFinalised(false);
     setSelectedChalkboardItems(new Set());
-    removeStoredShoppingList();
-    toast.success("Shopping complete! Happy cooking!");
   };
 
+  // Show shopping list view if there's an active list
   useEffect(() => {
-    const list = getStoredShoppingList();
-    if (!list) return;
-
-    setLocalStorageData(list);
-  }, []);
-
-  useEffect(() => {
-    if (!localStorageData) return;
-    setShowLocalStorageDialog(true);
-  }, [localStorageData]);
-
-  useEffect(() => {
-    if (selectedRecipes.length === 0) return;
-    setAllIngredients(buildShoppingListItems(selectedRecipes));
-  }, [selectedRecipes]);
-
-  useEffect(() => {
-    if (!isFinalised) return;
-    try {
-      window.localStorage.setItem(
-        STORAGE_KEYS.shoppingList,
-        JSON.stringify({
-          dateStored: Date.now(),
-          allIngredients,
-          checkedItems: Array.from(checkedItems),
-        })
-      );
-    } catch (error) {
-      console.error(error);
-    }
-  }, [allIngredients, checkedItems, isFinalised]);
+    if (!activeShoppingList) return;
+    setShowShoppingList(true);
+    // Pre-populate selected chalkboard items from the list
+    if (!activeShoppingList.chalkboardItemIds.length) return;
+    setSelectedChalkboardItems(new Set(activeShoppingList.chalkboardItemIds));
+  }, [activeShoppingList]);
 
   return (
     <>
       <div className="bg-background">
         <div className="container mx-auto px-4 py-8">
-          {showShoppingList ? (
+          {showShoppingList && activeShoppingList ? (
             /* Shopping List View */
             <ShoppingList
-              allIngredients={allIngredients}
-              setAllIngredients={setAllIngredients}
+              shoppingList={activeShoppingList}
               onConfirm={handleConfirm}
               onDone={() => setShowDoneDialog(true)}
-              onBack={() => setShowShoppingList(false)}
-              checkedItems={checkedItems}
-              setCheckedItems={setCheckedItems}
-              isFinalised={isFinalised}
-              setIsFinalised={setIsFinalised}
+              onBack={handleBack}
+              onEdit={handleEditList}
               selectedChalkboardItems={selectedChalkboardItems}
               setSelectedChalkboardItems={setSelectedChalkboardItems}
             />
@@ -358,17 +347,6 @@ export default function ShoppingListClient() {
           )}
         </div>
       </div>
-      <ConfirmLocalStorageDialog
-        open={showLocalStorageDialog}
-        onOpenChange={setShowLocalStorageDialog}
-        onConfirm={handleLoadLocalStorage}
-        data={localStorageData}
-        onCancel={() => {
-          removeStoredShoppingList();
-          setLocalStorageData(null);
-          setShowLocalStorageDialog(false);
-        }}
-      />
       <AlertDialog open={showDoneDialog} onOpenChange={setShowDoneDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -570,45 +548,6 @@ function SelectedRecipesList({ recipes }: { recipes: Recipe[] }) {
   );
 }
 
-function ConfirmLocalStorageDialog({
-  open,
-  onOpenChange,
-  onConfirm,
-  onCancel,
-  data,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
-  onCancel: () => void;
-  data: LocalStorageShoppingList | null;
-}) {
-  return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>
-            Found a shopping list from a previous session?
-          </AlertDialogTitle>
-          <AlertDialogDescription>
-            Shopping lists are saved for one week in device storage. Do you want
-            to load the list from the previous session on{" "}
-            {new Date(data?.dateStored ?? 0).toLocaleDateString()}?
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={onCancel}>
-            No, start a new list
-          </AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>
-            Yes, load list
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  );
-}
-
 const normaliseKey = (ingredient: NonNullable<Recipe["ingredients"]>[number]) =>
   [
     ingredient?.name?.trim().toLowerCase() ?? "",
@@ -617,7 +556,16 @@ const normaliseKey = (ingredient: NonNullable<Recipe["ingredients"]>[number]) =>
   ].join("|");
 
 const buildShoppingListItems = (recipes: Recipe[]) => {
-  const combined = new Map<string, ShoppingListItem>();
+  const combined = new Map<
+    string,
+    {
+      id: string;
+      name: string;
+      unit?: string;
+      preparation?: string;
+      amount: number | string | null;
+    }
+  >();
 
   recipes.forEach((recipe) => {
     recipe.ingredients?.forEach((ingredient) => {

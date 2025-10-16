@@ -104,7 +104,8 @@ export const getAllHouseholdChalkboards = query({
       );
     }
 
-    return householdChalkboards;
+    // Convert Map to plain object for Convex serialization
+    return Object.fromEntries(householdChalkboards);
   },
 });
 

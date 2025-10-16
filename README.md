@@ -2,8 +2,8 @@
 
 ### Next Immediate Steps
 
-- Refactor shopping list to use the DB
-  THEN
+- [x] Refactor shopping list to use the DB
+      THEN
 - Dashboard and homepage updates in preparation for first real previews
   THEN
 - Contact form (part of a mobile menu)
