@@ -564,7 +564,6 @@ const buildShoppingListItems = (recipes: Recipe[]) => {
   const combined = new Map<
     string,
     {
-      id: string;
       name: string;
       unit?: string;
       preparation?: string;
@@ -585,7 +584,6 @@ const buildShoppingListItems = (recipes: Recipe[]) => {
 
       if (!existing) {
         combined.set(key, {
-          id: crypto.randomUUID(),
           name: ingredient.name,
           unit: ingredient.unit,
           preparation: ingredient.preparation,
