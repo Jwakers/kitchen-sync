@@ -51,10 +51,7 @@ function HeroSection() {
         </p>
         <div className="flex flex-wrap gap-3">
           <Button asChild className="shadow-md">
-            <Link href={ROUTES.MY_RECIPES}>
-              <Plus className="h-4 w-4 mr-2" />
-              View My Recipes
-            </Link>
+            <Link href={ROUTES.MY_RECIPES}>View My Recipes</Link>
           </Button>
           <Button variant="outline" asChild>
             <Link href={ROUTES.SHOPPING_LIST}>
