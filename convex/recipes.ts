@@ -99,6 +99,54 @@ export const getAllUserRecipes = query({
   },
 });
 
+export const getRecentActivity = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUserOrThrow(ctx);
+    const now = Date.now();
+    const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
+
+    // Get draft recipes (unfinished)
+    const draftRecipes = await ctx.db
+      .query("recipes")
+      .withIndex("by_user_and_status", (q) =>
+        q.eq("userId", user._id).eq("status", "draft")
+      )
+      .order("desc")
+      .take(3);
+
+    // Get recently updated published recipes (last 7 days)
+    const recentRecipes = await ctx.db
+      .query("recipes")
+      .withIndex("by_user_and_status", (q) =>
+        q.eq("userId", user._id).eq("status", "published")
+      )
+      .filter((q) => q.gte(q.field("updatedAt"), sevenDaysAgo))
+      .order("desc")
+      .take(5);
+
+    // Process images for both sets
+    const processRecipes = async (recipes: Doc<"recipes">[]) => {
+      return await Promise.all(
+        recipes.map(async (recipe) => ({
+          ...recipe,
+          image: recipe.image ? await ctx.storage.getUrl(recipe.image) : null,
+        }))
+      );
+    };
+
+    const [drafts, recent] = await Promise.all([
+      processRecipes(draftRecipes),
+      processRecipes(recentRecipes),
+    ]);
+
+    return {
+      drafts,
+      recent,
+    };
+  },
+});
+
 export const createDraftRecipe = mutation({
   args: {},
   handler: async (ctx) => {

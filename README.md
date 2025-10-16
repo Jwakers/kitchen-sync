@@ -49,6 +49,7 @@
 - [x] Update sticky bottom calc accounting for navbar; currently: `bottom-[calc(64px+env(safe-area-inset-bottom))]`
 - [ ] On saving a recipe from teh create recipe form the users should be guided to it and the form drawer should close
 - [ ] Pages that have been made server side just for meta data and then export a client component for all logic can now include that logic directly and shift any metadata or server information to the layout file of the page (see invitations page).
+- [ ] Should be able to trigger the add recipe navigation from anywhere. Time to add it to its own page or wrap the app in context to provide a method to open it.
 
 ## Major updates
 
