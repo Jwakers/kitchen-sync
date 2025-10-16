@@ -16,7 +16,8 @@ import { Switch } from "@/components/ui/switch";
 import useShare from "@/lib/hooks/use-share";
 import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
+import type { FunctionReturnType } from "convex/server";
 import {
   ArrowLeft,
   Check,
@@ -30,18 +31,17 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ShoppingListItem } from "./types";
+
+type ShoppingList = NonNullable<
+  FunctionReturnType<typeof api.shoppingLists.getActiveShoppingList>
+>;
 
 interface ShoppingListProps {
-  allIngredients: ShoppingListItem[];
-  setAllIngredients: React.Dispatch<React.SetStateAction<ShoppingListItem[]>>;
-  checkedItems: Set<string>;
-  setCheckedItems: React.Dispatch<React.SetStateAction<Set<string>>>;
-  isFinalised: boolean;
-  setIsFinalised: React.Dispatch<React.SetStateAction<boolean>>;
+  shoppingList: ShoppingList;
   onConfirm: () => void;
   onBack: () => void;
   onDone: () => void;
+  onEdit: () => void;
   selectedChalkboardItems: Set<Id<"chalkboardItems">>;
   setSelectedChalkboardItems: React.Dispatch<
     React.SetStateAction<Set<Id<"chalkboardItems">>>
@@ -49,15 +49,11 @@ interface ShoppingListProps {
 }
 
 export default function ShoppingList({
-  allIngredients,
-  setAllIngredients,
-  checkedItems,
-  setCheckedItems,
-  isFinalised,
-  setIsFinalised,
+  shoppingList,
   onConfirm,
   onDone,
   onBack,
+  onEdit,
   setSelectedChalkboardItems,
 }: ShoppingListProps) {
   const { canShare, copyToClipboard, share } = useShare();
@@ -66,6 +62,15 @@ export default function ShoppingList({
   const [selectedHouseholdIds, setSelectedHouseholdIds] = useState<
     Set<Id<"households">>
   >(new Set());
+
+  // Mutations
+  const toggleItemChecked = useMutation(api.shoppingLists.toggleItemChecked);
+  const updateItemAmount = useMutation(api.shoppingLists.updateItemAmount);
+  const removeItem = useMutation(api.shoppingLists.removeItem);
+  const addChalkboardItems = useMutation(api.shoppingLists.addChalkboardItems);
+
+  const isFinalised = shoppingList.status === "active";
+  const allIngredients = shoppingList.items;
 
   // Get chalkboard data
   const households = useQuery(api.households.getUserHouseholds);
@@ -101,20 +106,22 @@ export default function ShoppingList({
   const getAvailableChalkboardCount = () => {
     let count = 0;
 
+    const namesEqual = (a: string, b: string) =>
+      a.trim().toLowerCase() === b.trim().toLowerCase();
+
     // Count personal items not yet added
     if (personalChalkboard) {
       count += personalChalkboard.filter(
-        (item) =>
-          !allIngredients.some((ing) => ing.id === `chalkboard-${item._id}`)
+        (item) => !allIngredients.some((ing) => namesEqual(ing.name, item.text))
       ).length;
     }
 
     // Count household items not yet added
     if (allHouseholdChalkboards) {
-      Array.from(allHouseholdChalkboards.values()).forEach((items) => {
+      Object.values(allHouseholdChalkboards).forEach((items) => {
         count += items.filter(
           (item) =>
-            !allIngredients.some((ing) => ing.id === `chalkboard-${item._id}`)
+            !allIngredients.some((ing) => namesEqual(ing.name, item.text))
         ).length;
       });
     }
@@ -124,37 +131,44 @@ export default function ShoppingList({
 
   const availableChalkboardItemsCount = getAvailableChalkboardCount();
 
-  const handleAmountChange = (id: string, newAmount: number) => {
-    setAllIngredients((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, amount: Math.max(0, newAmount) } : item
-      )
-    );
+  const handleAmountChange = async (
+    itemId: Id<"shoppingListItems">,
+    newAmount: number
+  ) => {
+    try {
+      await updateItemAmount({
+        itemId,
+        amount: Math.max(0, newAmount),
+      });
+    } catch (error) {
+      console.error("Failed to update amount:", error);
+      toast.error("Failed to update amount");
+    }
   };
 
-  const handleRemoveItem = (id: string) => {
-    setAllIngredients((prev) => prev.filter((item) => item.id !== id));
+  const handleRemoveItem = async (itemId: Id<"shoppingListItems">) => {
+    try {
+      await removeItem({ itemId });
+    } catch (error) {
+      console.error("Failed to remove item:", error);
+      toast.error("Failed to remove item");
+    }
   };
 
-  const handleCheckItem = (id: string) => {
-    setCheckedItems((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
-    });
+  const handleCheckItem = async (itemId: Id<"shoppingListItems">) => {
+    try {
+      await toggleItemChecked({ itemId });
+    } catch (error) {
+      console.error("Failed to check item:", error);
+      toast.error("Failed to update item");
+    }
   };
 
-  const handleEdit = () => {
-    setIsFinalised(false);
-  };
-
-  const handleAddFromChalkboard = () => {
-    const itemsToAdd: Id<"chalkboardItems">[] = [];
-    const newIngredients: ShoppingListItem[] = [];
+  const handleAddFromChalkboard = async () => {
+    const itemsToAdd: Array<{
+      chalkboardItemId: Id<"chalkboardItems">;
+      name: string;
+    }> = [];
 
     // Add personal chalkboard items if enabled
     if (
@@ -165,15 +179,12 @@ export default function ShoppingList({
       personalChalkboard.forEach((item) => {
         // Only add if not already in shopping list
         const alreadyAdded = allIngredients.some(
-          (ing) => ing.id === `chalkboard-${item._id}`
+          (ing) => ing.name === item.text
         );
         if (!alreadyAdded) {
-          itemsToAdd.push(item._id);
-          newIngredients.push({
-            id: `chalkboard-${item._id}`,
+          itemsToAdd.push({
+            chalkboardItemId: item._id,
             name: item.text,
-            amount: undefined,
-            unit: undefined,
           });
         }
       });
@@ -182,20 +193,17 @@ export default function ShoppingList({
     // Add household chalkboard items for selected households
     if (allHouseholdChalkboards) {
       selectedHouseholdIds.forEach((householdId) => {
-        const householdItems = allHouseholdChalkboards.get(householdId);
+        const householdItems = allHouseholdChalkboards[householdId];
         if (householdItems && householdItems.length > 0) {
           householdItems.forEach((item) => {
             // Only add if not already in shopping list
             const alreadyAdded = allIngredients.some(
-              (ing) => ing.id === `chalkboard-${item._id}`
+              (ing) => ing.name === item.text
             );
             if (!alreadyAdded) {
-              itemsToAdd.push(item._id as Id<"chalkboardItems">);
-              newIngredients.push({
-                id: `chalkboard-${item._id}`,
+              itemsToAdd.push({
+                chalkboardItemId: item._id as Id<"chalkboardItems">,
                 name: item.text,
-                amount: undefined,
-                unit: undefined,
               });
             }
           });
@@ -203,28 +211,36 @@ export default function ShoppingList({
       });
     }
 
-    if (newIngredients.length === 0) {
+    if (itemsToAdd.length === 0) {
       toast.info("All items have already been added to your shopping list");
       setShowChalkboardDialog(false);
       return;
     }
 
-    // Add to shopping list
-    setAllIngredients((prev) => [...prev, ...newIngredients]);
+    try {
+      // Add to shopping list in database
+      await addChalkboardItems({
+        listId: shoppingList._id,
+        items: itemsToAdd,
+      });
 
-    // Track which items to delete later
-    setSelectedChalkboardItems((prev) => {
-      const next = new Set(prev);
-      itemsToAdd.forEach((id) => next.add(id));
-      return next;
-    });
+      // Track which items to delete later
+      setSelectedChalkboardItems((prev) => {
+        const next = new Set(prev);
+        itemsToAdd.forEach((item) => next.add(item.chalkboardItemId));
+        return next;
+      });
 
-    // Close dialog
-    setShowChalkboardDialog(false);
+      // Close dialog
+      setShowChalkboardDialog(false);
 
-    toast.success(
-      `Added ${newIngredients.length} item${newIngredients.length > 1 ? "s" : ""} from chalkboard`
-    );
+      toast.success(
+        `Added ${itemsToAdd.length} item${itemsToAdd.length > 1 ? "s" : ""} from chalkboard`
+      );
+    } catch (error) {
+      console.error("Failed to add chalkboard items:", error);
+      toast.error("Failed to add items from chalkboard");
+    }
   };
 
   const handlePrint = () => {
@@ -233,9 +249,9 @@ export default function ShoppingList({
 
   const handleShare = async () => {
     // Create a formatted text version of the shopping list
-    const listText = `Created: ${new Date().toLocaleDateString()}\n\n${allIngredients
+    const listText = `Shopping List - ${new Date().toLocaleDateString()}\n\n${allIngredients
       .map((item) => {
-        const checked = checkedItems.has(item.id) ? "✓ " : "";
+        const checked = item.checked ? "✓ " : "";
         const amt = item.amount != null ? String(item.amount) : "";
         const unit = item.unit ? ` ${item.unit}` : "";
         const space = amt || unit ? " " : "";
@@ -261,21 +277,20 @@ export default function ShoppingList({
           <h1 className="text-3xl font-bold mb-2">Shopping List</h1>
           <div className="space-y-1">
             {allIngredients.map((item) => {
-              const isChecked = checkedItems.has(item.id);
               return (
                 <div
-                  key={item.id}
+                  key={item._id}
                   className="flex items-start gap-3 py-2 border-b"
                 >
                   <div className="w-5 h-5 border-2 rounded flex-shrink-0 mt-0.5">
-                    {isChecked && (
+                    {item.checked && (
                       <div className="w-full h-full flex items-center justify-center">
                         ✓
                       </div>
                     )}
                   </div>
                   <div className="flex-1">
-                    <span className={isChecked ? "line-through" : ""}>
+                    <span className={item.checked ? "line-through" : ""}>
                       {item.name}
                     </span>
                     <span className="ml-2">
@@ -308,7 +323,7 @@ export default function ShoppingList({
           <Button
             variant="ghost"
             size="sm"
-            onClick={handleEdit}
+            onClick={onEdit}
             className="gap-2 -ml-2"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -394,12 +409,11 @@ export default function ShoppingList({
 
             <div className="space-y-2">
               {allIngredients.map((item) => {
-                const isChecked = checkedItems.has(item.id);
                 return (
                   <div
-                    key={item.id}
+                    key={item._id}
                     className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
-                      isFinalised && isChecked
+                      isFinalised && item.checked
                         ? "bg-muted/50 opacity-60"
                         : "hover:bg-muted/30 hover:border-primary/30"
                     }`}
@@ -407,8 +421,8 @@ export default function ShoppingList({
                     {/* Checkbox (only in finalized state) */}
                     {isFinalised && (
                       <Checkbox
-                        checked={isChecked}
-                        onCheckedChange={() => handleCheckItem(item.id)}
+                        checked={item.checked}
+                        onCheckedChange={() => handleCheckItem(item._id)}
                         className="h-5 w-5"
                       />
                     )}
@@ -418,7 +432,7 @@ export default function ShoppingList({
                       <div className="flex items-center gap-2 mb-1">
                         <p
                           className={`font-medium capitalize ${
-                            isFinalised && isChecked ? "line-through" : ""
+                            isFinalised && item.checked ? "line-through" : ""
                           }`}
                         >
                           {item.name}
@@ -426,7 +440,8 @@ export default function ShoppingList({
                       </div>
 
                       {/* Amount Display/Controls */}
-                      {item.amount !== undefined || item.unit !== undefined ? (
+                      {(item.amount !== undefined && item.amount !== null) ||
+                      item.unit !== undefined ? (
                         isFinalised ? (
                           // Static display when finalized
                           <p className="text-sm text-muted-foreground capitalize">
@@ -441,7 +456,7 @@ export default function ShoppingList({
                                 <button
                                   onClick={() =>
                                     handleAmountChange(
-                                      item.id,
+                                      item._id,
                                       (item.amount as number) - 1
                                     )
                                   }
@@ -456,7 +471,7 @@ export default function ShoppingList({
                                 <button
                                   onClick={() =>
                                     handleAmountChange(
-                                      item.id,
+                                      item._id,
                                       (item.amount as number) + 1
                                     )
                                   }
@@ -487,7 +502,7 @@ export default function ShoppingList({
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => handleRemoveItem(item.id)}
+                        onClick={() => handleRemoveItem(item._id)}
                       >
                         <X className="h-4 w-4" />
                         <span className="sr-only">Remove {item.name}</span>
@@ -581,9 +596,7 @@ export default function ShoppingList({
                   {(() => {
                     const availableItems = personalChalkboard?.filter(
                       (item) =>
-                        !allIngredients.some(
-                          (ing) => ing.id === `chalkboard-${item._id}`
-                        )
+                        !allIngredients.some((ing) => ing.name === item.text)
                     );
                     const count = availableItems?.length || 0;
                     return count > 0
@@ -600,9 +613,7 @@ export default function ShoppingList({
                   !personalChalkboard ||
                   personalChalkboard.filter(
                     (item) =>
-                      !allIngredients.some(
-                        (ing) => ing.id === `chalkboard-${item._id}`
-                      )
+                      !allIngredients.some((ing) => ing.name === item.text)
                   ).length === 0
                 }
               />
@@ -618,12 +629,10 @@ export default function ShoppingList({
                   </Label>
                   {households.map((household) => {
                     const householdItems =
-                      allHouseholdChalkboards?.get(household._id) || [];
+                      allHouseholdChalkboards?.[household._id] || [];
                     const availableItems = householdItems.filter(
                       (item) =>
-                        !allIngredients.some(
-                          (ing) => ing.id === `chalkboard-${item._id}`
-                        )
+                        !allIngredients.some((ing) => ing.name === item.text)
                     );
                     const isSelected = selectedHouseholdIds.has(household._id);
                     return (
@@ -660,15 +669,14 @@ export default function ShoppingList({
             {/* Preview of what will be added */}
             {(() => {
               // Calculate items to preview (only items not already added)
-              const previewItems: Array<{ id: string; text: string }> = [];
+              const previewItems: Array<{
+                id: Id<"chalkboardItems">;
+                text: string;
+              }> = [];
 
               if (includePersonal && personalChalkboard) {
                 personalChalkboard.forEach((item) => {
-                  if (
-                    !allIngredients.some(
-                      (ing) => ing.id === `chalkboard-${item._id}`
-                    )
-                  ) {
+                  if (!allIngredients.some((ing) => ing.name === item.text)) {
                     previewItems.push({ id: item._id, text: item.text });
                   }
                 });
@@ -677,13 +685,9 @@ export default function ShoppingList({
               if (allHouseholdChalkboards) {
                 Array.from(selectedHouseholdIds).forEach((householdId) => {
                   const householdItems =
-                    allHouseholdChalkboards.get(householdId);
+                    allHouseholdChalkboards?.[householdId] || [];
                   householdItems?.forEach((item) => {
-                    if (
-                      !allIngredients.some(
-                        (ing) => ing.id === `chalkboard-${item._id}`
-                      )
-                    ) {
+                    if (!allIngredients.some((ing) => ing.name === item.text)) {
                       previewItems.push({ id: item._id, text: item.text });
                     }
                   });
