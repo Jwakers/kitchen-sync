@@ -217,7 +217,6 @@ export function RecipeHeader({
               type="button"
               size="lg"
               variant="outline"
-              className="gap-2"
               onClick={onToggleEditMode}
             >
               <X className="h-4 w-4" />
@@ -228,23 +227,13 @@ export function RecipeHeader({
           <>
             {canEdit && (
               <>
-                <Button
-                  type="button"
-                  size="lg"
-                  className="gap-2"
-                  onClick={onToggleEditMode}
-                >
+                <Button type="button" size="lg" onClick={onToggleEditMode}>
                   <Edit className="h-4 w-4" />
                   Edit Recipe
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button
-                      type="button"
-                      size="lg"
-                      variant="outline"
-                      className="gap-2"
-                    >
+                    <Button type="button" size="lg" variant="outline">
                       <Users className="h-4 w-4" />
                       Share
                     </Button>
@@ -276,12 +265,7 @@ export function RecipeHeader({
             {canEdit && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    size="lg"
-                    variant="outline"
-                    className="gap-2"
-                  >
+                  <Button type="button" size="lg" variant="outline">
                     <MoreVertical className="h-4 w-4" />
                     More Actions
                   </Button>

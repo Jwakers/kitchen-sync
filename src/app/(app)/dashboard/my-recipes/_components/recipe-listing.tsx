@@ -176,11 +176,7 @@ function EmptyState({
         Start building your recipe collection by creating your first recipe.
         Share your culinary creations with the world!
       </p>
-      <Button
-        size="lg"
-        className="gap-2"
-        onClick={() => setAddRecipeDrawerOpen(true)}
-      >
+      <Button size="lg" onClick={() => setAddRecipeDrawerOpen(true)}>
         <Plus className="h-5 w-5" />
         Create Your First Recipe
       </Button>

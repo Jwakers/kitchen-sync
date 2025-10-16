@@ -118,10 +118,12 @@ export const getRecentActivity = query({
     // Get recently updated published recipes (last 7 days)
     const recentRecipes = await ctx.db
       .query("recipes")
-      .withIndex("by_user_and_status", (q) =>
-        q.eq("userId", user._id).eq("status", "published")
+      .withIndex("by_user_status_updatedAt", (q) =>
+        q
+          .eq("userId", user._id)
+          .eq("status", "published")
+          .gte("updatedAt", sevenDaysAgo)
       )
-      .filter((q) => q.gte(q.field("updatedAt"), sevenDaysAgo))
       .order("desc")
       .take(5);
 
@@ -278,6 +280,7 @@ export const createRecipe = mutation({
 
     await ctx.db.patch(recipe._id, {
       status: "published",
+      updatedAt: Date.now(),
     });
 
     return { recipeId, errors: null, published: true };
@@ -383,6 +386,7 @@ export const updateRecipe = mutation({
       category: args.category ?? recipe.category,
       ingredients,
       method: args.method ?? recipe.method,
+      updatedAt: Date.now(),
     });
   },
 });
@@ -510,6 +514,7 @@ export const publishRecipe = mutation({
 
     await ctx.db.patch(args.recipeId, {
       status: "published",
+      updatedAt: Date.now(),
     });
 
     return { errors: null, success: true };

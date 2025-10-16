@@ -199,7 +199,7 @@ export default function ChalkboardClient() {
           className="w-full"
         >
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="household" className="gap-2">
+            <TabsTrigger value="household">
               <Home className="h-4 w-4" />
               Household
               {householdItems && householdItems.length > 0 && (
@@ -208,7 +208,7 @@ export default function ChalkboardClient() {
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="personal" className="gap-2">
+            <TabsTrigger value="personal">
               <User className="h-4 w-4" />
               Personal
               {personalItems && personalItems.length > 0 && (

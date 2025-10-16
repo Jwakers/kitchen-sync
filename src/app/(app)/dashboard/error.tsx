@@ -43,17 +43,17 @@ export default function DashboardError({ error, reset }: ErrorProps) {
         )}
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button onClick={reset} size="lg" className="gap-2" variant="default">
+          <Button onClick={reset} size="lg" variant="default">
             <RefreshCw className="h-4 w-4" />
             Try Again
           </Button>
 
-          <Link href={ROUTES.DASHBOARD}>
-            <Button size="lg" variant="outline" className="gap-2 w-full">
+          <Button asChild size="lg" variant="outline" className="w-full">
+            <Link href={ROUTES.DASHBOARD}>
               <ArrowLeft className="h-4 w-4" />
               Back to Dashboard
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </div>
     </div>
