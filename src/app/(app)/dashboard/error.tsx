@@ -11,10 +11,10 @@ interface ErrorProps {
   reset: () => void;
 }
 
-export default function HouseholdsError({ error, reset }: ErrorProps) {
+export default function DashboardError({ error, reset }: ErrorProps) {
   useEffect(() => {
     // Log the error to an error reporting service
-    console.error("Households error:", error);
+    console.error("Dashboard error:", error);
   }, [error]);
 
   return (
@@ -29,7 +29,7 @@ export default function HouseholdsError({ error, reset }: ErrorProps) {
         </h1>
 
         <p className="text-muted-foreground mb-2">
-          We encountered an error while loading your households.
+          We encountered an error while loading your dashboard.
         </p>
 
         {process.env.NODE_ENV !== "production" && error.message && (
@@ -48,12 +48,12 @@ export default function HouseholdsError({ error, reset }: ErrorProps) {
             Try Again
           </Button>
 
-          <Link href={ROUTES.DASHBOARD}>
-            <Button size="lg" variant="outline" className="gap-2 w-full">
+          <Button asChild size="lg" variant="outline" className="w-full">
+            <Link href={ROUTES.DASHBOARD}>
               <ArrowLeft className="h-4 w-4" />
               Back to Dashboard
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </div>
     </div>

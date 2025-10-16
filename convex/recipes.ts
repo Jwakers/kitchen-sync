@@ -99,6 +99,56 @@ export const getAllUserRecipes = query({
   },
 });
 
+export const getRecentActivity = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUserOrThrow(ctx);
+    const now = Date.now();
+    const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
+
+    // Get draft recipes (unfinished)
+    const draftRecipes = await ctx.db
+      .query("recipes")
+      .withIndex("by_user_and_status", (q) =>
+        q.eq("userId", user._id).eq("status", "draft")
+      )
+      .order("desc")
+      .take(3);
+
+    // Get recently updated published recipes (last 7 days)
+    const recentRecipes = await ctx.db
+      .query("recipes")
+      .withIndex("by_user_status_updatedAt", (q) =>
+        q
+          .eq("userId", user._id)
+          .eq("status", "published")
+          .gte("updatedAt", sevenDaysAgo)
+      )
+      .order("desc")
+      .take(5);
+
+    // Process images for both sets
+    const processRecipes = async (recipes: Doc<"recipes">[]) => {
+      return await Promise.all(
+        recipes.map(async (recipe) => ({
+          ...recipe,
+          image: recipe.image ? await ctx.storage.getUrl(recipe.image) : null,
+        }))
+      );
+    };
+
+    const [drafts, recent] = await Promise.all([
+      processRecipes(draftRecipes),
+      processRecipes(recentRecipes),
+    ]);
+
+    return {
+      drafts,
+      recent,
+    };
+  },
+});
+
 export const createDraftRecipe = mutation({
   args: {},
   handler: async (ctx) => {
@@ -230,6 +280,7 @@ export const createRecipe = mutation({
 
     await ctx.db.patch(recipe._id, {
       status: "published",
+      updatedAt: Date.now(),
     });
 
     return { recipeId, errors: null, published: true };
@@ -335,6 +386,7 @@ export const updateRecipe = mutation({
       category: args.category ?? recipe.category,
       ingredients,
       method: args.method ?? recipe.method,
+      updatedAt: Date.now(),
     });
   },
 });
@@ -462,6 +514,7 @@ export const publishRecipe = mutation({
 
     await ctx.db.patch(args.recipeId, {
       status: "published",
+      updatedAt: Date.now(),
     });
 
     return { errors: null, success: true };

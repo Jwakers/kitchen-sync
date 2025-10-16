@@ -165,16 +165,11 @@ export function EditableRecipeMeta({
 
         {/* Save Button */}
         <div className="mt-6 flex justify-end gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            className="gap-2"
-          >
+          <Button type="button" variant="outline" onClick={onCancel}>
             <X className="h-4 w-4" />
             Cancel
           </Button>
-          <Button type="submit" className="gap-2">
+          <Button type="submit">
             <Save className="h-4 w-4" />
             Save Changes
           </Button>

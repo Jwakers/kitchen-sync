@@ -14,7 +14,7 @@ export function RecipeNotFound() {
           The recipe you&apos;re looking for doesn&apos;t exist or you
           don&apos;t have permission to view it.
         </p>
-        <Button size="lg" className="gap-2" asChild>
+        <Button size="lg" asChild>
           <Link href={ROUTES.MY_RECIPES}>
             <ArrowLeft className="h-4 w-4" />
             Back to My Recipes

@@ -519,7 +519,6 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                                       onChange(undefined);
                                       setImagePreviewUrl(null);
                                     }}
-                                    className="gap-2"
                                   >
                                     <X className="h-4 w-4" />
                                     Remove Image
@@ -594,7 +593,6 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                                   type="button"
                                   variant="outline"
                                   size="sm"
-                                  className="gap-2"
                                   asChild
                                 >
                                   <span>
@@ -964,7 +962,6 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                                                 return newPreviews;
                                               });
                                             }}
-                                            className="gap-2"
                                           >
                                             <X className="h-4 w-4" />
                                             Remove Image
@@ -1050,7 +1047,6 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                                           type="button"
                                           variant="outline"
                                           size="sm"
-                                          className="gap-2"
                                           asChild
                                         >
                                           <span>
