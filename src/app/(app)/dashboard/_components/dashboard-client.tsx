@@ -22,6 +22,7 @@ import {
   Edit3,
   Globe,
   LucideIcon,
+  MessageSquare,
   Plus,
   ShoppingCart,
   Sparkles,
@@ -283,16 +284,54 @@ function HouseholdsSection() {
   );
 }
 
+function FeedbackSection() {
+  return (
+    <div className="relative overflow-hidden bg-gradient-to-br from-accent/20 via-accent/10 to-background rounded-xl border border-accent/30 p-6 mb-6">
+      <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-accent/20 blur-2xl" />
+      <div className="absolute bottom-0 left-0 -mb-4 -ml-4 h-24 w-24 rounded-full bg-accent/20 blur-2xl" />
+
+      <div className="relative">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-accent/20 rounded-lg">
+            <MessageSquare className="h-6 w-6 text-accent-foreground" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-foreground">
+              Help Us Improve
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Share your feedback and suggestions
+            </p>
+          </div>
+        </div>
+
+        <p className="text-muted-foreground mb-4 max-w-2xl">
+          Your feedback helps us make Kitchen Sync better for everyone. Whether
+          you have suggestions for new features, found a bug, or just want to
+          share your experience, we&apos;d love to hear from you!
+        </p>
+
+        <Button asChild className="shadow-md">
+          <Link href={ROUTES.CONTACT}>
+            <MessageSquare className="h-4 w-4 mr-2" />
+            Share Feedback
+          </Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function BentoGrid() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
       {/* Chalkboard - Large */}
       <FeatureCard
         title="Kitchen Chalkboard"
         description="Quick notes for your kitchen, for yourself or your household"
         icon={Clipboard}
         href={ROUTES.CHALKBOARD}
-        className="md:col-span-1"
+        className="md:col-span-1 h-full"
       />
 
       {/* My Recipes - Medium */}
@@ -301,7 +340,7 @@ function BentoGrid() {
         description="View, manage and create recipes"
         icon={ChefHat}
         href={ROUTES.MY_RECIPES}
-        className="md:col-span-1"
+        className="md:col-span-1 h-full"
       />
 
       {/* Shopping List - Medium */}
@@ -310,7 +349,7 @@ function BentoGrid() {
         description="Create smart shopping lists from saved recipes and the kitchen chalkboard"
         icon={ShoppingCart}
         href={ROUTES.SHOPPING_LIST}
-        className="md:col-span-1"
+        className="md:col-span-1 h-full"
       />
 
       {/* Import Recipe - Small */}
@@ -319,7 +358,7 @@ function BentoGrid() {
         description="Save recipes from websites or copy and paste text"
         icon={Globe}
         href={ROUTES.IMPORT_RECIPE}
-        className="md:col-span-1"
+        className="md:col-span-1 h-full"
       />
     </div>
   );
@@ -342,6 +381,10 @@ export default function DashboardClient() {
         {/* Feature Grid */}
         <div className="lg:col-span-2 order-1 lg:order-2">
           <BentoGrid />
+        </div>
+
+        <div className="order-3 lg:order-3 col-span-full">
+          <FeedbackSection />
         </div>
       </div>
     </div>

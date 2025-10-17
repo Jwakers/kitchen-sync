@@ -25,11 +25,12 @@ import { api } from "convex/_generated/api";
 import { useQuery } from "convex/react";
 import {
   ChefHat,
+  ChevronsUpDown,
   Clipboard,
   Globe,
   Home,
-  Mail,
   Menu,
+  MessageCircleQuestionMark,
   Moon,
   ShoppingCart,
   Sun,
@@ -215,14 +216,14 @@ export function Header() {
                       asChild
                     >
                       <Link
-                        href={ROUTES.CONTACT}
+                        href={ROUTES.SUPPORT}
                         onClick={() => setMenuOpen(false)}
                       >
-                        <Mail className="size-4 mr-3" />
+                        <MessageCircleQuestionMark className="size-4 mr-3" />
                         <div className="text-left">
                           <div className="font-medium">Help & Support</div>
                           <div className="text-sm text-muted-foreground">
-                            Get help with the app and contact us
+                            Browse help docs and contact us
                           </div>
                         </div>
                       </Link>
@@ -256,6 +257,7 @@ export function Header() {
                           Change theme
                         </div>
                       </div>
+                      <ChevronsUpDown className="size-4 ml-auto" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-48">
