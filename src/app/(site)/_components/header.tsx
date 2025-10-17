@@ -29,7 +29,7 @@ export function Header() {
         </Link>
 
         {/* Desktop Auth Buttons */}
-        <div className="hidden md:flex items-center space-x-4">
+        <div className="hidden md:flex items-center space-x-4 ml-auto">
           <ModeToggle />
           <Authenticated>
             <UserButton
