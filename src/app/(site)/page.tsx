@@ -42,7 +42,7 @@ export default function Home() {
 
             {/* Main Headline */}
             <div className="space-y-6">
-              <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight bg-gradient-to-r from-foreground via-foreground to-foreground/80 bg-clip-text text-transparent">
+              <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
                 MEAL PLANNING
                 <br />
                 <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
@@ -191,7 +191,7 @@ export default function Home() {
               <div className="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold">
                 2
               </div>
-              <h3 className="font-semibold mb-2">Browse & organise</h3>
+              <h3 className="font-semibold mb-2">Browse & Organise</h3>
               <p className="text-sm text-muted-foreground">
                 View your collection, search by category, and find what you need
               </p>

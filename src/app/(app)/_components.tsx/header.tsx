@@ -79,7 +79,7 @@ export function Header() {
                 <span className="sr-only">Open navigation menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-80">
+            <SheetContent side="right" className="w-80 safe-area-inset">
               <SheetHeader>
                 <SheetTitle>Navigation</SheetTitle>
                 <SheetDescription>
