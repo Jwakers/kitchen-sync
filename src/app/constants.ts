@@ -8,7 +8,10 @@ export const ROUTES = {
   SHOPPING_LIST: "/dashboard/shopping-list",
   HOUSEHOLDS: "/dashboard/households",
   CHALKBOARD: "/dashboard/chalkboard",
-  CONTACT: "/dashboard/contact",
+  SUPPORT: "/dashboard/support",
+  SUPPORT_FAQ: "/dashboard/support/faq",
+  SUPPORT_HOW_TO: "/dashboard/support/how-to-use",
+  CONTACT: "/dashboard/support/contact",
 } as const;
 
 export const CATEGORY_COLORS: Record<

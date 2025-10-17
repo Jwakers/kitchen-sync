@@ -29,7 +29,8 @@ import { useUser } from "@clerk/nextjs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "convex/_generated/api";
 import { useAction } from "convex/react";
-import { MessageSquare, Send } from "lucide-react";
+import { ArrowLeft, MessageSquare, Send } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -76,7 +77,7 @@ export default function ContactPage() {
         description: "Thank you for your feedback. We'll get back to you soon.",
       });
       form.reset();
-      router.push(ROUTES.DASHBOARD);
+      router.push(ROUTES.SUPPORT);
     } catch (error) {
       console.error("Error sending contact form:", error);
       toast.error("Failed to send message", {
@@ -87,7 +88,15 @@ export default function ContactPage() {
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-2xl">
+      {/* Header */}
       <div className="mb-6">
+        <Button variant="ghost" asChild className="mb-4">
+          <Link href={ROUTES.SUPPORT} className="flex items-center gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Support
+          </Link>
+        </Button>
+
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2 bg-primary/10 rounded-lg">
             <MessageSquare className="h-6 w-6 text-primary" />

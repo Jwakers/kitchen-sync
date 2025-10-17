@@ -8,7 +8,8 @@
       THEN
 - [x] Contact form (part of a mobile menu)
       THEN
-- How to use the app page
+- [ ] How to use the app and support pages
+- [ ] Home page update
 
 ## 🐛 Bug Tracking
 
@@ -95,6 +96,8 @@
 - [x] **Recipe Detail View**: Full recipe display with ingredients, method, and photos
 - [x] **Recipe Image Upload**: Integrate Convex file storage for recipe photos
 - [x] **Recipe Categories**: Enable filtering by existing categories (main, dessert, snack, etc.)
+- [ ] Scale ingredients (serves modifier)
+- [ ] Metric and imperial conversion + user default
 - [ ] **Recipe Tags**: Auto-detect dietary tags like plant-based, coeliac friendly, gluten free from ingredients
 - [ ] **Ingredient Categories**: Add categorization to ingredients (meat, poultry, vegetable, spice etc) (or extract from an existing external ingredient DB while still allowing custom ingredients)
 - [x] **AI Recipe Import**: Build URL scraping or text parsing for importing recipes from websites
