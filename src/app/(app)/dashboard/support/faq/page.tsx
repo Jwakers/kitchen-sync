@@ -79,7 +79,7 @@ export const faqSections = [
       {
         question: "How do I share my shopping list with others?",
         answer:
-          "If you're part of a household, your shopping list is automatically shared with other household members. They can add items, check off completed items, and see real-time updates. Once you have cfinalised a shopping list there are multiple sharing options such as message, print or save to notes. But you can always just use the app to see your shopping list and check off items as you shop.",
+          "If you're part of a household, your shopping list is automatically shared with other household members. They can add items, check off completed items, and see real-time updates. Once you have finalised a shopping list there are multiple sharing options such as message, print or save to notes. But you can always just use the app to see your shopping list and check off items as you shop.",
       },
     ],
   },

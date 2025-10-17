@@ -72,7 +72,7 @@ export default function HowToUsePage() {
           title: "Creating a Recipe",
           content: [
             "1. Click the \"+\" icon from the bottom menu or from the 'My Recipes' page",
-            " icon from the bottom menu or from the 'My Recipes' page",
+            "2. Select 'Create Recipe'",
             "3. Fill in the recipe name and description",
             "4. Add ingredients with quantities and units",
             "5. Write step-by-step cooking instructions",

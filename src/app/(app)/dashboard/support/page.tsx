@@ -26,7 +26,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-// TODO: import featuredFAQs from faq.tsx
 import { faqSections } from "./faq/page";
 
 const featuredFAQs = faqSections.flatMap((section) => section.questions[0]);

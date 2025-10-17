@@ -77,7 +77,7 @@ export default function ContactPage() {
         description: "Thank you for your feedback. We'll get back to you soon.",
       });
       form.reset();
-      router.push(ROUTES.DASHBOARD);
+      router.push(ROUTES.SUPPORT);
     } catch (error) {
       console.error("Error sending contact form:", error);
       toast.error("Failed to send message", {
