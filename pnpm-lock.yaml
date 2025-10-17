@@ -65,9 +65,6 @@ importers:
       '@radix-ui/react-tabs':
         specifier: ^1.1.13
         version: 1.1.13(@types/react-dom@19.1.9(@types/react@19.1.13))(@types/react@19.1.13)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
-      '@types/nodemailer':
-        specifier: ^7.0.2
-        version: 7.0.2
       cheerio:
         specifier: ^1.1.2
         version: 1.1.2
@@ -147,6 +144,9 @@ importers:
       '@types/node':
         specifier: ^20
         version: 20.19.17
+      '@types/nodemailer':
+        specifier: ^7.0.2
+        version: 7.0.2
       '@types/react':
         specifier: ^19
         version: 19.1.13

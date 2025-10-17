@@ -45,7 +45,7 @@ export function Header() {
   const headerRef = useRef<HTMLElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const user = useQuery(api.users.current);
-  const { openUserProfile } = useClerk();
+  const { openUserProfile, openSignIn } = useClerk();
 
   useEffect(() => {
     if (headerRef.current) {
@@ -282,10 +282,16 @@ export function Header() {
                   aria-label="Open user profile"
                   onClick={() => {
                     setMenuOpen(false);
-                    openUserProfile({
-                      appearance: {
-                        theme: resolvedTheme === "dark" ? dark : undefined,
-                      },
+                    const appearance = {
+                      theme: resolvedTheme === "dark" ? dark : undefined,
+                    };
+                    if (user) {
+                      openUserProfile({ appearance });
+                      return;
+                    }
+                    openSignIn({
+                      appearance,
+                      afterSignInUrl: ROUTES.DASHBOARD,
                     });
                   }}
                 >
@@ -294,7 +300,7 @@ export function Header() {
                       <Avatar className="h-8 w-8 rounded-lg">
                         <AvatarImage src={user?.image} alt={user?.name ?? ""} />
                         <AvatarFallback className="rounded-lg">
-                          {user?.name}
+                          {user?.name?.[0]}
                         </AvatarFallback>
                       </Avatar>
                     </div>

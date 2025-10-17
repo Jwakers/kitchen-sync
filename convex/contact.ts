@@ -46,6 +46,8 @@ export const sendContactEmail = action({
         port: 465,
         secure: true,
         host: "smtp.hostinger.com",
+        connectionTimeout: 10000, // 10 seconds
+        greetingTimeout: 5000, // 5 seconds
         auth: {
           user: process.env.HOSTINGER_CONTACT_EMAIL,
           pass: process.env.HOSTINGER_CONTACT_PASSWORD,
@@ -59,7 +61,7 @@ export const sendContactEmail = action({
         subject: `Contact Form: ${escapeHtml(reason)}`,
         html: `
           <h2>New Contact Form Submission</h2>
-          <p><strong>From:</strong> ${userName} (${userEmail})</p>
+          <p><strong>From:</strong> ${escapeHtml(userName)} (${escapeHtml(userEmail)})</p>
           <p><strong>Reason:</strong> ${escapeHtml(reason)}</p>
           <p><strong>Message:</strong></p>
           <p>${escapeHtml(message).replace(/\n/g, "<br>")}</p>
@@ -69,7 +71,7 @@ export const sendContactEmail = action({
         text: `
 New Contact Form Submission
 
-From: ${userName} (${userEmail})
+From: ${escapeHtml(userName)} (${escapeHtml(userEmail)})
 Reason: ${escapeHtml(reason)}
 Message: ${escapeHtml(message)}
 

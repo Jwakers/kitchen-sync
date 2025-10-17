@@ -67,21 +67,16 @@ export default function ContactPage() {
 
   const onSubmit = async (data: ContactFormData) => {
     try {
-      const result = await sendContactEmail({
+      await sendContactEmail({
         reason: data.reason,
         message: data.message,
       });
 
-      if (result.success) {
-        toast.success("Message sent successfully!", {
-          description:
-            "Thank you for your feedback. We'll get back to you soon.",
-        });
-        form.reset();
-        router.push(ROUTES.DASHBOARD);
-      } else {
-        throw new Error("Failed to send message");
-      }
+      toast.success("Message sent successfully!", {
+        description: "Thank you for your feedback. We'll get back to you soon.",
+      });
+      form.reset();
+      router.push(ROUTES.DASHBOARD);
     } catch (error) {
       console.error("Error sending contact form:", error);
       toast.error("Failed to send message", {
