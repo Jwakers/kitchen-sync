@@ -15,6 +15,10 @@ export { categoriesUnion, preparationUnion, unitsUnion };
 export default defineSchema({
   users: defineTable({
     name: v.string(),
+    firstName: v.optional(v.string()),
+    lastName: v.optional(v.string()),
+    email: v.optional(v.string()),
+    image: v.optional(v.string()),
     // this the Clerk ID, stored in the subject JWT field
     externalId: v.string(),
   }).index("byExternalId", ["externalId"]),

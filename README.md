@@ -4,10 +4,10 @@
 
 - [x] Refactor shopping list to use the DB
       THEN
-- Dashboard and homepage updates in preparation for first real previews
-  THEN
-- Contact form (part of a mobile menu)
-  THEN
+- [x] Dashboard and homepage updates in preparation for first real previews
+      THEN
+- [x] Contact form (part of a mobile menu)
+      THEN
 - How to use the app page
 
 ## 🐛 Bug Tracking
