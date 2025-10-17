@@ -152,7 +152,7 @@ export default function HowToUsePage() {
             "1. Open any recipe you want to cook",
             "2. Click 'Add to Shopping List'",
             "3. All ingredients will be added automatically",
-            "4. Go to 'Shopping List' to view and organize",
+            "4. Go to 'Shopping List' to view and organise",
             "5. Check off items as you shop",
           ],
         },
@@ -265,7 +265,7 @@ export default function HowToUsePage() {
             Getting Started
           </CardTitle>
           <CardDescription>
-            Follow these steps to set up Kitchen Sync and start organizing your
+            Follow these steps to set up Kitchen Sync and start organising your
             recipes.
           </CardDescription>
         </CardHeader>
@@ -363,7 +363,7 @@ export default function HowToUsePage() {
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <h4 className="font-semibold mb-2">Search & Organization</h4>
+              <h4 className="font-semibold mb-2">Search & organisation</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
                 <li>• Use the search function to quickly find recipes</li>
               </ul>
