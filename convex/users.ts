@@ -16,7 +16,7 @@ export const upsertFromClerk = internalMutation({
       name: `${data.first_name} ${data.last_name}`,
       firstName: data.first_name ?? undefined,
       lastName: data.last_name ?? undefined,
-      email: data.email_addresses[0].email_address,
+      email: data.email_addresses[0]?.email_address ?? undefined,
       image: data.image_url,
       externalId: data.id,
     };

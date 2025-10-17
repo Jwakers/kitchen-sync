@@ -1,6 +1,7 @@
 "use node";
 
 import { ConvexError, v } from "convex/values";
+import escapeHtml from "escape-html";
 import nodemailer from "nodemailer";
 import { action } from "./_generated/server";
 
@@ -8,6 +9,15 @@ export const CONTACT_EMAIL = process.env.CONTACT_EMAIL_ADDRESS;
 
 if (!CONTACT_EMAIL) {
   throw new Error("CONTACT_EMAIL_ADDRESS is not set");
+}
+
+if (
+  !process.env.HOSTINGER_CONTACT_EMAIL ||
+  !process.env.HOSTINGER_CONTACT_PASSWORD
+) {
+  throw new Error(
+    "HOSTINGER_CONTACT_EMAIL and HOSTINGER_CONTACT_PASSWORD must be set"
+  );
 }
 
 export const sendContactEmail = action({
@@ -46,13 +56,13 @@ export const sendContactEmail = action({
       const emailContent = {
         from: `Kitchen Sync App <${process.env.HOSTINGER_CONTACT_EMAIL}>`,
         to: CONTACT_EMAIL,
-        subject: `Contact Form: ${reason}`,
+        subject: `Contact Form: ${escapeHtml(reason)}`,
         html: `
           <h2>New Contact Form Submission</h2>
           <p><strong>From:</strong> ${userName} (${userEmail})</p>
-          <p><strong>Reason:</strong> ${reason}</p>
+          <p><strong>Reason:</strong> ${escapeHtml(reason)}</p>
           <p><strong>Message:</strong></p>
-          <p>${message.replace(/\n/g, "<br>")}</p>
+          <p>${escapeHtml(message).replace(/\n/g, "<br>")}</p>
           <hr>
           <p><em>Sent at: ${new Date().toISOString()}</em></p>
         `,
@@ -60,8 +70,8 @@ export const sendContactEmail = action({
 New Contact Form Submission
 
 From: ${userName} (${userEmail})
-Reason: ${reason}
-Message: ${message}
+Reason: ${escapeHtml(reason)}
+Message: ${escapeHtml(message)}
 
 Sent at: ${new Date().toISOString()}
         `,
