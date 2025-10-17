@@ -9,6 +9,7 @@
  */
 
 import type * as chalkboard from "../chalkboard.js";
+import type * as contact from "../contact.js";
 import type * as crons from "../crons.js";
 import type * as households from "../households.js";
 import type * as http from "../http.js";
@@ -33,6 +34,7 @@ import type {
  */
 declare const fullApi: ApiFromModules<{
   chalkboard: typeof chalkboard;
+  contact: typeof contact;
   crons: typeof crons;
   households: typeof households;
   http: typeof http;
