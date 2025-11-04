@@ -406,7 +406,7 @@ function RecipeSelectionCard({
     CATEGORY_COLORS.main;
   const ingredientCount = recipe.ingredients?.length || 0;
   const isHouseholdRecipe =
-    "householdId" in recipe && recipe.householdId !== undefined;
+    "householdId" in recipe && recipe.householdId !== null;
 
   return (
     <Card

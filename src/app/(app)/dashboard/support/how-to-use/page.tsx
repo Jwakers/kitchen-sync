@@ -271,8 +271,8 @@ export default function HowToUsePage() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
-            {gettingStartedSteps.map((step, index) => (
-              <div key={index} className="flex gap-4 p-4 border rounded-lg">
+            {gettingStartedSteps.map((step) => (
+              <div key={step.step} className="flex gap-4 p-4 border rounded-lg">
                 <div className="flex-shrink-0">
                   <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
                     {step.step}

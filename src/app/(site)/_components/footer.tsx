@@ -1,3 +1,4 @@
+import { ROUTES } from "@/app/constants";
 import { Utensils } from "lucide-react";
 import Link from "next/link";
 
@@ -13,7 +14,7 @@ export function Footer() {
               <span className="font-bold text-xl">Kitchen Sync</span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-md">
-              Making family meal planning simple, organized, and stress-free.
+              Making family meal planning simple, organised, and stress-free.
               Create recipes, generate smart shopping lists, and collaborate
               with your household.
             </p>
@@ -25,7 +26,7 @@ export function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
-                  href="/dashboard/support"
+                  href={ROUTES.SUPPORT}
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Help & Support
@@ -33,7 +34,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/dashboard/support/contact"
+                  href={ROUTES.CONTACT}
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Contact Us
@@ -41,7 +42,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/dashboard/support/faq"
+                  href={ROUTES.SUPPORT_FAQ}
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   FAQ
@@ -49,7 +50,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/dashboard/support/how-to-use"
+                  href={ROUTES.SUPPORT_HOW_TO}
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   How to Use

@@ -196,16 +196,6 @@ export default function ContactPage() {
           </Form>
         </CardContent>
       </Card>
-
-      {!user && (
-        <Card className="mt-6">
-          <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">
-              Please sign in to send us a message.
-            </p>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
