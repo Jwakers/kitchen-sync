@@ -71,9 +71,9 @@ export const sendContactEmail = action({
         text: `
 New Contact Form Submission
 
-From: ${escapeHtml(userName)} (${escapeHtml(userEmail)})
-Reason: ${escapeHtml(reason)}
-Message: ${escapeHtml(message)}
+From: ${userName} (${userEmail})
+Reason: ${reason}
+Message: ${message}
 
 Sent at: ${new Date().toISOString()}
         `,
@@ -88,7 +88,10 @@ Sent at: ${new Date().toISOString()}
       };
     } catch (error) {
       console.error("Error sending contact email:", error);
-      throw new Error("Failed to send contact email");
+      throw new ConvexError({
+        message: "Failed to send contact email",
+        details: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   },
 });

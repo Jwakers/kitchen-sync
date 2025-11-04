@@ -1,6 +1,7 @@
 import { RECIPE_CATEGORIES } from "convex/lib/constants";
 
 export const ROUTES = {
+  HOME: "/",
   DASHBOARD: "/dashboard",
   MY_RECIPES: "/dashboard/my-recipes",
   RECIPE: "/recipe",

@@ -2,14 +2,13 @@
 
 ### Next Immediate Steps
 
-- [x] Refactor shopping list to use the DB
-      THEN
-- [x] Dashboard and homepage updates in preparation for first real previews
-      THEN
-- [x] Contact form (part of a mobile menu)
-      THEN
-- [ ] How to use the app and support pages
-- [ ] Home page update
+- [ ] Shopping list cannot be created from household recipes
+- [ ] User feedback investigations and create todos
+- [ ] Bugs bugs bugs
+- [ ] Personal feedback
+- [ ] Minor improvements
+- [ ] Set up multi tenant in vercel/next and serve the app a subdomain app.kitchen-sync-app.com and the site through the main domain
+- [ ] Refactor the AI sections to use the vercel AI SDK
 
 ## 🐛 Bug Tracking
 
@@ -18,6 +17,9 @@
 - [ ] When the recipe form updates it will always upload images even if they already exists. The method should check for images first before uploading. In the recipe form, method image edits should not be possible and be handled in the recipe page.
 - [ ] On desktop when opening the drawer on dashboard, the nav shoots up the page. Need a new utility class that handles 100% full dynamic height - navigation height
 - [ ] Form inputs are awkward for required number values like prep time with leading zeros (note cook time is no longer required)
+- [ ] After clicking save on an imported recipe and that saving as a draft. You can continue to click save and keep saving more copies. We should only allow one save and then redirect options.
+- [ ] I got an error on the dashboard page and the back to dashboard button did nothing
+- [ ] Clicking sign in on the mobile menu requires two clicks after opening the sign in modal. One to close the menu, one to interact with the modal.
 
 ## Tech debt
 
@@ -34,7 +36,6 @@
 
 ## Minor updates
 
-- [ ] Background and colours on android look really ugly for some reason
 - [ ] When a recipe is saved from the create recipe form, give the users a link in the toast to the new recipe page
 - [ ] Recipe description needs clamping or moving on mobile
 - [ ] Handle my-recipe pagination (limit to 20 per page)
@@ -51,6 +52,7 @@
 - [ ] On saving a recipe from teh create recipe form the users should be guided to it and the form drawer should close
 - [ ] Pages that have been made server side just for meta data and then export a client component for all logic can now include that logic directly and shift any metadata or server information to the layout file of the page (see invitations page).
 - [ ] Should be able to trigger the add recipe navigation from anywhere. Time to add it to its own page or wrap the app in context to provide a method to open it.
+- [ ] The theme options in the menu are a drop down that opens downwards. This does not look great the options to expand open or the menu should be above not below
 
 ## Major updates
 
