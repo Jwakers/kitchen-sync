@@ -131,7 +131,7 @@ async function enrichSharedRecipe(
     sharedAt: shared.sharedAt,
     owner: owner?.name ?? "Unknown User",
     isOwner: recipe.userId === userId,
-    ...(includeHouseholdId && { householdId: shared.householdId }),
+    ...(includeHouseholdId ? { householdId: shared.householdId } : {}),
   };
 }
 
