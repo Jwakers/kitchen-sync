@@ -33,6 +33,7 @@ import {
   CheckCircle2,
   ChefHat,
   Clock,
+  Home,
   ListChecks,
   Search,
   ShoppingCart,
@@ -44,10 +45,17 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import ShoppingList from "./shopping-list";
 
-type Recipe = FunctionReturnType<typeof api.recipes.getAllUserRecipes>[number];
+type UserRecipe = FunctionReturnType<
+  typeof api.recipes.getAllUserRecipes
+>[number];
+type HouseholdRecipe = FunctionReturnType<
+  typeof api.households.getAllHouseholdRecipes
+>[number];
+type Recipe = UserRecipe | HouseholdRecipe;
 
 export default function ShoppingListClient() {
-  const recipes = useQuery(api.recipes.getAllUserRecipes);
+  const userRecipes = useQuery(api.recipes.getAllUserRecipes);
+  const householdRecipes = useQuery(api.households.getAllHouseholdRecipes);
   const activeShoppingList = useQuery(api.shoppingLists.getActiveShoppingList);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -55,9 +63,17 @@ export default function ShoppingListClient() {
     Set<Id<"recipes">>
   >(new Set());
   const [showShoppingList, setShowShoppingList] = useState(false);
+
+  // Combine user and household recipes into one list
+  const allRecipes = useMemo(() => {
+    const user = userRecipes || [];
+    const household = householdRecipes || [];
+    return [...user, ...household];
+  }, [userRecipes, householdRecipes]);
+
   const selectedRecipes = useMemo(
-    () => recipes?.filter((r) => selectedRecipeIds.has(r._id)) || [],
-    [recipes, selectedRecipeIds]
+    () => allRecipes.filter((r) => selectedRecipeIds.has(r._id)) || [],
+    [allRecipes, selectedRecipeIds]
   );
   const flatIngredients = useMemo(
     () => buildShoppingListItems(selectedRecipes ?? []),
@@ -82,15 +98,16 @@ export default function ShoppingListClient() {
   const deleteShoppingList = useMutation(api.shoppingLists.deleteShoppingList);
 
   // Filter recipes based on search and only show published recipes
-  const filteredRecipes =
-    recipes
-      ?.filter((recipe) => recipe.status === "published")
-      .filter((recipe) => {
+  const filteredRecipes = useMemo(
+    () =>
+      allRecipes.filter((recipe) => {
         const matchesSearch =
           recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           recipe.description?.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesSearch;
-      }) || [];
+      }),
+    [allRecipes, searchQuery]
+  );
 
   const handleToggleRecipe = (recipeId: Id<"recipes">) => {
     setSelectedRecipeIds((prev) => {
@@ -280,7 +297,7 @@ export default function ShoppingListClient() {
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Search your recipes..."
+                      placeholder="Search recipes..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-10"
@@ -293,7 +310,7 @@ export default function ShoppingListClient() {
               </div>
 
               {/* Recipe List */}
-              {recipes === undefined ? (
+              {userRecipes === undefined || householdRecipes === undefined ? (
                 <LoadingState />
               ) : filteredRecipes.length === 0 ? (
                 <div className="text-center py-16">
@@ -301,12 +318,12 @@ export default function ShoppingListClient() {
                     <ChefHat className="h-12 w-12 text-muted-foreground" />
                   </div>
                   <h3 className="text-2xl font-bold text-foreground mb-2">
-                    {recipes.length === 0
+                    {allRecipes.length === 0
                       ? "No recipes yet"
                       : "No recipes match your search"}
                   </h3>
                   <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                    {recipes.length === 0 ? (
+                    {allRecipes.length === 0 ? (
                       <>
                         Start by creating some recipes, then come back here to
                         generate your shopping list.
@@ -315,7 +332,7 @@ export default function ShoppingListClient() {
                       <>Try adjusting your search terms to find recipes.</>
                     )}
                   </p>
-                  {recipes.length === 0 && (
+                  {allRecipes.length === 0 && (
                     <Button asChild size="lg">
                       <Link href={ROUTES.MY_RECIPES}>Go to My Recipes</Link>
                     </Button>
@@ -384,8 +401,12 @@ function RecipeSelectionCard({
 }) {
   const totalTime = (recipe.prepTime ?? 0) + (recipe.cookTime ?? 0);
   const categoryLabel = titleCase(recipe.category);
-  const categoryColor = CATEGORY_COLORS[recipe.category];
+  const categoryColor =
+    CATEGORY_COLORS[recipe.category as keyof typeof CATEGORY_COLORS] ||
+    CATEGORY_COLORS.main;
   const ingredientCount = recipe.ingredients?.length || 0;
+  const isHouseholdRecipe =
+    "householdId" in recipe && recipe.householdId !== undefined;
 
   return (
     <Card
@@ -432,9 +453,19 @@ function RecipeSelectionCard({
           {/* Recipe Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2 mb-2">
-              <h3 className="font-bold text-lg line-clamp-2 group-hover:text-primary transition-colors">
-                {recipe.title}
-              </h3>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-bold text-lg line-clamp-2 group-hover:text-primary transition-colors">
+                    {recipe.title}
+                  </h3>
+                  {isHouseholdRecipe && (
+                    <Badge variant="outline" className="shrink-0">
+                      <Home className="h-3 w-3 mr-1" />
+                      Household
+                    </Badge>
+                  )}
+                </div>
+              </div>
               <Badge
                 variant="secondary"
                 className={`${categoryColor} border-0 shrink-0`}
@@ -589,7 +620,7 @@ const buildShoppingListItems = (recipes: Recipe[]) => {
           preparation: ingredient.preparation,
           amount: Number.isFinite(amountValue)
             ? amountValue
-            : ingredient.amount,
+            : (ingredient.amount ?? null),
         });
         return;
       }

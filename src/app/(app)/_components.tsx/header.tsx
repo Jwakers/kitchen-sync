@@ -29,6 +29,7 @@ import {
   Clipboard,
   Globe,
   Home,
+  LogOut,
   Menu,
   MessageCircleQuestionMark,
   Moon,
@@ -39,6 +40,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 export function Header() {
@@ -46,7 +48,8 @@ export function Header() {
   const headerRef = useRef<HTMLElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const user = useQuery(api.users.current);
-  const { openUserProfile, openSignIn } = useClerk();
+  const { openUserProfile, openSignIn, signOut } = useClerk();
+  const router = useRouter();
 
   useEffect(() => {
     if (headerRef.current) {
@@ -56,6 +59,11 @@ export function Header() {
       );
     }
   }, []);
+
+  const handleSignOut = async () => {
+    router.push(ROUTES.HOME);
+    await signOut();
+  };
 
   return (
     <header
@@ -262,15 +270,15 @@ export function Header() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-48">
                     <DropdownMenuItem onClick={() => setTheme("light")}>
-                      <Sun className="h-4 w-4 mr-2" />
+                      <Sun className="size-4 mr-2" />
                       Light
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setTheme("dark")}>
-                      <Moon className="h-4 w-4 mr-2" />
+                      <Moon className="size-4 mr-2" />
                       Dark
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setTheme("system")}>
-                      <div className="h-4 w-4 mr-2 flex items-center justify-center">
+                      <div className="size-4 mr-2 flex items-center justify-center">
                         <div className="h-3 w-3 rounded-full border border-current" />
                       </div>
                       System
@@ -278,6 +286,14 @@ export function Header() {
                   </DropdownMenuContent>
                 </DropdownMenu>
                 {/* User Management */}
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start h-auto"
+                  onClick={handleSignOut}
+                >
+                  <LogOut className="size-4 mr-3" />
+                  Sign out
+                </Button>
                 <button
                   className="p-3 border rounded-lg"
                   type="button"

@@ -1,6 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { internal } from "./_generated/api";
-import { Id } from "./_generated/dataModel";
+import { Doc, Id } from "./_generated/dataModel";
 import {
   internalMutation,
   mutation,
@@ -102,6 +102,37 @@ function generateInvitationToken(): string {
   return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join(
     ""
   );
+}
+
+/**
+ * Enrich a shared recipe record with recipe data, user info, and image URL
+ */
+async function enrichSharedRecipe(
+  ctx: QueryCtx,
+  shared: Doc<"householdRecipes">,
+  userId: Id<"users">,
+  includeHouseholdId?: boolean
+) {
+  const recipe = await ctx.db.get(shared.recipeId);
+  if (!recipe) return null;
+
+  const sharedByUser = await ctx.db.get(shared.sharedByUserId);
+  const owner = await ctx.db.get(recipe.userId);
+
+  let image: string | null = null;
+  if (recipe.image) {
+    image = await ctx.storage.getUrl(recipe.image);
+  }
+
+  return {
+    ...recipe,
+    image,
+    sharedBy: sharedByUser?.name ?? "Unknown User",
+    sharedAt: shared.sharedAt,
+    owner: owner?.name ?? "Unknown User",
+    isOwner: recipe.userId === userId,
+    ...(includeHouseholdId && { householdId: shared.householdId }),
+  };
 }
 
 // ============================================================================
@@ -299,30 +330,60 @@ export const getHouseholdRecipes = query({
       .collect();
 
     const recipes = await Promise.all(
-      sharedRecipes.map(async (shared) => {
-        const recipe = await ctx.db.get(shared.recipeId);
-        if (!recipe) return null;
-
-        const sharedByUser = await ctx.db.get(shared.sharedByUserId);
-        const owner = await ctx.db.get(recipe.userId);
-
-        let image = null;
-        if (recipe.image) {
-          image = await ctx.storage.getUrl(recipe.image);
-        }
-
-        return {
-          ...recipe,
-          image,
-          sharedBy: sharedByUser?.name ?? "Unknown User",
-          sharedAt: shared.sharedAt,
-          owner: owner?.name ?? "Unknown User",
-          isOwner: recipe.userId === user._id,
-        };
-      })
+      sharedRecipes.map((shared) =>
+        enrichSharedRecipe(ctx, shared, user._id, false)
+      )
     );
 
-    return recipes.filter((r) => r !== null);
+    return recipes.filter((r): r is NonNullable<typeof r> => r !== null);
+  },
+});
+
+export const getAllHouseholdRecipes = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUserOrThrow(ctx);
+
+    // Get all household memberships for the user
+    const memberships = await ctx.db
+      .query("householdMembers")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+
+    // Collect all recipes from all households
+    const allRecipes = [];
+
+    for (const membership of memberships) {
+      const sharedRecipes = await ctx.db
+        .query("householdRecipes")
+        .withIndex("by_household", (q) =>
+          q.eq("householdId", membership.householdId)
+        )
+        .collect();
+
+      const recipes = await Promise.all(
+        sharedRecipes.map((shared) =>
+          enrichSharedRecipe(ctx, shared, user._id, true)
+        )
+      );
+
+      // Filter out null recipes and recipes owned by the current user
+      const validRecipes = recipes.filter(
+        (r): r is NonNullable<typeof r> => r !== null && !r.isOwner
+      );
+
+      allRecipes.push(...validRecipes);
+    }
+
+    // Remove duplicates (same recipe shared to multiple households)
+    const uniqueRecipes = new Map<Id<"recipes">, (typeof allRecipes)[number]>();
+    for (const recipe of allRecipes) {
+      if (recipe && !uniqueRecipes.has(recipe._id)) {
+        uniqueRecipes.set(recipe._id, recipe);
+      }
+    }
+
+    return Array.from(uniqueRecipes.values());
   },
 });
 
