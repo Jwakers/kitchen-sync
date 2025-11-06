@@ -15,9 +15,11 @@ import { Authenticated, Unauthenticated } from "convex/react";
 import { Menu, Utensils } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
+import { useState } from "react";
 
 export function Header() {
   const { theme } = useTheme();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <header className="sticky safe-area-inset-top top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -49,7 +51,7 @@ export function Header() {
         </div>
 
         {/* Mobile Menu */}
-        <Sheet>
+        <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
           <div className="flex items-center gap-x-2">
             <Authenticated>
               <UserButton
@@ -78,12 +80,25 @@ export function Header() {
                 <Unauthenticated>
                   <div className="flex flex-col space-y-2">
                     <SignInButton mode="modal">
-                      <Button variant="secondary" className="w-full">
+                      <Button
+                        variant="secondary"
+                        className="w-full"
+                        onClick={() => {
+                          setMenuOpen(false);
+                        }}
+                      >
                         Sign In
                       </Button>
                     </SignInButton>
                     <SignUpButton mode="modal">
-                      <Button className="w-full">Get Started</Button>
+                      <Button
+                        className="w-full"
+                        onClick={() => {
+                          setMenuOpen(false);
+                        }}
+                      >
+                        Get Started
+                      </Button>
                     </SignUpButton>
                   </div>
                 </Unauthenticated>

@@ -15,8 +15,9 @@
 - [ ] When the recipe form updates it will always upload images even if they already exists. The method should check for images first before uploading. In the recipe form, method image edits should not be possible and be handled in the recipe page.
 - [x] Form inputs are awkward for required number values like prep time with leading zeros (note cook time is no longer required)
 - [x] After clicking save on an imported recipe and that saving as a draft. You can continue to click save and keep saving more copies. We should only allow one save and then redirect options.
-- [ ] I got an error on the dashboard page and the back to dashboard button did nothing
-- [ ] Clicking sign in on the mobile menu requires two clicks after opening the sign in modal. One to close the menu, one to interact with the modal.
+- [x] I got an error on the dashboard page and the back to dashboard button did nothing
+- [x] Clicking sign in on the mobile menu requires two clicks after opening the sign in modal. One to close the menu, one to interact with the modal.
+- [ ] On sign in there is occasionally a cant find user error on the dashboard. Could be redirected to the dashboard too soon, or not catching user undefined errors.
 
 ## Tech debt
 
