@@ -1,9 +1,7 @@
 "use client";
 
-import { ROUTES } from "@/app/constants";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, ArrowLeft, RefreshCw } from "lucide-react";
-import Link from "next/link";
+import { AlertCircle, RefreshCw } from "lucide-react";
 import { useEffect } from "react";
 
 interface ErrorProps {
@@ -46,13 +44,6 @@ export default function DashboardError({ error, reset }: ErrorProps) {
           <Button onClick={reset} size="lg" variant="default">
             <RefreshCw className="h-4 w-4" />
             Try Again
-          </Button>
-
-          <Button asChild size="lg" variant="outline" className="w-full">
-            <Link href={ROUTES.DASHBOARD}>
-              <ArrowLeft className="h-4 w-4" />
-              Back to Dashboard
-            </Link>
           </Button>
         </div>
       </div>
