@@ -2,24 +2,22 @@
 
 ### Next Immediate Steps
 
-- [ ] Shopping list cannot be created from household recipes
-- [ ] User feedback investigations and create todos
+- [x] Shopping list cannot be created from household recipes
 - [ ] Bugs bugs bugs
-- [ ] Personal feedback
+- [ ] User feedback investigations and create todos
+- [ ] Personal feedback (In notes app)
 - [ ] Minor improvements
 - [ ] Set up multi tenant in vercel/next and serve the app a subdomain app.kitchen-sync-app.com and the site through the main domain
 - [ ] Refactor the AI sections to use the vercel AI SDK
 
 ## 🐛 Bug Tracking
 
-<!-- Add bugs here as you encounter them -->
-
 - [ ] When the recipe form updates it will always upload images even if they already exists. The method should check for images first before uploading. In the recipe form, method image edits should not be possible and be handled in the recipe page.
-- [ ] On desktop when opening the drawer on dashboard, the nav shoots up the page. Need a new utility class that handles 100% full dynamic height - navigation height
-- [ ] Form inputs are awkward for required number values like prep time with leading zeros (note cook time is no longer required)
-- [ ] After clicking save on an imported recipe and that saving as a draft. You can continue to click save and keep saving more copies. We should only allow one save and then redirect options.
-- [ ] I got an error on the dashboard page and the back to dashboard button did nothing
-- [ ] Clicking sign in on the mobile menu requires two clicks after opening the sign in modal. One to close the menu, one to interact with the modal.
+- [x] Form inputs are awkward for required number values like prep time with leading zeros (note cook time is no longer required)
+- [x] After clicking save on an imported recipe and that saving as a draft. You can continue to click save and keep saving more copies. We should only allow one save and then redirect options.
+- [x] I got an error on the dashboard page and the back to dashboard button did nothing
+- [x] Clicking sign in on the mobile menu requires two clicks after opening the sign in modal. One to close the menu, one to interact with the modal.
+- [ ] On sign in there is occasionally a cant find user error on the dashboard. Could be redirected to the dashboard too soon, or not catching user undefined errors.
 
 ## Tech debt
 

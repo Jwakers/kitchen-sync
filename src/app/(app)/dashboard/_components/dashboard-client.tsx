@@ -16,10 +16,10 @@ import { api } from "convex/_generated/api";
 import { useQuery } from "convex/react";
 import type { FunctionReturnType } from "convex/server";
 import {
+  ArrowRight,
   ChefHat,
   Clipboard,
   Clock,
-  Edit3,
   Globe,
   LucideIcon,
   MessageSquare,
@@ -80,7 +80,11 @@ function ActivityCard({
   const totalTime = (recipe.prepTime ?? 0) + (recipe.cookTime ?? 0);
 
   return (
-    <div className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
+    <Link
+      href={`${ROUTES.RECIPE}/${recipe._id}`}
+      aria-label={`Edit ${recipe.title || "recipe"}`}
+      className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+    >
       <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-muted flex-shrink-0">
         {recipe.image ? (
           <Image
@@ -110,15 +114,10 @@ function ActivityCard({
           )}
         </div>
       </div>
-      <Button size="sm" variant="ghost" asChild className="flex-shrink-0">
-        <Link
-          href={`${ROUTES.RECIPE}/${recipe._id}`}
-          aria-label={`Edit ${recipe.title || "recipe"}`}
-        >
-          <Edit3 className="h-3 w-3" />
-        </Link>
-      </Button>
-    </div>
+      <div className="flex-shrink-0">
+        <ArrowRight className="size-4" />
+      </div>
+    </Link>
   );
 }
 
@@ -162,7 +161,7 @@ function RecentActivitySection({ data }: { data: RecentActivity | undefined }) {
           <Sparkles className="h-5 w-5" />
           Recent Activity
         </CardTitle>
-        <CardDescription>Your latest recipes and drafts</CardDescription>
+        <CardDescription>Your latest recipes</CardDescription>
       </CardHeader>
       <CardContent>
         {!hasActivity ? (
