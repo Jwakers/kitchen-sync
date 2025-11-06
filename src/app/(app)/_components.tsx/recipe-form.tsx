@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "@/app/constants";
 import { PreparationSelector } from "@/components/preparation-selector";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -39,6 +40,7 @@ import {
   X,
 } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FieldErrors, useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -50,6 +52,7 @@ type RecipeFormProps = {
 type FormStep = "basic" | "ingredients" | "method" | "review";
 
 export function RecipeForm({ closeDrawer }: RecipeFormProps) {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState<FormStep>("basic");
   const [slideDirection, setSlideDirection] = useState<"next" | "prev">("next");
   const [recipeId, setRecipeId] = useState<Id<"recipes"> | null>(null);
@@ -57,6 +60,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
   const [methodImagePreviews, setMethodImagePreviews] = useState<
     Record<number, string>
   >({});
+  const [isSaved, setIsSaved] = useState(false);
   const creatingRecipe = useRef(false);
 
   const createDraftRecipeMutation = useMutation(api.recipes.createDraftRecipe);
@@ -132,7 +136,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
   const addIngredient = () => {
     appendIngredient({
       name: "",
-      amount: 0,
+      amount: undefined,
       unit: undefined,
       preparation: undefined,
     });
@@ -189,6 +193,11 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
   );
 
   const onSubmit = async (values: RecipeFormData) => {
+    // Only allow submission when on the review step and not already saved
+    if (currentStep !== "review" || isSaved) {
+      return;
+    }
+
     try {
       if (!recipeId) throw new Error("Recipe ID not found");
 
@@ -247,6 +256,9 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
       // Try to publish the recipe
       const { errors } = await publishRecipeMutation({ recipeId });
 
+      // Mark as saved to prevent multiple saves
+      setIsSaved(true);
+
       if (errors?.length) {
         errors.forEach((error) => {
           form.setError(error.field, { message: error.message });
@@ -255,11 +267,16 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
           description:
             "This recipe has been saved to your drafts as it is not fully completed",
         });
+
+        closeDrawer();
+        router.push(`${ROUTES.RECIPE}/${recipeId}`);
         return;
       }
 
       closeDrawer();
       toast.success("Recipe saved successfully");
+      // Redirect to recipe page
+      router.push(`${ROUTES.RECIPE}/${recipeId}`);
     } catch (error) {
       console.error(error);
       toast.error("Unexpected error. Unable to save recipe", {
@@ -308,9 +325,11 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
   }, [closeDrawer, createDraftRecipeMutation, recipeId]);
 
   useEffect(() => {
-    // Update the recipe at each step
+    // Update the recipe at each step (but not on review step - user should manually save)
     if (!recipeId) return;
     if (!form.formState.isDirty) return;
+    if (currentStep === "review") return; // Don't auto-update on review step
+    if (isSaved) return; // Don't update if already saved
 
     const updateRecipe = async () => {
       const formValues = form.getValues();
@@ -335,6 +354,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
     getMethodData,
     recipeId,
     updateRecipeMutation,
+    isSaved,
   ]);
 
   // Clean up image preview URL when component unmounts or when image changes
@@ -1368,15 +1388,23 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
               ) : (
                 <motion.div className="flex-1" whileTap={{ scale: 0.98 }}>
                   <Button
-                    type="submit"
+                    type="button"
                     className="w-full"
-                    disabled={form.formState.isSubmitting}
+                    disabled={form.formState.isSubmitting || isSaved}
+                    onClick={() => {
+                      // Avoid `type="submit"` to prevent accidental auto-submission. Trigger form submission explicitly.
+                      if (currentStep === "review" && !isSaved) {
+                        form.handleSubmit(onSubmit, onError)();
+                      }
+                    }}
                   >
                     {form.formState.isSubmitting ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         Saving...
                       </>
+                    ) : isSaved ? (
+                      "Saved"
                     ) : (
                       "Save Recipe"
                     )}

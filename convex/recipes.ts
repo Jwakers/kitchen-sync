@@ -300,7 +300,7 @@ export const updateRecipe = mutation({
       v.array(
         v.object({
           name: v.string(),
-          amount: v.number(),
+          amount: v.optional(v.number()),
           unit: v.optional(unitsUnion),
           preparation: v.optional(preparationUnion),
         })
@@ -342,6 +342,7 @@ export const updateRecipe = mutation({
           return {
             ...ing,
             ingredientId,
+            amount: ing.amount ?? 0,
           };
         })
       );
