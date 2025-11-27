@@ -14,16 +14,13 @@
 
 - [x] Fix horizontal scrolling on recipe page
 - [x] Scroll overflow on the recipes page on iPhone
+- [x] Able to scroll left and right on recipe page
 - [x] Edit mode controls should be sticky
 - [x] When editing recipes, add controls should be sticky
-- [ ] Able to scroll left and right on recipe page
-- [ ] Recent recipes have an edit icon next to them which makes no sense
-- [ ] No way to send recipe to another user. Should be part of the share dialog
-- [ ] API seems to set cook time to zero quite a lot (incomplete schema may be to blame)
-- [ ] Cannot see original recipe details on the recipe page
-- [ ] Chiffonade is not a preparation option
+- [x] Chiffonade is not a preparation option
 - [ ] When there is no image for a recipe a button to upload one would be helpful rather than having to go into edit mode
 
+- [ ] API seems to set cook time to zero quite a lot (incomplete schema may be to blame)
 - [ ] There is a notice on household recipes not made by me. Seems like it’s not needed. There should be attribution to the original owner, and an option to copy the recipe so you can make your own edits and updates (however copying should be a separate feature from the attribution update as it requires a good deal of thought around publishing rights, what recipes are you allowed to copy etc)
 - [ ] When no image is able to be uploaded a pop up prompt should follow asking if the user has an image they would like to use for the recipe
 - [ ] Need to add a how to use the app page
