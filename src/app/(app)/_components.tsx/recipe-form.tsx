@@ -57,9 +57,6 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
   const [slideDirection, setSlideDirection] = useState<"next" | "prev">("next");
   const [recipeId, setRecipeId] = useState<Id<"recipes"> | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
-  const [methodImagePreviews, setMethodImagePreviews] = useState<
-    Record<number, string>
-  >({});
   const [isSaved, setIsSaved] = useState(false);
   const creatingRecipe = useRef(false);
 
@@ -148,26 +145,6 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
       description: "",
       image: undefined,
     });
-  };
-
-  const handleRemoveMethodStep = (index: number) => {
-    // Clean up preview URL if it exists
-    if (methodImagePreviews[index]) {
-      URL.revokeObjectURL(methodImagePreviews[index]);
-      setMethodImagePreviews((prev) => {
-        const next: Record<number, string> = {};
-        Object.entries(prev).forEach(([key, value]) => {
-          const numericKey = Number(key);
-          if (numericKey === index) {
-            return;
-          }
-          const nextKey = numericKey > index ? numericKey - 1 : numericKey;
-          next[nextKey] = value;
-        });
-        return next;
-      });
-    }
-    removeMethodStep(index);
   };
 
   const getMethodData = useCallback(
@@ -363,14 +340,8 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
       if (imagePreviewUrl) {
         URL.revokeObjectURL(imagePreviewUrl);
       }
-      // Clean up method image previews
-      Object.values(methodImagePreviews).forEach((url) => {
-        if (url) {
-          URL.revokeObjectURL(url);
-        }
-      });
     };
-  }, [imagePreviewUrl, methodImagePreviews]);
+  }, [imagePreviewUrl]);
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -937,208 +908,8 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                             </FormItem>
                           )}
                         />
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.3 }}
-                        >
-                          <FormField
-                            control={form.control}
-                            name={`method.${index}.image`}
-                            render={({ field: { onChange } }) => (
-                              <FormItem>
-                                <FormLabel>Step Image (Optional)</FormLabel>
-                                <FormControl>
-                                  <div className="space-y-3">
-                                    {/* Image Preview */}
-                                    {methodImagePreviews[index] && (
-                                      <div className="relative aspect-[16/9] bg-gradient-to-br from-primary/20 to-primary/5 overflow-hidden rounded-lg group">
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                                        <Image
-                                          src={methodImagePreviews[index]}
-                                          alt={`Step ${index + 1} preview`}
-                                          fill
-                                          sizes="(max-width: 768px) 100vw, 500px"
-                                          className="object-cover size-full"
-                                          unoptimized
-                                        />
-                                        {/* Remove button overlay */}
-                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                          <Button
-                                            type="button"
-                                            variant="secondary"
-                                            size="sm"
-                                            onClick={() => {
-                                              // Revoke old URL if it exists
-                                              if (methodImagePreviews[index]) {
-                                                URL.revokeObjectURL(
-                                                  methodImagePreviews[index]
-                                                );
-                                              }
-                                              onChange(undefined);
-                                              setMethodImagePreviews((prev) => {
-                                                const newPreviews = { ...prev };
-                                                delete newPreviews[index];
-                                                return newPreviews;
-                                              });
-                                            }}
-                                          >
-                                            <X className="h-4 w-4" />
-                                            Remove Image
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {/* File Input - Hidden when preview is shown */}
-                                    {!methodImagePreviews[index] && (
-                                      <div className="relative aspect-[16/9] bg-gradient-to-br from-primary/20 to-primary/5 overflow-hidden rounded-lg border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 transition-colors">
-                                        <label
-                                          htmlFor={`method-step-${index}-image-input`}
-                                          className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer"
-                                        >
-                                          <ImageIcon className="h-8 w-8 text-muted-foreground mb-2" />
-                                          <span className="text-sm text-muted-foreground">
-                                            Click to upload image
-                                          </span>
-                                          <span className="text-xs text-muted-foreground mt-1">
-                                            Max 10MB
-                                          </span>
-                                        </label>
-                                        <Input
-                                          id={`method-step-${index}-image-input`}
-                                          type="file"
-                                          accept="image/*"
-                                          className="sr-only"
-                                          onChange={(e) => {
-                                            const file = e.target.files?.[0];
-                                            if (file) {
-                                              // Check file size (10MB limit)
-                                              const maxSizeInBytes =
-                                                10 * 1024 * 1024; // 10MB
-                                              if (
-                                                !file.type?.startsWith("image/")
-                                              ) {
-                                                toast.error(
-                                                  "Invalid file type",
-                                                  {
-                                                    description:
-                                                      "Please select an image file",
-                                                  }
-                                                );
-                                                e.target.value = "";
-                                                onChange(undefined);
-                                                return;
-                                              }
-
-                                              if (file.size > maxSizeInBytes) {
-                                                toast.error("Image too large", {
-                                                  description:
-                                                    "Please select an image smaller than 10MB",
-                                                });
-                                                e.target.value = "";
-                                                onChange(undefined);
-                                                return;
-                                              }
-
-                                              // Create preview URL
-                                              const previewUrl =
-                                                URL.createObjectURL(file);
-                                              setMethodImagePreviews(
-                                                (prev) => ({
-                                                  ...prev,
-                                                  [index]: previewUrl,
-                                                })
-                                              );
-                                              onChange(file);
-                                            }
-                                          }}
-                                        />
-                                      </div>
-                                    )}
-
-                                    {/* Show "Change Image" button when there's a preview */}
-                                    {methodImagePreviews[index] && (
-                                      <label
-                                        htmlFor={`method-step-${index}-image-change-input`}
-                                        className="inline-flex"
-                                      >
-                                        <Button
-                                          type="button"
-                                          variant="outline"
-                                          size="sm"
-                                          asChild
-                                        >
-                                          <span>
-                                            <ImageIcon className="h-4 w-4" />
-                                            Change Image
-                                          </span>
-                                        </Button>
-                                        <Input
-                                          id={`method-step-${index}-image-change-input`}
-                                          type="file"
-                                          accept="image/*"
-                                          className="sr-only"
-                                          onChange={(e) => {
-                                            const file = e.target.files?.[0];
-                                            if (file) {
-                                              // Check file size (10MB limit)
-                                              const maxSizeInBytes =
-                                                10 * 1024 * 1024; // 10MB
-                                              if (
-                                                !file.type?.startsWith("image/")
-                                              ) {
-                                                toast.error(
-                                                  "Invalid file type",
-                                                  {
-                                                    description:
-                                                      "Please select an image file",
-                                                  }
-                                                );
-                                                e.target.value = "";
-                                                onChange(undefined);
-                                                return;
-                                              }
-
-                                              if (file.size > maxSizeInBytes) {
-                                                toast.error("Image too large", {
-                                                  description:
-                                                    "Please select an image smaller than 10MB",
-                                                });
-                                                e.target.value = "";
-                                                onChange(undefined);
-                                                return;
-                                              }
-
-                                              // Revoke old preview URL if it exists
-                                              if (methodImagePreviews[index]) {
-                                                URL.revokeObjectURL(
-                                                  methodImagePreviews[index]
-                                                );
-                                              }
-
-                                              // Create new preview URL
-                                              const previewUrl =
-                                                URL.createObjectURL(file);
-                                              setMethodImagePreviews(
-                                                (prev) => ({
-                                                  ...prev,
-                                                  [index]: previewUrl,
-                                                })
-                                              );
-                                              onChange(file);
-                                            }
-                                          }}
-                                        />
-                                      </label>
-                                    )}
-                                  </div>
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </motion.div>
+                        {/* Note: Method step images are not editable in the form. 
+                            They should be managed from the recipe detail page. */}
                       </motion.div>
                       <motion.div
                         initial={{ opacity: 0, scale: 0.8 }}
@@ -1151,7 +922,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleRemoveMethodStep(index)}
+                          onClick={() => removeMethodStep(index)}
                           className="h-8 w-8"
                         >
                           <X className="h-4 w-4" />

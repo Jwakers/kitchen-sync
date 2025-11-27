@@ -7,7 +7,7 @@ import {
   query,
   QueryCtx,
 } from "./_generated/server";
-import { getCurrentUserOrThrow } from "./users";
+import { getCurrentUser, getCurrentUserOrThrow } from "./users";
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -175,7 +175,11 @@ export const getHousehold = query({
 export const getUserHouseholds = query({
   args: {},
   handler: async (ctx) => {
-    const user = await getCurrentUserOrThrow(ctx);
+    const user = await getCurrentUser(ctx);
+    // Return empty array if user doesn't exist yet (race condition on sign-in)
+    if (!user) {
+      return [];
+    }
 
     const memberships = await ctx.db
       .query("householdMembers")
@@ -342,7 +346,11 @@ export const getHouseholdRecipes = query({
 export const getAllHouseholdRecipes = query({
   args: {},
   handler: async (ctx) => {
-    const user = await getCurrentUserOrThrow(ctx);
+    const user = await getCurrentUser(ctx);
+    // Return empty array if user doesn't exist yet (race condition on sign-in)
+    if (!user) {
+      return [];
+    }
 
     // Get all household memberships for the user
     const memberships = await ctx.db

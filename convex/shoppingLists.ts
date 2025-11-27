@@ -1,7 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
 import { isHouseholdMember } from "./households";
-import { getCurrentUserOrThrow } from "./users";
+import { getCurrentUser, getCurrentUserOrThrow } from "./users";
 
 // ============================================================================
 // QUERIES
@@ -13,7 +13,11 @@ import { getCurrentUserOrThrow } from "./users";
 export const getActiveShoppingList = query({
   args: {},
   handler: async (ctx) => {
-    const user = await getCurrentUserOrThrow(ctx);
+    const user = await getCurrentUser(ctx);
+    // Return null if user doesn't exist yet (race condition on sign-in)
+    if (!user) {
+      return null;
+    }
 
     // Get the most recent draft or active list
     const list = await ctx.db
