@@ -210,7 +210,7 @@ export function RecipeHeader({
         </Badge>
       </div>
       {/* Action Buttons */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center flex-wrap gap-3">
         {isEditMode ? (
           <>
             <Button
@@ -264,10 +264,14 @@ export function RecipeHeader({
             )}
             {canEdit && (
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button type="button" size="lg" variant="outline">
+                <DropdownMenuTrigger asChild className="ml-auto">
+                  <Button
+                    type="button"
+                    size="lg"
+                    variant="ghost"
+                    aria-label="More Actions"
+                  >
                     <MoreVertical className="h-4 w-4" />
-                    More Actions
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
