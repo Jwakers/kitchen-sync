@@ -10,9 +10,31 @@
 - [ ] Set up multi tenant in vercel/next and serve the app a subdomain app.kitchen-sync-app.com and the site through the main domain
 - [ ] Refactor the AI sections to use the vercel AI SDK
 
+## Usage notes and feedback
+
+- [ ] No way to send recipe to another user. Should be part of the share dialog
+- [ ] Fix horizontal scrolling on recipe page
+- [ ] When there is no image for a recipe a button to upload one would be helpful rather than having to go into edit mode
+- [ ] Edit mode controls should be sticky
+- [ ] API seems to set cook time to zero quite a lot (in complete schema may be to blame)
+- [ ] There is a notice on household recipes not made by me. Seems like it’s not needed. There should be attribution to the original owner, and an option to copy the recipe so you can make your own edits and updates (however copying should be a separate feature from the attribution update as it requires a good deal of thought around publishing rights, what recipes are you allowed to copy etc)
+- [ ] When no image is able to be uploaded a pop up prompt should follow asking if the user has an image they would like to use for the recipe
+- [ ] When editing recipes, add controls should be sticky
+- [ ] Chiffonade is not a preparation option
+- [ ] Need to add a how to use the app page
+- [ ] Unable to add zero amount ingredients like olive oil, salt and pepper
+- [ ] Image generation from nano banana could be a decent paid feature but should be carefully considered. There should be a policy against AI imagery used for public recipes
+- [ ] The app needs a contact form for support and feature requests
+- [ ] A meals this week/ calendar feature would be handy to remember what you had on the shopping list last week. Or you can assign meals for next week and build a shopping list from there.
+- [ ] There needs to be a way to break ingredients into groups, so ingredients for the sauce, ingredients for the base etc.
+- [ ] Cannot see original recipe details on the recipe page
+- [ ] Recent recipes have an edit icon next to them which makes no sense
+- [ ] Able to scroll left and right on recipe page
+- [ ] Scroll overflow on the recipes page on iPhone
+
 ## 🐛 Bug Tracking
 
-- [ ] When the recipe form updates it will always upload images even if they already exists. The method should check for images first before uploading. In the recipe form, method image edits should not be possible and be handled in the recipe page.
+- [x] When the recipe form updates it will always upload images even if they already exists. The method should check for images first before uploading. In the recipe form, method image edits should not be possible and be handled in the recipe page.
 - [x] Form inputs are awkward for required number values like prep time with leading zeros (note cook time is no longer required)
 - [x] After clicking save on an imported recipe and that saving as a draft. You can continue to click save and keep saving more copies. We should only allow one save and then redirect options.
 - [x] I got an error on the dashboard page and the back to dashboard button did nothing
