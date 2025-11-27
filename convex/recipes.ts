@@ -83,7 +83,12 @@ export const getPublishedRecipes = query({
 export const getAllUserRecipes = query({
   args: {},
   handler: async (ctx) => {
-    const user = await getCurrentUserOrThrow(ctx);
+    const user = await getCurrentUser(ctx);
+    // Return empty array if user doesn't exist yet (race condition on sign-in)
+    if (!user) {
+      return [];
+    }
+
     const recipes = await ctx.db
       .query("recipes")
       .withIndex("by_user", (q) => q.eq("userId", user._id))
@@ -102,7 +107,12 @@ export const getAllUserRecipes = query({
 export const getRecentActivity = query({
   args: {},
   handler: async (ctx) => {
-    const user = await getCurrentUserOrThrow(ctx);
+    const user = await getCurrentUser(ctx);
+    // Return empty activity if user doesn't exist yet (race condition on sign-in)
+    if (!user) {
+      return { drafts: [], recent: [] };
+    }
+
     const now = Date.now();
     const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
 

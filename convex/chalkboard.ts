@@ -2,7 +2,7 @@ import { ConvexError, v } from "convex/values";
 import { Doc, Id } from "./_generated/dataModel";
 import { mutation, query, QueryCtx } from "./_generated/server";
 import { isHouseholdMember } from "./households";
-import { getCurrentUserOrThrow } from "./users";
+import { getCurrentUser, getCurrentUserOrThrow } from "./users";
 
 const MAX_TEXT_LENGTH = 100;
 
@@ -16,7 +16,11 @@ const MAX_TEXT_LENGTH = 100;
 export const getPersonalChalkboard = query({
   args: {},
   handler: async (ctx) => {
-    const user = await getCurrentUserOrThrow(ctx);
+    const user = await getCurrentUser(ctx);
+    // Return empty array if user doesn't exist yet (race condition on sign-in)
+    if (!user) {
+      return [];
+    }
 
     const items = await ctx.db
       .query("chalkboardItems")

@@ -39,7 +39,7 @@
 - [x] After clicking save on an imported recipe and that saving as a draft. You can continue to click save and keep saving more copies. We should only allow one save and then redirect options.
 - [x] I got an error on the dashboard page and the back to dashboard button did nothing
 - [x] Clicking sign in on the mobile menu requires two clicks after opening the sign in modal. One to close the menu, one to interact with the modal.
-- [ ] On sign in there is occasionally a cant find user error on the dashboard. Could be redirected to the dashboard too soon, or not catching user undefined errors.
+- [x] On sign in there is occasionally a cant find user error on the dashboard. Could be redirected to the dashboard too soon, or not catching user undefined errors. **FIXED**: Updated all initial-load queries to return empty data instead of throwing when user doesn't exist yet, handling race condition between Clerk auth and Convex user creation.
 
 ## Tech debt
 
