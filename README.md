@@ -18,7 +18,7 @@
 - [x] Edit mode controls should be sticky
 - [x] When editing recipes, add controls should be sticky
 - [x] Chiffonade is not a preparation option
-- [ ] When there is no image for a recipe a button to upload one would be helpful rather than having to go into edit mode
+- [x] When there is no image for a recipe a button to upload one would be helpful rather than having to go into edit mode
 
 - [ ] API seems to set cook time to zero quite a lot (incomplete schema may be to blame)
 - [ ] There is a notice on household recipes not made by me. Seems like it’s not needed. There should be attribution to the original owner, and an option to copy the recipe so you can make your own edits and updates (however copying should be a separate feature from the attribution update as it requires a good deal of thought around publishing rights, what recipes are you allowed to copy etc)

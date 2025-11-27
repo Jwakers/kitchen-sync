@@ -78,8 +78,8 @@ export function RecipeHeader({
           </Badge>
         </div>
 
-        {/* Change Image Button - Only visible in edit mode */}
-        {isEditMode && (
+        {/* Change/Add Image Button - Visible in edit mode or when no image exists */}
+        {(isEditMode || (!recipe.image && canEdit)) && (
           <div className="absolute top-6 left-6 z-10">
             <Button
               type="button"
@@ -89,7 +89,7 @@ export function RecipeHeader({
               className="gap-2 shadow-lg"
             >
               <ImageIcon className="h-4 w-4" />
-              Change Image
+              {recipe.image ? "Change Image" : "Add Image"}
             </Button>
           </div>
         )}
