@@ -27,6 +27,7 @@ export const PREPARATION_OPTIONS = [
   "sliced",
   "thinly sliced",
   "thickly sliced",
+  "chiffonade",
   "julienned",
   "brunoise",
   "minced",

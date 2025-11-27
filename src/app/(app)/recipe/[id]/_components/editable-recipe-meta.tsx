@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   FormControl,
@@ -19,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { titleCase } from "@/lib/utils";
 import { RECIPE_CATEGORIES } from "convex/lib/constants";
-import { Calendar, Clock, Save, X } from "lucide-react";
+import { Calendar, Clock } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { Recipe } from "./recipe-client";
 import { RecipeEditFormData } from "./schema";
@@ -27,16 +26,9 @@ import { RecipeEditFormData } from "./schema";
 interface EditableRecipeMetaProps {
   recipe: NonNullable<Recipe>;
   form: UseFormReturn<RecipeEditFormData>;
-  onSave: (data: RecipeEditFormData) => void;
-  onCancel: () => void;
 }
 
-export function EditableRecipeMeta({
-  recipe,
-  form,
-  onSave,
-  onCancel,
-}: EditableRecipeMetaProps) {
+export function EditableRecipeMeta({ recipe, form }: EditableRecipeMetaProps) {
   const prepTime = form.watch("prepTime");
   const cookTime = form.watch("cookTime");
   const totalTime =
@@ -161,18 +153,6 @@ export function EditableRecipeMeta({
               ).toLocaleDateString()}
             </span>
           </div>
-        </div>
-
-        {/* Save Button */}
-        <div className="mt-6 flex justify-end gap-3">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            <X className="h-4 w-4" />
-            Cancel
-          </Button>
-          <Button type="submit">
-            <Save className="h-4 w-4" />
-            Save Changes
-          </Button>
         </div>
       </CardContent>
     </Card>
