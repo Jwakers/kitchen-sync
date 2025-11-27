@@ -14,8 +14,8 @@
 
 - [x] Fix horizontal scrolling on recipe page
 - [x] Scroll overflow on the recipes page on iPhone
-- [ ] Edit mode controls should be sticky
-- [ ] When editing recipes, add controls should be sticky
+- [x] Edit mode controls should be sticky
+- [x] When editing recipes, add controls should be sticky
 - [ ] Able to scroll left and right on recipe page
 - [ ] Recent recipes have an edit icon next to them which makes no sense
 - [ ] No way to send recipe to another user. Should be part of the share dialog

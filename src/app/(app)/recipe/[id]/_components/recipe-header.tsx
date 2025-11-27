@@ -4,12 +4,6 @@ import { CATEGORY_COLORS, ROUTES } from "@/app/constants";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   FormControl,
   FormField,
   FormItem,
@@ -17,21 +11,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import useShare from "@/lib/hooks/use-share";
 import { titleCase } from "@/lib/utils";
-import {
-  ArrowLeft,
-  Calendar,
-  Clock,
-  Copy,
-  Edit,
-  ImageIcon,
-  Link2,
-  MoreVertical,
-  Trash2,
-  Users,
-  X,
-} from "lucide-react";
+import { ArrowLeft, Calendar, Clock, ImageIcon, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -39,14 +20,11 @@ import { UseFormReturn } from "react-hook-form";
 import { ChangeImageModal } from "./change-image-modal";
 import { Recipe } from "./recipe-client";
 import { RecipeEditFormData } from "./schema";
-import { ShareToHouseholdDialog } from "./share-to-household-dialog";
 
 interface RecipeHeaderProps {
   recipe: NonNullable<Recipe>;
   isEditMode: boolean;
   canEdit: boolean;
-  onToggleEditMode: () => void;
-  onDelete: (recipe: NonNullable<Recipe>) => void;
   form: UseFormReturn<RecipeEditFormData>;
 }
 
@@ -54,13 +32,9 @@ export function RecipeHeader({
   recipe,
   isEditMode,
   canEdit,
-  onToggleEditMode,
-  onDelete,
   form,
 }: RecipeHeaderProps) {
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
-  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
-  const { canShare, share, copyToClipboard } = useShare();
 
   const prepMinutes = recipe.prepTime ?? 0;
   const cookMinutes = recipe.cookTime ?? 0;
@@ -71,20 +45,6 @@ export function RecipeHeader({
       : `${cookMinutes} cook`;
   const categoryLabel = titleCase(recipe.category);
   const categoryColor = CATEGORY_COLORS[recipe.category];
-
-  const handleShareLink = async () => {
-    const recipeUrl = `${window.location.origin}/recipe/${recipe._id}`;
-
-    if (canShare) {
-      await share(
-        recipe.title,
-        `Check out this recipe: ${recipe.title}`,
-        recipeUrl
-      );
-    } else {
-      await copyToClipboard(recipeUrl);
-    }
-  };
 
   return (
     <div className="mb-8">
@@ -209,86 +169,6 @@ export function RecipeHeader({
           {recipe.status === "published" ? "Published" : "Draft"}
         </Badge>
       </div>
-      {/* Action Buttons */}
-      <div className="flex items-center flex-wrap gap-3">
-        {isEditMode ? (
-          <>
-            <Button
-              type="button"
-              size="lg"
-              variant="outline"
-              onClick={onToggleEditMode}
-            >
-              <X className="h-4 w-4" />
-              Cancel Edit
-            </Button>
-          </>
-        ) : (
-          <>
-            {canEdit && (
-              <>
-                <Button type="button" size="lg" onClick={onToggleEditMode}>
-                  <Edit className="h-4 w-4" />
-                  Edit Recipe
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button type="button" size="lg" variant="outline">
-                      <Users className="h-4 w-4" />
-                      Share
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => setIsShareDialogOpen(true)}
-                    >
-                      <Users className="h-4 w-4 mr-2" />
-                      Share to Households
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleShareLink}>
-                      {canShare ? (
-                        <>
-                          <Link2 className="h-4 w-4 mr-2" />
-                          Share Link
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="h-4 w-4 mr-2" />
-                          Copy Link
-                        </>
-                      )}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </>
-            )}
-            {canEdit && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild className="ml-auto">
-                  <Button
-                    type="button"
-                    size="lg"
-                    variant="ghost"
-                    aria-label="More Actions"
-                  >
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    variant="destructive"
-                    onClick={() => onDelete(recipe)}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </>
-        )}
-      </div>
 
       {/* Change Image Modal */}
       <ChangeImageModal
@@ -296,16 +176,6 @@ export function RecipeHeader({
         isOpen={isImageModalOpen}
         onClose={() => setIsImageModalOpen(false)}
       />
-
-      {/* Share to Household Dialog */}
-      {canEdit && (
-        <ShareToHouseholdDialog
-          recipeId={recipe._id}
-          recipeTitle={recipe.title}
-          open={isShareDialogOpen}
-          onOpenChange={setIsShareDialogOpen}
-        />
-      )}
     </div>
   );
 }

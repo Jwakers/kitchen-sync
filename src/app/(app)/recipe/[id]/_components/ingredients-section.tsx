@@ -66,9 +66,9 @@ export function IngredientsSection({
               fields.map((field, index) => (
                 <div
                   key={field.id}
-                  className="grid grid-cols-12 gap-2 items-end"
+                  className="grid grid-cols-[1fr_1fr_1fr_auto] md:grid-cols-12 gap-2 items-end"
                 >
-                  <div className="col-span-5">
+                  <div className="md:col-span-5 col-span-4">
                     <Label
                       htmlFor={`ingredients.${index}.name`}
                       className="text-xs"
@@ -82,7 +82,7 @@ export function IngredientsSection({
                       className="h-9"
                     />
                   </div>
-                  <div className="col-span-2">
+                  <div className="md:col-span-2 col-span-1">
                     <Label
                       htmlFor={`ingredients.${index}.amount`}
                       className="text-xs"
@@ -100,7 +100,7 @@ export function IngredientsSection({
                       className="h-9"
                     />
                   </div>
-                  <div className="col-span-2">
+                  <div className="md:col-span-2 col-span-1">
                     <Label
                       htmlFor={`ingredients.${index}.unit`}
                       className="text-xs"
@@ -131,7 +131,7 @@ export function IngredientsSection({
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="col-span-2">
+                  <div className="md:col-span-2 col-span-1">
                     <Label
                       htmlFor={`ingredients.${index}.preparation`}
                       className="text-xs"
