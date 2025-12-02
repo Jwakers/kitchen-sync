@@ -139,3 +139,10 @@ export const UNITS_FLAT = [
 export type RecipeCategory = (typeof RECIPE_CATEGORIES)[number];
 export type PreparationOption = (typeof PREPARATION_OPTIONS)[number];
 export type Unit = (typeof UNITS_FLAT)[number];
+
+export const FREE_TIER_LIMITS = {
+  maxRecipes: 15,
+  maxHouseholds: 1,
+  maxMembersPerHousehold: 4,
+  maxActiveShoppingLists: 3,
+} as const;

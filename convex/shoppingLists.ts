@@ -1,6 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
 import { isHouseholdMember } from "./households";
+import { FREE_TIER_LIMITS } from "./lib/constants";
 import { getCurrentUser, getCurrentUserOrThrow } from "./users";
 
 // ============================================================================
@@ -8,7 +9,7 @@ import { getCurrentUser, getCurrentUserOrThrow } from "./users";
 // ============================================================================
 
 /**
- * Get the user's active or draft shopping list (only one allowed at a time)
+ * Get the user's active or draft shopping list (most recent one)
  */
 export const getActiveShoppingList = query({
   args: {},
@@ -50,6 +51,25 @@ export const getActiveShoppingList = query({
   },
 });
 
+/**
+ * Get all active shopping lists for the current user (for limit checking)
+ */
+export const getAllActiveShoppingLists = query({
+  handler: async (ctx) => {
+    const user = await getCurrentUser(ctx);
+    if (!user) return [];
+
+    const activeLists = await ctx.db
+      .query("shoppingLists")
+      .withIndex("by_user_and_status", (q) =>
+        q.eq("userId", user._id).eq("status", "active")
+      )
+      .collect();
+
+    return activeLists;
+  },
+});
+
 // ============================================================================
 // MUTATIONS
 // ============================================================================
@@ -72,21 +92,17 @@ export const createShoppingList = mutation({
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
 
-    // Check if user already has an active or draft list
-    const existingList = await ctx.db
+    // Check free tier active shopping list limit
+    const activeLists = await ctx.db
       .query("shoppingLists")
-      .withIndex("by_user_and_status", (q) => q.eq("userId", user._id))
-      .filter((q) =>
-        q.or(
-          q.eq(q.field("status"), "draft"),
-          q.eq(q.field("status"), "active")
-        )
+      .withIndex("by_user_and_status", (q) =>
+        q.eq("userId", user._id).eq("status", "active")
       )
-      .first();
+      .collect();
 
-    if (existingList) {
+    if (activeLists.length >= FREE_TIER_LIMITS.maxActiveShoppingLists) {
       throw new ConvexError(
-        "You already have an active shopping list. Please complete or delete it first."
+        `You've reached the limit of ${FREE_TIER_LIMITS.maxActiveShoppingLists} active shopping lists. Complete or delete an existing list to create a new one.`
       );
     }
 
@@ -371,60 +387,6 @@ export const addChalkboardItems = mutation({
 });
 
 /**
- * Finalize a shopping list (mark as active and delete chalkboard items)
- */
-export const finaliseShoppingList = mutation({
-  args: {
-    listId: v.id("shoppingLists"),
-  },
-  handler: async (ctx, args) => {
-    const user = await getCurrentUserOrThrow(ctx);
-
-    const list = await ctx.db.get(args.listId);
-    if (!list) {
-      throw new ConvexError("Shopping list not found");
-    }
-
-    if (list.userId !== user._id) {
-      throw new ConvexError("You can only finalize your own shopping lists");
-    }
-
-    if (list.status !== "draft") {
-      throw new ConvexError("Shopping list is already finalized");
-    }
-
-    const now = Date.now();
-
-    // Mark list as active
-    await ctx.db.patch(args.listId, {
-      status: "active",
-      finalisedAt: now,
-    });
-
-    // Delete chalkboard items
-    for (const chalkboardItemId of list.chalkboardItemIds) {
-      try {
-        const item = await ctx.db.get(chalkboardItemId);
-        if (!item) continue;
-
-        const canDelete =
-          item.householdId === undefined
-            ? item.addedBy === user._id
-            : await isHouseholdMember(ctx, user._id, item.householdId);
-        if (!canDelete) continue;
-
-        await ctx.db.delete(chalkboardItemId);
-      } catch (error) {
-        // Item might have been deleted already, continue
-        console.error("Failed to delete chalkboard item:", error);
-      }
-    }
-
-    return { success: true };
-  },
-});
-
-/**
  * Complete a shopping list
  */
 export const completeShoppingList = mutation({
@@ -526,8 +488,76 @@ export const unfinaliseShoppingList = mutation({
   },
 });
 
+/**
+ * Finalize a draft shopping list, checking the active list limit
+ */
+export const finaliseShoppingList = mutation({
+  args: {
+    listId: v.id("shoppingLists"),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+
+    const list = await ctx.db.get(args.listId);
+    if (!list) {
+      throw new ConvexError("Shopping list not found");
+    }
+
+    if (list.userId !== user._id) {
+      throw new ConvexError("You can only finalize your own shopping lists");
+    }
+
+    if (list.status !== "draft") {
+      throw new ConvexError("Shopping list is already finalized");
+    }
+
+    // Check free tier active shopping list limit before finalizing
+    const activeLists = await ctx.db
+      .query("shoppingLists")
+      .withIndex("by_user_and_status", (q) =>
+        q.eq("userId", user._id).eq("status", "active")
+      )
+      .collect();
+
+    if (activeLists.length >= FREE_TIER_LIMITS.maxActiveShoppingLists) {
+      throw new ConvexError(
+        `You've reached the limit of ${FREE_TIER_LIMITS.maxActiveShoppingLists} active shopping lists. Complete an existing list before finalizing this one.`
+      );
+    }
+
+    const now = Date.now();
+
+    // Mark list as active
+    await ctx.db.patch(args.listId, {
+      status: "active",
+      finalisedAt: now,
+    });
+
+    // Delete chalkboard items
+    for (const chalkboardItemId of list.chalkboardItemIds) {
+      try {
+        const item = await ctx.db.get(chalkboardItemId);
+        if (!item) continue;
+
+        const canDelete =
+          item.householdId === undefined
+            ? item.addedBy === user._id
+            : await isHouseholdMember(ctx, user._id, item.householdId);
+        if (!canDelete) continue;
+
+        await ctx.db.delete(chalkboardItemId);
+      } catch (error) {
+        // Item might have been deleted already, continue
+        console.error("Failed to delete chalkboard item:", error);
+      }
+    }
+
+    return { success: true };
+  },
+});
+
 // ============================================================================
-// INTERNAL MUTATIONS (for cron jobs)
+// INTERNAL MUTATIONS
 // ============================================================================
 
 /**

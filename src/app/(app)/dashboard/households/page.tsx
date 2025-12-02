@@ -1,6 +1,7 @@
 "use client";
 
 import { api } from "@/../convex/_generated/api";
+import { LimitIndicator } from "@/components/limit-indicator";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { FREE_TIER_LIMITS } from "convex/lib/constants";
 import { useQuery } from "convex/react";
 import { Plus, Settings, Users } from "lucide-react";
 import Link from "next/link";
@@ -37,16 +39,23 @@ export default function HouseholdsPage() {
   return (
     <div className="container mx-auto py-8">
       <div className="flex items-center justify-between mb-8">
-        <div>
+        <div className="flex-1">
           <h1 className="text-3xl font-bold tracking-tight">Households</h1>
           <p className="text-muted-foreground mt-1">
             Share recipes with your family and friends
           </p>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Create Household
-        </Button>
+        <div className="flex items-center gap-4">
+          <LimitIndicator
+            current={households?.length ?? 0}
+            max={FREE_TIER_LIMITS.maxHouseholds}
+            label="households"
+          />
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Household
+          </Button>
+        </div>
       </div>
 
       {households.length === 0 ? (

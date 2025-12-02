@@ -7,6 +7,7 @@ import {
   query,
   QueryCtx,
 } from "./_generated/server";
+import { FREE_TIER_LIMITS } from "./lib/constants";
 import { getCurrentUser, getCurrentUserOrThrow } from "./users";
 
 // ============================================================================
@@ -438,6 +439,18 @@ export const createHousehold = mutation({
       throw new ConvexError("Household name is required");
     }
 
+    // Check free tier household limit
+    const memberships = await ctx.db
+      .query("householdMembers")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+
+    if (memberships.length >= FREE_TIER_LIMITS.maxHouseholds) {
+      throw new ConvexError(
+        `You've reached the limit of ${FREE_TIER_LIMITS.maxHouseholds} household on the free plan.`
+      );
+    }
+
     const now = Date.now();
 
     // Create the household
@@ -654,6 +667,20 @@ export const acceptInvitationByToken = mutation({
         invitedUserId: user._id,
       });
       return { householdId: invitation.householdId };
+    }
+
+    // Check household member limit before adding
+    const members = await ctx.db
+      .query("householdMembers")
+      .withIndex("by_household", (q) =>
+        q.eq("householdId", invitation.householdId)
+      )
+      .collect();
+
+    if (members.length >= FREE_TIER_LIMITS.maxMembersPerHousehold) {
+      throw new ConvexError(
+        `This household has reached the limit of ${FREE_TIER_LIMITS.maxMembersPerHousehold} members.`
+      );
     }
 
     // Add user as member
