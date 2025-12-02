@@ -488,10 +488,6 @@ export const unfinaliseShoppingList = mutation({
   },
 });
 
-// ============================================================================
-// INTERNAL MUTATIONS (for cron jobs)
-// ============================================================================
-
 /**
  * Finalize a draft shopping list, checking the active list limit
  */
@@ -559,6 +555,10 @@ export const finaliseShoppingList = mutation({
     return { success: true };
   },
 });
+
+// ============================================================================
+// INTERNAL MUTATIONS
+// ============================================================================
 
 /**
  * Clean up expired shopping lists

@@ -7,6 +7,7 @@
 - [x] User feedback investigations and create todos
 - [x] Personal feedback (In notes app)
 - [ ] Make all necessary preparations and billing setup for an MVP launch
+- [ ] Understand the importance of draft and published state in the UI (seems unimportant at this stage)
 - [ ] Minor improvements
 - [ ] Tech debt
 - [ ] Set up multi tenant in vercel/next and serve the app a subdomain app.kitchen-sync-app.com and the site through the main domain
