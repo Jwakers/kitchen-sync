@@ -2,6 +2,7 @@ import { ConvexError, v } from "convex/values";
 import { Doc } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
 import { canAccessRecipe } from "./households";
+import { FREE_TIER_LIMITS } from "./lib/constants";
 import { categoriesUnion, preparationUnion, unitsUnion } from "./schema";
 import { getCurrentUser, getCurrentUserOrThrow } from "./users";
 
@@ -233,6 +234,18 @@ export const createRecipe = mutation({
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
+
+    // Check free tier recipe limit
+    const recipes = await ctx.db
+      .query("recipes")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+
+    if (recipes.length >= FREE_TIER_LIMITS.maxRecipes) {
+      throw new ConvexError(
+        `You've reached the limit of ${FREE_TIER_LIMITS.maxRecipes} recipes on the free plan.`
+      );
+    }
 
     let ingredients = args.ingredients;
     // Map ingredients to database ingredients if possible

@@ -3,10 +3,12 @@
 ### Next Immediate Steps
 
 - [x] Shopping list cannot be created from household recipes
-- [ ] Bugs bugs bugs
-- [ ] User feedback investigations and create todos
-- [ ] Personal feedback (In notes app)
+- [x] Bugs bugs bugs
+- [x] User feedback investigations and create todos
+- [x] Personal feedback (In notes app)
+- [ ] Make all necessary preparations and billing setup for an MVP launch
 - [ ] Minor improvements
+- [ ] Tech debt
 - [ ] Set up multi tenant in vercel/next and serve the app a subdomain app.kitchen-sync-app.com and the site through the main domain
 - [ ] Refactor the AI sections to use the vercel AI SDK
 

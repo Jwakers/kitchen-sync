@@ -1,6 +1,7 @@
 "use client";
 
 import { CATEGORY_COLORS, ROUTES } from "@/app/constants";
+import { LimitIndicator } from "@/components/limit-indicator";
 import {
   Accordion,
   AccordionContent,
@@ -25,6 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { titleCase } from "@/lib/utils";
 import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
+import { FREE_TIER_LIMITS } from "convex/lib/constants";
 import { useMutation, useQuery } from "convex/react";
 import type { FunctionReturnType } from "convex/server";
 import {
@@ -57,6 +59,9 @@ export default function ShoppingListClient() {
   const userRecipes = useQuery(api.recipes.getAllUserRecipes);
   const householdRecipes = useQuery(api.households.getAllHouseholdRecipes);
   const activeShoppingList = useQuery(api.shoppingLists.getActiveShoppingList);
+  const allActiveShoppingLists = useQuery(
+    api.shoppingLists.getAllActiveShoppingLists
+  );
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRecipeIds, setSelectedRecipeIds] = useState<
@@ -269,6 +274,11 @@ export default function ShoppingListClient() {
                       Select recipes to generate your shopping list
                     </p>
                   </div>
+                  <LimitIndicator
+                    current={allActiveShoppingLists?.length ?? 0}
+                    max={FREE_TIER_LIMITS.maxActiveShoppingLists}
+                    label="active lists"
+                  />
                 </div>
 
                 {/* Info Banner */}

@@ -1,6 +1,7 @@
 "use client";
 
 import { CATEGORY_COLORS, ROUTES } from "@/app/constants";
+import { LimitIndicator } from "@/components/limit-indicator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -15,7 +16,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { titleCase } from "@/lib/utils";
 import { api } from "convex/_generated/api";
-import { RECIPE_CATEGORIES } from "convex/lib/constants";
+import { FREE_TIER_LIMITS, RECIPE_CATEGORIES } from "convex/lib/constants";
 import { useQuery } from "convex/react";
 import type { FunctionReturnType } from "convex/server";
 import { Clock, Filter, Plus, Search, Users } from "lucide-react";
@@ -234,7 +235,7 @@ export default function RecipeListing() {
 
           {/* Stats */}
           {recipes && recipes.length > 0 && (
-            <div className="flex items-center gap-6 mb-6">
+            <div className="flex items-center gap-6 mb-6 flex-wrap">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-primary rounded-full" />
                 <span className="text-sm font-medium">
@@ -250,6 +251,13 @@ export default function RecipeListing() {
                 <span className="text-sm font-medium">
                   {recipes.length} Total
                 </span>
+              </div>
+              <div className="ml-auto">
+                <LimitIndicator
+                  current={recipes?.length ?? 0}
+                  max={FREE_TIER_LIMITS.maxRecipes}
+                  label="recipes"
+                />
               </div>
             </div>
           )}
