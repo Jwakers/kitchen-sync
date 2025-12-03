@@ -1,5 +1,55 @@
 # Kitchen Sync - Family Meal Planning Made Simple
 
+## 🚀 Launch Preparation - Action Required
+
+**Status:** ~90% Ready for Launch | All code complete, awaiting assets & testing
+
+### Critical (Before Launch)
+
+- [ ] **Create Visual Assets** (See: `PWA_ASSETS_GUIDE.md`)
+  - [ ] OpenGraph social sharing image (`/public/og-image.png` - 1200x630px)
+  - [x] PWA app icons (192x192 and 512x512) - ✅ Generated and configured
+  - [x] Apple touch icon (180x180) - ✅ Generated and configured
+  - [x] Favicons (ico, svg, 96x96) - ✅ Already in place
+  - [ ] Optional: Apple splash screens
+  - **Tool:** Use [PWA Builder](https://www.pwabuilder.com/imageGenerator) to generate all sizes
+
+- [ ] **Complete Testing** (See: `PRE_LAUNCH_TESTING_CHECKLIST.md`)
+  - [ ] Test authentication flows (Google & Email)
+  - [ ] Test recipe creation and AI import
+  - [ ] Test shopping lists and kitchen chalkboard
+  - [ ] Test household collaboration end-to-end
+  - [ ] Test PWA installation (iOS Safari & Android Chrome)
+  - [ ] Verify contact form sends emails
+  - [ ] Test on multiple browsers (Chrome, Safari, Firefox, Edge)
+  - [ ] Check mobile responsiveness on real devices
+
+- [ ] **Verify Environment** (See: `ENV_SETUP.md`)
+  - [ ] Confirm all Vercel environment variables are set
+  - [ ] Verify Convex environment variables are configured
+  - [ ] Test that OpenAI API key has credits
+  - [ ] Confirm email SMTP settings work in production
+
+### Completed ✅
+
+- ✅ Privacy Policy and Terms of Service pages
+- ✅ Legal links in footer
+- ✅ SEO setup (robots.txt & sitemap.xml)
+- ✅ OpenGraph metadata for social sharing
+- ✅ Beta messaging on homepage
+- ✅ Comprehensive testing checklist created
+- ✅ Environment variables documented
+- ✅ PWA assets guide created
+
+### Quick Reference Documents
+
+- `LAUNCH_SUMMARY.md` - Complete overview of what was done and next steps
+- `PWA_ASSETS_GUIDE.md` - Image requirements and design guidelines
+- `ENV_SETUP.md` - Environment variables setup and troubleshooting
+- `PRE_LAUNCH_TESTING_CHECKLIST.md` - Comprehensive testing checklist (200+ checks)
+
+---
+
 ### Next Immediate Steps
 
 - [x] Shopping list cannot be created from household recipes
@@ -22,16 +72,11 @@
 - [x] When editing recipes, add controls should be sticky
 - [x] Chiffonade is not a preparation option
 - [x] When there is no image for a recipe a button to upload one would be helpful rather than having to go into edit mode
-
+- [x] Need to add a how to use the app page
+- [x] The app needs a contact form for support and feature requests
+- [ ] Unable to add zero amount ingredients like olive oil, salt and pepper
 - [ ] API seems to set cook time to zero quite a lot (incomplete schema may be to blame)
 - [ ] There is a notice on household recipes not made by me. Seems like it’s not needed. There should be attribution to the original owner, and an option to copy the recipe so you can make your own edits and updates (however copying should be a separate feature from the attribution update as it requires a good deal of thought around publishing rights, what recipes are you allowed to copy etc)
-- [ ] When no image is able to be uploaded a pop up prompt should follow asking if the user has an image they would like to use for the recipe
-- [ ] Need to add a how to use the app page
-- [ ] Unable to add zero amount ingredients like olive oil, salt and pepper
-- [ ] Image generation from nano banana could be a decent paid feature but should be carefully considered. There should be a policy against AI imagery used for public recipes
-- [ ] The app needs a contact form for support and feature requests
-- [ ] A meals this week/ calendar feature would be handy to remember what you had on the shopping list last week. Or you can assign meals for next week and build a shopping list from there.
-- [ ] There needs to be a way to break ingredients into groups, so ingredients for the sauce, ingredients for the base etc.
 
 ## 🐛 Bug Tracking
 
@@ -140,7 +185,7 @@ A place to ad hoc add things you need for your kitchen, this can be optionally m
 
 #### Dashboard
 
-- [ ] How to use the app
+- [x] How to use the app
 - [ ] Recent recipes
 - [ ] Shopping list info
       ... This section is quite organic and will grow with most new features

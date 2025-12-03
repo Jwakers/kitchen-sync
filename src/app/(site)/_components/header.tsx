@@ -52,7 +52,7 @@ export function Header() {
 
         {/* Mobile Menu */}
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-          <div className="flex items-center gap-x-2">
+          <div className="flex items-center gap-x-2 md:hidden">
             <Authenticated>
               <UserButton
                 appearance={{
@@ -60,7 +60,7 @@ export function Header() {
                 }}
               />
             </Authenticated>
-            <SheetTrigger asChild className="md:hidden">
+            <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Toggle menu</span>

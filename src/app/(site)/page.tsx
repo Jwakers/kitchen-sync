@@ -37,7 +37,7 @@ export default function Home() {
               className="w-fit bg-primary/10 text-primary border-primary/20 text-sm px-4 py-2"
             >
               <Sparkles className="w-4 h-4 mr-2" />
-              Make meal planning fun again
+              Now in Beta - Free to use
             </Badge>
 
             {/* Main Headline */}

@@ -13,6 +13,8 @@ export const ROUTES = {
   SUPPORT_FAQ: "/dashboard/support/faq",
   SUPPORT_HOW_TO: "/dashboard/support/how-to-use",
   CONTACT: "/dashboard/support/contact",
+  PRIVACY: "/privacy",
+  TERMS: "/terms",
 } as const;
 
 export const CATEGORY_COLORS: Record<
