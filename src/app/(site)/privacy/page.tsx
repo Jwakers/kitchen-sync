@@ -11,6 +11,8 @@ export const metadata: Metadata = {
     "Learn how Kitchen Sync collects, uses, and protects your personal information.",
 };
 
+const PRIVACY_POLICY_LAST_UPDATED = "3 December 2025"; // update manually when terms change
+
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-background">
@@ -26,12 +28,7 @@ export default function PrivacyPage() {
           <div>
             <h1 className="text-4xl font-bold mb-4">Privacy Policy</h1>
             <p className="text-muted-foreground">
-              Last updated:{" "}
-              {new Date().toLocaleDateString("en-GB", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
+              Last updated: {PRIVACY_POLICY_LAST_UPDATED}
             </p>
           </div>
 

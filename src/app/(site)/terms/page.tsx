@@ -11,6 +11,8 @@ export const metadata: Metadata = {
     "Read the terms and conditions for using Kitchen Sync meal planning application.",
 };
 
+const TERMS_OF_SERVICE_LAST_UPDATED = "3 December 2025"; // update manually when terms change
+
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-background">
@@ -26,12 +28,7 @@ export default function TermsPage() {
           <div>
             <h1 className="text-4xl font-bold mb-4">Terms of Service</h1>
             <p className="text-muted-foreground">
-              Last updated:{" "}
-              {new Date().toLocaleDateString("en-GB", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
+              Last updated: {TERMS_OF_SERVICE_LAST_UPDATED}
             </p>
           </div>
 
