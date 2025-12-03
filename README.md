@@ -8,9 +8,9 @@
 
 - [ ] **Create Visual Assets** (See: `PWA_ASSETS_GUIDE.md`)
   - [ ] OpenGraph social sharing image (`/public/og-image.png` - 1200x630px)
-  - [ ] PWA app icons (192x192 and 512x512)
-  - [ ] Apple touch icon (180x180)
-  - [ ] Favicons (ico, svg, 96x96)
+  - [x] PWA app icons (192x192 and 512x512) - ✅ Generated and configured
+  - [x] Apple touch icon (180x180) - ✅ Generated and configured
+  - [x] Favicons (ico, svg, 96x96) - ✅ Already in place
   - [ ] Optional: Apple splash screens
   - **Tool:** Use [PWA Builder](https://www.pwabuilder.com/imageGenerator) to generate all sizes
 
