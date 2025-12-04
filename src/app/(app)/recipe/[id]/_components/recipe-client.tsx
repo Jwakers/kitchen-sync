@@ -35,6 +35,7 @@ import { EditableRecipeMeta } from "./editable-recipe-meta";
 import { IngredientsSection } from "./ingredients-section";
 import { MethodSection } from "./method-section";
 import { NutritionSection } from "./nutrition-section";
+import { RecipeAttribution } from "./recipe-attribution";
 import { RecipeHeader } from "./recipe-header";
 import { RecipeLoading } from "./recipe-loading";
 import { RecipeNotFound } from "./recipe-not-found";
@@ -168,6 +169,7 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
               canEdit={canEdit}
               form={form}
             />
+
             <RecipeControls
               isEditMode={isEditMode}
               recipe={recipe}
@@ -192,6 +194,12 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
                 form={form}
               />
             </div>
+
+            {!isEditMode && (
+              <div className="mt-6">
+                <RecipeAttribution recipe={recipe} />
+              </div>
+            )}
           </form>
         </Form>
 

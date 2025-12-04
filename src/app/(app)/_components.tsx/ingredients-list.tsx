@@ -1,6 +1,6 @@
 type Ingredient = {
   name: string;
-  amount: number;
+  amount?: number;
   unit?: string;
   preparation?: string;
 };
@@ -8,21 +8,23 @@ type Ingredient = {
 export function IngredientsList(props: { ingredients: Ingredient[] }) {
   return (
     <ul className="space-y-2">
-      {props.ingredients.map((ingredient) => (
+      {props.ingredients.map((ingredient, index) => (
         <li
-          key={`${ingredient.name}-${ingredient.amount}-${ingredient.unit}`}
+          key={`${index}-${ingredient.name}-${ingredient.amount}-${ingredient.unit}`}
           className="flex items-start gap-2"
         >
           <span className="text-muted-foreground mt-1">•</span>
-          <span>
-            <span className="font-medium">{ingredient.amount}</span>
-            {ingredient.unit && ` ${ingredient.unit}`}
-            {ingredient.name && ` ${ingredient.name}`}
-            {ingredient.preparation && (
+          <span className="capitalize">
+            {ingredient.amount ? (
+              <span className="font-medium">{ingredient.amount}</span>
+            ) : null}
+            {ingredient.unit ? ` ${ingredient.unit}` : null}
+            {ingredient.name ? ` ${ingredient.name}` : null}
+            {ingredient.preparation ? (
               <span className="text-muted-foreground italic">
                 , {ingredient.preparation}
               </span>
-            )}
+            ) : null}
           </span>
         </li>
       ))}

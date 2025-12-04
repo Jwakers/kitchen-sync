@@ -527,7 +527,9 @@ function RecipeSelectionCard({
                       className="flex items-center gap-2 text-sm"
                     >
                       <div className="w-1.5 h-1.5 rounded-full bg-primary/60" />
-                      <span className="font-medium">{ingredient.amount}</span>
+                      {ingredient.amount !== undefined && (
+                        <span className="font-medium">{ingredient.amount}</span>
+                      )}
                       {ingredient.unit && (
                         <span className="text-muted-foreground">
                           {ingredient.unit}
@@ -618,30 +620,41 @@ const buildShoppingListItems = (recipes: Recipe[]) => {
 
       const key = normaliseKey(ingredient);
       const existing = combined.get(key);
+
+      // Handle optional amounts - if amount is undefined, treat it as null
       const amountValue =
-        typeof ingredient.amount === "number"
-          ? ingredient.amount
-          : Number(ingredient.amount);
+        ingredient.amount === undefined
+          ? null
+          : typeof ingredient.amount === "number"
+            ? ingredient.amount
+            : Number(ingredient.amount);
 
       if (!existing) {
         combined.set(key, {
           name: ingredient.name,
           unit: ingredient.unit,
           preparation: ingredient.preparation,
-          amount: Number.isFinite(amountValue)
-            ? amountValue
-            : (ingredient.amount ?? null),
+          amount:
+            amountValue !== null && Number.isFinite(amountValue)
+              ? amountValue
+              : amountValue,
         });
         return;
       }
 
-      if (typeof existing.amount === "number" && Number.isFinite(amountValue)) {
+      // Only combine amounts if both are numeric
+      if (
+        typeof existing.amount === "number" &&
+        typeof amountValue === "number" &&
+        Number.isFinite(amountValue)
+      ) {
         existing.amount += amountValue;
-      } else if (ingredient.amount) {
+      } else if (ingredient.amount !== undefined) {
+        // If we have a non-null amount to add
         const parts = [existing.amount, ingredient.amount]
-          .filter(Boolean)
+          .filter((v) => v !== null)
           .map(String);
-        existing.amount = parts.join(" + ");
+        existing.amount = parts.length > 0 ? parts.join(" + ") : null;
       }
     });
   });

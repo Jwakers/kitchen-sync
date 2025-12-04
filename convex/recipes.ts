@@ -208,7 +208,7 @@ export const createRecipe = mutation({
     ingredients: v.array(
       v.object({
         name: v.string(),
-        amount: v.number(),
+        amount: v.optional(v.number()),
         unit: v.optional(unitsUnion),
         preparation: v.optional(preparationUnion),
       })

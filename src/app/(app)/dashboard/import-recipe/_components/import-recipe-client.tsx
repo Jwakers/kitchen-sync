@@ -4,9 +4,7 @@ import { IngredientsList } from "@/app/(app)/_components.tsx/ingredients-list";
 import { MethodList } from "@/app/(app)/_components.tsx/method-list";
 import { Nutrition } from "@/app/(app)/_components.tsx/nutrition";
 import { fetchImageServerSide } from "@/app/(app)/actions/fetch-image";
-import { getRecipeSchema } from "@/app/(app)/actions/get-recipe-schema";
 import { parseRecipeFromSiteWithAI } from "@/app/(app)/actions/parse-recipe-from-site-with-ai";
-import { parseRecipeSchemaWithAI } from "@/app/(app)/actions/parse-recipe-schema-with-ai";
 import { parseTextToRecipe } from "@/app/(app)/actions/parse-text-to-recipe";
 import { ROUTES } from "@/app/constants";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -40,7 +38,6 @@ import {
   Users,
 } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -48,12 +45,7 @@ import z from "zod";
 import { EditImportedRecipe } from "./edit-imported-recipe";
 import { TextToRecipeParser } from "./text-to-recipe-parser";
 
-type LoadingStage =
-  | "idle"
-  | "fetching"
-  | "categorising"
-  | "parsing"
-  | "complete";
+type LoadingStage = "idle" | "fetching" | "categorising" | "complete";
 type ImportSource = "url" | "text";
 
 export function ImportRecipeClient() {
@@ -88,41 +80,18 @@ export function ImportRecipeClient() {
     setParsedRecipe(null);
 
     try {
-      // Stage 1: Fetch recipe data
+      // Stage 1: Fetch and parse recipe with AI
       setLoadingStage("fetching");
-      const {
-        recipe,
-        error: fetchError,
-        url: recipeUrl,
-      } = await getRecipeSchema(url);
+      const parsed = await parseRecipeFromSiteWithAI(url);
 
-      // Stage 2: Parse with AI
-      let parsed: ParsedRecipeForDB | null = null;
-
-      if (fetchError || !recipe) {
-        // Fallback: Use AI to parse directly from HTML when schema.org fails
-        toast.info("Recipe schema not found", {
-          description: "Extracting recipe from page...",
-        });
-
-        setLoadingStage("parsing");
-        parsed = await parseRecipeFromSiteWithAI(url);
-
-        if (!parsed) {
-          throw new Error(
-            "Failed to extract recipe. The page may not contain a recipe, or it may be behind a paywall."
-          );
-        }
-      } else {
-        // Normal path: Parse structured schema.org data
-        setLoadingStage("categorising");
-        parsed = await parseRecipeSchemaWithAI(recipe, recipeUrl || undefined);
-
-        if (!parsed) {
-          throw new Error("Failed to parse recipe");
-        }
+      if (!parsed) {
+        throw new Error(
+          "Failed to extract recipe. The page may not contain a recipe, or it may be behind a paywall."
+        );
       }
 
+      // Stage 2: Finalize
+      setLoadingStage("categorising");
       setParsedRecipe(parsed);
       setLoadingStage("complete");
     } catch (err) {
@@ -252,6 +221,18 @@ export function ImportRecipeClient() {
     };
   }, [parsedRecipe, isSaved]);
 
+  // Redirect to recipe page after successful save
+  useEffect(() => {
+    if (isSaved && savedRecipeId) {
+      // Small delay to allow user to see success state
+      const timeout = setTimeout(() => {
+        router.push(`${ROUTES.RECIPE}/${savedRecipeId}`);
+      }, 1500);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [isSaved, savedRecipeId, router]);
+
   const validateAndSaveRecipe = async (
     recipeData: ParsedRecipeForDB | ImportedRecipeFormData
   ) => {
@@ -328,11 +309,12 @@ export function ImportRecipeClient() {
   };
 
   const handleSave = async () => {
-    if (!parsedRecipe) return;
+    if (!parsedRecipe || isSaving || isSaved) return;
     await validateAndSaveRecipe(parsedRecipe);
   };
 
   const handleEditSave = async (editedRecipe: ImportedRecipeFormData) => {
+    if (isSaving || isSaved) return;
     await validateAndSaveRecipe(editedRecipe);
   };
 
@@ -389,7 +371,7 @@ export function ImportRecipeClient() {
     );
   }
 
-  // Success State - Replace entire page content
+  // Success State - Show briefly before redirect
   if (isSaved && savedRecipeId) {
     return (
       <div className="bg-background flex items-center justify-center p-6">
@@ -402,31 +384,12 @@ export function ImportRecipeClient() {
           <h1 className="text-3xl font-bold mb-3">
             Recipe Saved Successfully!
           </h1>
-          <p className="text-muted-foreground text-lg mb-8">
-            Your recipe has been added to your collection and is ready to use.
+          <p className="text-muted-foreground text-lg mb-4">
+            Your recipe has been added to your collection.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button size="lg" asChild>
-              <Link href={`${ROUTES.RECIPE}/${savedRecipeId}`}>
-                View Recipe
-              </Link>
-            </Button>
-            <Button variant="outline" size="lg" asChild>
-              <Link href={ROUTES.MY_RECIPES}>Go to My Recipes</Link>
-            </Button>
-            <Button
-              variant="ghost"
-              size="lg"
-              onClick={() => {
-                setUrl("");
-                setParsedRecipe(null);
-                setIsSaved(false);
-                setSavedRecipeId(null);
-                setLoadingStage("idle");
-              }}
-            >
-              Import Another
-            </Button>
+          <div className="flex items-center justify-center gap-2 text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span className="text-sm">Redirecting to recipe...</span>
           </div>
         </Card>
       </div>
@@ -637,26 +600,16 @@ export function ImportRecipeClient() {
                     : "Making sense of everything..."
                 }
               />
-              {loadingStage !== "parsing" && (
-                <LoadingStep
-                  stage="categorising"
-                  currentStage={loadingStage}
-                  title="Organising the kitchen"
-                  description={
-                    importSource === "url"
-                      ? "Sorting ingredients, steps, and all the good stuff..."
-                      : "Arranging ingredients, adding some polish, and working out the details..."
-                  }
-                />
-              )}
-              {loadingStage === "parsing" && (
-                <LoadingStep
-                  stage="parsing"
-                  currentStage={loadingStage}
-                  title="Digging deeper"
-                  description="Finding all the recipe details hidden in the page..."
-                />
-              )}
+              <LoadingStep
+                stage="categorising"
+                currentStage={loadingStage}
+                title="Organising the kitchen"
+                description={
+                  importSource === "url"
+                    ? "Sorting ingredients, steps, and all the good stuff..."
+                    : "Arranging ingredients, adding some polish, and working out the details..."
+                }
+              />
             </div>
           </Card>
         )}
@@ -672,7 +625,7 @@ export function ImportRecipeClient() {
             <Button
               variant="outline"
               size="lg"
-              disabled={isLoading || isSaving}
+              disabled={isLoading || isSaving || isSaved}
               onClick={() => setIsEditMode(true)}
             >
               Edit Recipe
@@ -680,7 +633,7 @@ export function ImportRecipeClient() {
             <Button
               className="flex-1"
               size="lg"
-              disabled={isLoading || isSaving}
+              disabled={isLoading || isSaving || isSaved}
               onClick={handleSave}
             >
               {isSaving ? (
@@ -715,7 +668,6 @@ function LoadingStep({
     "idle",
     "fetching",
     "categorising",
-    "parsing",
     "complete",
   ];
   const currentIndex = stages.indexOf(currentStage);
@@ -757,6 +709,7 @@ function RecipePreview({
   recipe: ParsedRecipeForDB;
   isSaved: boolean;
 }) {
+  console.log(recipe);
   return (
     <div className="space-y-6">
       {/* Success Message */}
