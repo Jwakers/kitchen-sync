@@ -709,7 +709,6 @@ function RecipePreview({
   recipe: ParsedRecipeForDB;
   isSaved: boolean;
 }) {
-  console.log(recipe);
   return (
     <div className="space-y-6">
       {/* Success Message */}
