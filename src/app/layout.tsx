@@ -265,7 +265,7 @@ export const metadata: Metadata = {
     description: APP_DESCRIPTION,
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "Kitchen Sync - Family Meal Planning Made Simple",
@@ -279,7 +279,7 @@ export const metadata: Metadata = {
       template: APP_TITLE_TEMPLATE,
     },
     description: APP_DESCRIPTION,
-    images: ["/og-image.jpg"],
+    images: ["/og-image.png"],
   },
 };
 

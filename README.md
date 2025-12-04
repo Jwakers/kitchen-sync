@@ -7,7 +7,7 @@
 ### Critical (Before Launch)
 
 - [x] **Create Visual Assets** (See: `PWA_ASSETS_GUIDE.md`)
-  - [x] OpenGraph social sharing image (`/public/og-image.png` - 1200x630px)
+  - [x] OpenGraph social sharing image (`/og-image.png` - 1200x630px)
   - [x] PWA app icons (192x192 and 512x512) - ✅ Generated and configured
   - [x] Apple touch icon (180x180) - ✅ Generated and configured
   - [x] Favicons (ico, svg, 96x96) - ✅ Already in place
