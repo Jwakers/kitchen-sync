@@ -6,12 +6,12 @@
 
 ### Critical (Before Launch)
 
-- [ ] **Create Visual Assets** (See: `PWA_ASSETS_GUIDE.md`)
-  - [ ] OpenGraph social sharing image (`/public/og-image.png` - 1200x630px)
+- [x] **Create Visual Assets** (See: `PWA_ASSETS_GUIDE.md`)
+  - [x] OpenGraph social sharing image (`/og-image.png` - 1200x630px)
   - [x] PWA app icons (192x192 and 512x512) - ✅ Generated and configured
   - [x] Apple touch icon (180x180) - ✅ Generated and configured
   - [x] Favicons (ico, svg, 96x96) - ✅ Already in place
-  - [ ] Optional: Apple splash screens
+  - [x] Apple splash screens
   - **Tool:** Use [PWA Builder](https://www.pwabuilder.com/imageGenerator) to generate all sizes
 
 - [ ] **Complete Testing** (See: `PRE_LAUNCH_TESTING_CHECKLIST.md`)
@@ -56,9 +56,9 @@
 - [x] Bugs bugs bugs
 - [x] User feedback investigations and create todos
 - [x] Personal feedback (In notes app)
-- [ ] Make all necessary preparations and billing setup for an MVP launch
 - [ ] Understand the importance of draft and published state in the UI (seems unimportant at this stage)
-- [ ] Minor improvements
+
+- [ ] Make all necessary preparations and billing setup for an MVP launch
 - [ ] Tech debt
 - [ ] Set up multi tenant in vercel/next and serve the app a subdomain app.kitchen-sync-app.com and the site through the main domain
 - [ ] Refactor the AI sections to use the vercel AI SDK
@@ -79,6 +79,8 @@
 - [ ] There is a notice on household recipes not made by me. Seems like it’s not needed. There should be attribution to the original owner, and an option to copy the recipe so you can make your own edits and updates (however copying should be a separate feature from the attribution update as it requires a good deal of thought around publishing rights, what recipes are you allowed to copy etc)
 
 ## 🐛 Bug Tracking
+
+- [ ] Overflow on the sign in page on ios
 
 ## Tech debt
 

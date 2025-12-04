@@ -32,14 +32,14 @@ export async function generateMetadata({
         "You've been invited to join a household. Share and discover recipes together!",
       type: "website",
       siteName: "Kitchen Sync",
-      images: ["/favicon.svg"],
+      images: ["/og-image.png"],
     },
     twitter: {
       card: "summary_large_image",
       title: "Join Household",
       description:
         "You've been invited to join a household. Share and discover recipes together!",
-      images: ["/favicon.svg"],
+      images: ["/og-image.png"],
     },
   } satisfies Metadata;
 
