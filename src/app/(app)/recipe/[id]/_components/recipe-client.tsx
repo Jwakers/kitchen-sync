@@ -195,7 +195,7 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
               />
             </div>
 
-            {!isEditMode && (
+            {!isEditMode && recipe.originalUrl && (
               <div className="mt-6">
                 <RecipeAttribution recipe={recipe} />
               </div>

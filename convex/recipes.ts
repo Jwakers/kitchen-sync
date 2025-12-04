@@ -487,7 +487,7 @@ const _validateRecipe = (recipe: Doc<"recipes">) => {
       if (ing.amount !== undefined && ing.amount <= 0) {
         errors.push({
           field: "ingredients",
-          message: `Ingredient ${i + 1} must have a positive if provided`,
+          message: `Ingredient ${i + 1} must have a positive amount if provided`,
         });
       }
     }

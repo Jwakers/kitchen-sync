@@ -433,9 +433,12 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                             type="number"
                             placeholder="30"
                             {...field}
-                            onChange={(e) =>
-                              field.onChange(Number(e.target.value))
-                            }
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              field.onChange(
+                                value === "" ? undefined : Number(value)
+                              );
+                            }}
                           />
                         </FormControl>
                         <FormMessage />

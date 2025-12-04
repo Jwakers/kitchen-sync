@@ -1,5 +1,3 @@
-"use client";
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Calendar, ExternalLink, User } from "lucide-react";
@@ -17,17 +15,27 @@ export function RecipeAttribution({ recipe }: RecipeAttributionProps) {
 
   // Format the published date if available
   const publishedDate = recipe.originalPublishedDate
-    ? new Date(recipe.originalPublishedDate).toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
+    ? (() => {
+        const d = new Date(recipe.originalPublishedDate);
+        return Number.isNaN(d.getTime())
+          ? null
+          : d.toLocaleDateString(undefined, {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            });
+      })()
     : null;
 
   // Extract domain from URL for cleaner display
-  const domain = recipe.originalUrl
-    ? new URL(recipe.originalUrl).hostname.replace("www.", "")
-    : null;
+  const domain = (() => {
+    if (!recipe.originalUrl) return null;
+    try {
+      return new URL(recipe.originalUrl).hostname.replace(/^www\./, "");
+    } catch {
+      return null;
+    }
+  })();
 
   return (
     <Card>
