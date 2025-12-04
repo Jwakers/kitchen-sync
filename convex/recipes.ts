@@ -208,7 +208,7 @@ export const createRecipe = mutation({
     ingredients: v.array(
       v.object({
         name: v.string(),
-        amount: v.number(),
+        amount: v.optional(v.number()),
         unit: v.optional(unitsUnion),
         preparation: v.optional(preparationUnion),
       })
@@ -487,7 +487,7 @@ const _validateRecipe = (recipe: Doc<"recipes">) => {
       if (ing.amount !== undefined && ing.amount <= 0) {
         errors.push({
           field: "ingredients",
-          message: `Ingredient ${i + 1} must have a positive if provided`,
+          message: `Ingredient ${i + 1} must have a positive amount if provided`,
         });
       }
     }

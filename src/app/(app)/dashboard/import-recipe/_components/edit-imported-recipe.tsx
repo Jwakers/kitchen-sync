@@ -283,7 +283,7 @@ export function EditImportedRecipe({
                 onClick={() =>
                   appendIngredient({
                     name: "",
-                    amount: 0,
+                    amount: undefined,
                     unit: undefined,
                     preparation: undefined,
                   })
@@ -332,6 +332,7 @@ export function EditImportedRecipe({
                               <FormControl>
                                 <Input
                                   type="number"
+                                  step="0.01"
                                   placeholder="Amount"
                                   {...field}
                                   value={field.value ?? ""}

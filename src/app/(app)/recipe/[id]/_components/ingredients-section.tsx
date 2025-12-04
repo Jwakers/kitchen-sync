@@ -46,7 +46,7 @@ export function IngredientsSection({
             onClick={() =>
               append({
                 name: "",
-                amount: 0,
+                amount: undefined,
                 unit: undefined,
                 preparation: undefined,
               })
@@ -94,9 +94,10 @@ export function IngredientsSection({
                       type="number"
                       step="0.01"
                       {...form.register(`ingredients.${index}.amount`, {
-                        valueAsNumber: true,
+                        setValueAs: (v) =>
+                          v === "" || v == null ? undefined : Number(v),
                       })}
-                      placeholder="2"
+                      placeholder="20"
                       className="h-9"
                     />
                   </div>

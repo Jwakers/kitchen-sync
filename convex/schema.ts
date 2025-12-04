@@ -37,7 +37,7 @@ export default defineSchema({
         v.object({
           ingredientId: v.optional(v.id("ingredients")),
           name: v.string(),
-          amount: v.number(),
+          amount: v.optional(v.number()),
           unit: v.optional(unitsUnion),
           preparation: v.optional(preparationUnion),
         })

@@ -19,7 +19,10 @@ export const importedRecipeSchema = z.object({
     .array(
       z.object({
         name: z.string().min(1, "Ingredient name is required"),
-        amount: z.number().min(0, "Amount must be a positive number"),
+        amount: z
+          .number()
+          .min(0, "Amount must be a positive number")
+          .optional(),
         unit: z.enum(UNITS_FLAT).optional(),
         preparation: z.enum(PREPARATION_OPTIONS).optional(),
       })

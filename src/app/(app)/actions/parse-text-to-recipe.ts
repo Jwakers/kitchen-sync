@@ -374,20 +374,21 @@ function extractPartialRecipeData(
       partial.category = category as (typeof RECIPE_CATEGORIES)[number];
     }
 
-    // Extract ingredients (only complete ones)
+    // Extract ingredients (only complete ones - name is required, amount is optional)
     const ingredients = safeExtractArray(
       data,
       "ingredients",
-      (ing: unknown): ing is { name: string; amount: number } =>
+      (ing: unknown): ing is { name: string; amount?: number } =>
         typeof ing === "object" &&
         ing !== null &&
         "name" in ing &&
-        typeof ing.name === "string" &&
-        "amount" in ing &&
-        typeof ing.amount === "number",
+        typeof ing.name === "string",
       (ing) => ({
         name: ing.name,
-        amount: ing.amount,
+        amount:
+          "amount" in ing && typeof ing.amount === "number"
+            ? ing.amount
+            : undefined,
         unit: validateUnit(
           "unit" in ing && typeof ing.unit === "string" ? ing.unit : undefined
         ),

@@ -1,6 +1,6 @@
 /**
- * Shared OpenAI structured output schema for recipe parsing
- * Used by both URL and text-based recipe parsers to ensure consistent AI responses
+ * Shared OpenAI structured output schema for text-based recipe parsing
+ * Ensures consistent AI responses with all required fields
  */
 
 // Note: This is a utility module, not a server action
@@ -12,7 +12,7 @@ export const RECIPE_INGREDIENT_SCHEMA = {
     unit: { type: "string" as const },
     preparation: { type: "string" as const },
   },
-  required: ["name", "amount", "unit", "preparation"],
+  required: ["name"],
   additionalProperties: false,
 };
 
@@ -39,27 +39,7 @@ export const RECIPE_NUTRITION_SCHEMA = {
 };
 
 /**
- * Base recipe parsing schema - shared by both parsers
- */
-export const BASE_RECIPE_PARSING_SCHEMA = {
-  type: "object" as const,
-  properties: {
-    ingredients: {
-      type: "array" as const,
-      items: RECIPE_INGREDIENT_SCHEMA,
-    },
-    category: { type: "string" as const },
-    method: {
-      type: "array" as const,
-      items: RECIPE_METHOD_STEP_SCHEMA,
-    },
-  },
-  required: ["ingredients", "category", "method"],
-  additionalProperties: false,
-};
-
-/**
- * Extended schema for text parsing (includes validation and metadata)
+ * Schema for text recipe parsing (includes validation and metadata)
  */
 export const TEXT_RECIPE_PARSING_SCHEMA = {
   type: "object" as const,

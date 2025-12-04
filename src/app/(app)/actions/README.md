@@ -1,11 +1,11 @@
 # Recipe Parsing Actions
 
-This directory contains server actions for scraping and parsing recipe data from websites.
+This directory contains server actions for scraping and parsing recipe data from websites using AI.
 
 ## Files
 
-- **`get-recipe-schema.ts`** - Scrapes Schema.org Recipe data from any recipe website
-- **`parse-recipe-with-ai.ts`** - Uses GPT-4o-mini to intelligently parse recipe data into your database schema
+- **`parse-recipe-from-site-with-ai.ts`** - Uses AI to extract recipes directly from any recipe website (primary method)
+- **`parse-text-to-recipe.ts`** - Uses AI to parse unstructured recipe text into structured format
 
 ## Setup
 
@@ -22,32 +22,22 @@ Get your OpenAI API key from: https://platform.openai.com/api-keys
 
 ## Usage
 
-### Complete Workflow: Import Recipe from URL
+### Import Recipe from URL
 
 ```typescript
-import { getRecipeSchema } from "./actions.ts/get-recipe-schema";
-import { parseRecipeWithAI } from "./actions.ts/parse-recipe-with-ai";
+import { parseRecipeFromSiteWithAI } from "./actions/parse-recipe-from-site-with-ai";
 
-// 1. Scrape the recipe from a URL
-const { recipe, url, error } = await getRecipeSchema(
+// Parse recipe directly from URL using AI
+const parsedRecipe = await parseRecipeFromSiteWithAI(
   "https://www.allrecipes.com/recipe/23600/worlds-best-lasagna/"
 );
 
-if (error || !recipe) {
-  console.error("Failed to scrape recipe");
-  return;
-}
-
-// 2. Parse with AI into your database format
-const parsedRecipe = await parseRecipeWithAI(recipe, url);
-
 if (!parsedRecipe) {
-  console.error("Failed to parse recipe");
+  console.error("Failed to extract recipe");
   return;
 }
 
-// 3. Save to Convex
-// parsedRecipe is now ready to insert into your Convex database
+// Recipe is now ready to save to your database
 console.log(parsedRecipe);
 // {
 //   title: "World's Best Lasagna",
@@ -55,11 +45,11 @@ console.log(parsedRecipe);
 //   prepTime: 30,  // minutes
 //   cookTime: 150, // minutes
 //   serves: 12,
-//   category: "dinner",  // AI-determined
+//   category: "main",  // AI-determined
 //   ingredients: [
-//     { name: "sweet Italian sausage", amount: 1, unit: "lbs" },
-//     { name: "onion", amount: 0.5, unit: "cups", preparation: "minced" },
-//     { name: "garlic", amount: 2, preparation: "crushed" },
+//     { name: "sweet Italian sausage", amount: 1, unit: "lb" },
+//     { name: "onion", amount: 0.5, unit: "cup", preparation: "minced" },
+//     { name: "garlic", amount: 2, unit: "clove", preparation: "crushed" },
 //     ...
 //   ],
 //   method: [
@@ -68,40 +58,79 @@ console.log(parsedRecipe);
 //     { title: "Prepare the sauce", description: "Stir in crushed tomatoes, tomato sauce..." },
 //     { title: "Assemble the lasagna", description: "Spread meat sauce in baking dish..." },
 //     ...
-//   ]
+//   ],
+//   imageUrl: "https://...",
+//   originalUrl: "https://...",
+//   originalAuthor: "...",
+//   importedAt: 1234567890
 // }
+```
+
+### Parse Recipe from Text
+
+```typescript
+import { parseTextToRecipe } from "./actions/parse-text-to-recipe";
+
+const recipeText = `
+Chocolate Chip Cookies
+
+Ingredients:
+- 2 cups flour
+- 1 cup butter
+- 1 cup sugar
+- 2 eggs
+- 1 tsp vanilla
+- 1 cup chocolate chips
+
+Instructions:
+1. Preheat oven to 350°F
+2. Mix butter and sugar
+3. Add eggs and vanilla
+4. Mix in flour
+5. Fold in chocolate chips
+6. Bake for 10-12 minutes
+`;
+
+const result = await parseTextToRecipe(recipeText);
+
+if (!result.success) {
+  console.error(result.error);
+  return;
+}
+
+console.log(result.recipe);
 ```
 
 ## What Gets AI Processing?
 
-GPT-4o-mini intelligently handles:
+GPT-4o-mini intelligently handles all aspects of recipe parsing:
 
 ### 🥘 Ingredients
 
 - ✅ Extracts **amount** (handles fractions: 1/2 → 0.5, mixed numbers: 1 1/2 → 1.5)
 - ✅ Identifies **unit** (understands variations: cup/cups, pound/lb/lbs)
 - ✅ Extracts **ingredient name** (cleaned of extra text)
-- ✅ Detects **preparation method** (chopped, minced, crushed, etc.)
+- ✅ Detects **preparation method** (chopped, minced, crushed, frozen, etc.)
 - ✅ Handles edge cases (parenthetical notes, "divided", "or to taste", etc.)
 
 ### 📂 Category
 
-- ✅ Intelligently categorizes recipe based on name, description, and ingredients
-- ✅ Maps to your schema categories (breakfast, lunch, dinner, dessert, etc.)
-- ✅ Considers context better than simple keyword matching
+- ✅ Intelligently categorizes recipe based on content and context
+- ✅ Maps to your schema categories (breakfast, lunch, main, dessert, snack, sides, drinks)
+- ✅ Understands nuance better than keyword matching
 
 ### 📝 Method Steps
 
-- ✅ Creates **descriptive titles** for each step (not just "Step 1", "Step 2")
+- ✅ Creates **descriptive titles** for each step
 - ✅ Action-oriented titles like "Prepare the sauce", "Brown the meat", "Assemble the lasagna"
-- ✅ Preserves original instruction text as description
+- ✅ Preserves complete original instruction text
 
-**Rule-based extraction** (no AI needed):
+### ⏱️ Timing & Metadata
 
-- Title, description, image URLs
-- Time durations (ISO 8601 → minutes conversion)
-- Servings (pattern extraction)
-- Author, dates, nutrition, ratings
+- ✅ Extracts or estimates prep and cook times
+- ✅ Determines serving size
+- ✅ Extracts author information and image URLs from page metadata
+- ✅ Validates recipe completeness
 
 ## Cost Considerations
 
@@ -112,29 +141,40 @@ GPT-4o-mini intelligently handles:
 
 Average recipe with 20 ingredients and 10 steps:
 
-- Input: ~800 tokens (recipe context + ingredients + instructions)
-- Output: ~500 tokens (structured ingredients + category + method titles)
-- **Cost per recipe: ~$0.0004 (less than half a penny)**
+- Input: ~2,000 tokens (webpage text + prompt)
+- Output: ~500 tokens (structured recipe data)
+- **Cost per recipe: ~$0.0006 (less than a penny)**
 
-For 1,000 recipes: ~$0.40
+For 1,000 recipes: ~$0.60
 
-Still extremely affordable for the intelligence gained! 🎉
+Extremely affordable for consistent, high-quality parsing! 🎉
+
+## Benefits of AI-Only Approach
+
+✅ **Consistency** - All recipes parsed the same way regardless of source  
+✅ **Robustness** - Works even when sites lack structured data  
+✅ **Intelligence** - Handles edge cases and variations naturally  
+✅ **Simplicity** - Single parsing path, easier to maintain and improve  
+✅ **Flexibility** - Can extract recipes from any format (HTML, text, etc.)
 
 ## Error Handling
 
-Both functions handle errors gracefully with automatic fallbacks:
+Functions handle errors gracefully:
 
 ```typescript
-// Scraping errors
-const { error, recipe } = await getRecipeSchema(url);
-if (error) {
-  // Handle scraping failure
+// URL parsing
+const recipe = await parseRecipeFromSiteWithAI(url);
+if (!recipe) {
+  // Handle failure - page may not contain recipe or be inaccessible
 }
 
-// AI parsing with automatic fallbacks
-const parsed = await parseRecipeWithAI(recipe);
-// Even on AI failure, you'll get a valid structure:
-// - Ingredients: basic structure with name and amount: 1
-// - Category: rule-based keyword matching
-// - Method: generic "Step 1", "Step 2" titles
+// Text parsing with validation
+const result = await parseTextToRecipe(text);
+if (!result.success) {
+  console.error(result.error);
+  // May include partial recipe data for manual completion
+  if (result.partialRecipe) {
+    // User can edit and complete in UI
+  }
+}
 ```

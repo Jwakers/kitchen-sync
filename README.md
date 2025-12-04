@@ -48,6 +48,8 @@
 - `ENV_SETUP.md` - Environment variables setup and troubleshooting
 - `PRE_LAUNCH_TESTING_CHECKLIST.md` - Comprehensive testing checklist (200+ checks)
 
+### Launch beta!
+
 ---
 
 ### Next Immediate Steps
@@ -57,11 +59,8 @@
 - [x] User feedback investigations and create todos
 - [x] Personal feedback (In notes app)
 - [ ] Understand the importance of draft and published state in the UI (seems unimportant at this stage)
-
 - [ ] Make all necessary preparations and billing setup for an MVP launch
 - [ ] Tech debt
-- [ ] Set up multi tenant in vercel/next and serve the app a subdomain app.kitchen-sync-app.com and the site through the main domain
-- [ ] Refactor the AI sections to use the vercel AI SDK
 
 ## Usage notes and feedback
 
@@ -74,13 +73,15 @@
 - [x] When there is no image for a recipe a button to upload one would be helpful rather than having to go into edit mode
 - [x] Need to add a how to use the app page
 - [x] The app needs a contact form for support and feature requests
-- [ ] Unable to add zero amount ingredients like olive oil, salt and pepper
+- [x] Unable to add zero amount ingredients like olive oil, salt and pepper
+- [x] Original recipe attribution should be in the recipe somewhere
 - [ ] API seems to set cook time to zero quite a lot (incomplete schema may be to blame)
-- [ ] There is a notice on household recipes not made by me. Seems like it’s not needed. There should be attribution to the original owner, and an option to copy the recipe so you can make your own edits and updates (however copying should be a separate feature from the attribution update as it requires a good deal of thought around publishing rights, what recipes are you allowed to copy etc)
 
 ## 🐛 Bug Tracking
 
-- [ ] Overflow on the sign in page on ios
+- [x] Overflow on the sign in page on ios
+- [ ] Ingredients can be duplicated if used in multiple sections of a recipe, like this one for example: https://www.greatbritishchefs.com/recipes/salmon-kilaw-recipe
+      Ingredients should be deduped as part of the parsing process OR ingredients should be sectioned (as in for the sauce, for the garnish) that was they can stay as duplicates
 
 ## Tech debt
 
@@ -114,6 +115,7 @@
 - [ ] Pages that have been made server side just for meta data and then export a client component for all logic can now include that logic directly and shift any metadata or server information to the layout file of the page (see invitations page).
 - [ ] Should be able to trigger the add recipe navigation from anywhere. Time to add it to its own page or wrap the app in context to provide a method to open it.
 - [ ] The theme options in the menu are a drop down that opens downwards. This does not look great the options to expand open or the menu should be above not below
+- [ ] Refactor the AI sections to use the vercel AI SDK
 
 ## Major updates
 
@@ -126,6 +128,7 @@
 - [ ] Share to the app. Investigate whether it is possible that, if a website is shared to this app, it can be immediately added to the import URL field on the import URL field, with a popup asking for confirmation to import this recipe
 - [ ] Add notes to recipes. This should be a new table (with a by_recipe_id index) so notes can be used for wider use cases down the line. Notes are not comments, they are private to the user and that should be made clear in the UI
 - [ ] Invites sent to users should open their app, not the browser. This may be possible with protocol handlers but it is not well supported at time of writing. Else a PWA app wrapper will need to be used.
+- [ ] Set up multi tenant in vercel/next and serve the app a subdomain app.kitchen-sync-app.com and the site through the main domain
 
 ---
 

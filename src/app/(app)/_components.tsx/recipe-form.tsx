@@ -427,15 +427,18 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                     name="cookTime"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Cook Time (min) *</FormLabel>
+                        <FormLabel>Cook Time (min)</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
                             placeholder="30"
                             {...field}
-                            onChange={(e) =>
-                              field.onChange(Number(e.target.value))
-                            }
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              field.onChange(
+                                value === "" ? undefined : Number(value)
+                              );
+                            }}
                           />
                         </FormControl>
                         <FormMessage />
@@ -470,7 +473,40 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                     )}
                   />
                 </motion.div>
-
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.5 }}
+                >
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Category</FormLabel>
+                        <FormControl>
+                          <Select
+                            {...field}
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select a category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {RECIPE_CATEGORIES.map((category) => (
+                                <SelectItem key={category} value={category}>
+                                  {titleCase(category)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </motion.div>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -643,40 +679,6 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                     )}
                   />
                 </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.5 }}
-                >
-                  <FormField
-                    control={form.control}
-                    name="category"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Category</FormLabel>
-                        <FormControl>
-                          <Select
-                            {...field}
-                            onValueChange={field.onChange}
-                            value={field.value}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select a category" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {RECIPE_CATEGORIES.map((category) => (
-                                <SelectItem key={category} value={category}>
-                                  {titleCase(category)}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </motion.div>
               </div>
             </CardContent>
           </Card>
@@ -749,10 +751,14 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                                 <FormControl>
                                   <Input
                                     placeholder="Amount"
-                                    {...field}
+                                    type="number"
+                                    step="0.01"
+                                    value={field.value ?? ""}
                                     onChange={(e) => {
-                                      const v = Number(e.target.value);
-                                      field.onChange(v);
+                                      const value = e.target.value;
+                                      field.onChange(
+                                        value === "" ? undefined : Number(value)
+                                      );
                                     }}
                                   />
                                 </FormControl>

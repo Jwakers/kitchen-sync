@@ -75,7 +75,7 @@ export type ParsedRecipeFromText = ParsedRecipeBase & {
  */
 export const IngredientSchema = z.object({
   name: z.string(),
-  amount: z.number(),
+  amount: z.number().optional(),
   unit: z.string().optional(),
   preparation: z.string().optional(),
 });
