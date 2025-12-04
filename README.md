@@ -80,7 +80,7 @@
 
 ## 🐛 Bug Tracking
 
-- [ ] Overflow on the sign in page on ios
+- [x] Overflow on the sign in page on ios
 
 ## Tech debt
 

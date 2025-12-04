@@ -21,7 +21,7 @@ import Link from "next/link";
 
 export default function SignInPage() {
   return (
-    <div className="flex">
+    <div className="lg:grid lg:grid-cols-2 min-h-screen">
       {/* Left Side - Image/Illustration */}
       <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-primary/90 to-primary relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/80 to-primary/60"></div>
