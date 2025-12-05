@@ -266,7 +266,11 @@ export function ImportRecipeClient() {
       // Nutrition values are already parsed as integers (grams) from the AI parser
       const nutrition = validatedRecipe.nutrition;
 
-      const { recipeId, validationErrors } = await createRecipeMutation({
+      const {
+        recipeId,
+        validationErrors,
+        error: mutationError,
+      } = await createRecipeMutation({
         title: validatedRecipe.title,
         description: validatedRecipe.description,
         prepTime: validatedRecipe.prepTime,
@@ -281,8 +285,8 @@ export function ImportRecipeClient() {
         originalPublishedDate: parsedRecipe?.originalPublishedDate,
       });
 
-      if (error) {
-        toast.error(error);
+      if (mutationError) {
+        toast.error(mutationError);
         return;
       }
       if (!recipeId) {

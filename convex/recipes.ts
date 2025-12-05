@@ -195,6 +195,7 @@ export const createRecipe = mutation({
       return {
         error: `You've reached the limit of ${FREE_TIER_LIMITS.maxRecipes} recipes on the free plan.`,
         recipeId: null,
+        validationErrors: null,
       };
     }
 
@@ -252,6 +253,7 @@ export const createRecipe = mutation({
     return {
       recipeId,
       validationErrors: errors.length > 0 ? errors : null,
+      error: null,
     };
   },
 });
