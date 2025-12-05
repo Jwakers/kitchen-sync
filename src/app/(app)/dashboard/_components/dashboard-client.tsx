@@ -1,7 +1,6 @@
 "use client";
 
 import { ROUTES } from "@/app/constants";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -68,14 +67,10 @@ function HeroSection() {
 
 function ActivityCard({
   recipe,
-  isDraft = false,
 }: {
-  recipe:
-    | FunctionReturnType<typeof api.recipes.getRecentActivity>["drafts"][number]
-    | FunctionReturnType<
-        typeof api.recipes.getRecentActivity
-      >["recent"][number];
-  isDraft?: boolean;
+  recipe: FunctionReturnType<
+    typeof api.recipes.getRecentActivity
+  >["recent"][number];
 }) {
   const totalTime = (recipe.prepTime ?? 0) + (recipe.cookTime ?? 0);
 
@@ -107,11 +102,6 @@ function ActivityCard({
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Clock className="h-3 w-3" />
           <span>{totalTime} min</span>
-          {isDraft && (
-            <Badge variant="secondary" className="text-xs">
-              Draft
-            </Badge>
-          )}
         </div>
       </div>
       <div className="flex-shrink-0">
@@ -152,7 +142,7 @@ function RecentActivitySection({ data }: { data: RecentActivity | undefined }) {
     );
   }
 
-  const hasActivity = data.drafts.length > 0 || data.recent.length > 0;
+  const hasActivity = data.recent.length > 0;
 
   return (
     <Card>
@@ -174,17 +164,12 @@ function RecentActivitySection({ data }: { data: RecentActivity | undefined }) {
           </div>
         ) : (
           <div className="space-y-3">
-            {/* Draft Recipes */}
-            {data.drafts.map((recipe) => (
-              <ActivityCard key={recipe._id} recipe={recipe} isDraft />
-            ))}
-
             {/* Recent Recipes */}
             {data.recent.map((recipe) => (
               <ActivityCard key={recipe._id} recipe={recipe} />
             ))}
 
-            {(data.drafts.length > 0 || data.recent.length > 0) && (
+            {data.recent.length > 0 && (
               <div className="pt-2">
                 <Button variant="outline" size="sm" asChild className="w-full">
                   <Link href={ROUTES.MY_RECIPES}>View All Recipes</Link>

@@ -30,17 +30,6 @@
   - [ ] Test that OpenAI API key has credits
   - [ ] Confirm email SMTP settings work in production
 
-### Completed ✅
-
-- ✅ Privacy Policy and Terms of Service pages
-- ✅ Legal links in footer
-- ✅ SEO setup (robots.txt & sitemap.xml)
-- ✅ OpenGraph metadata for social sharing
-- ✅ Beta messaging on homepage
-- ✅ Comprehensive testing checklist created
-- ✅ Environment variables documented
-- ✅ PWA assets guide created
-
 ### Quick Reference Documents
 
 - `LAUNCH_SUMMARY.md` - Complete overview of what was done and next steps
@@ -58,9 +47,11 @@
 - [x] Bugs bugs bugs
 - [x] User feedback investigations and create todos
 - [x] Personal feedback (In notes app)
-- [ ] Understand the importance of draft and published state in the UI (seems unimportant at this stage)
-- [ ] Make all necessary preparations and billing setup for an MVP launch
-- [ ] Tech debt
+- [x] Understand the importance of draft and published state in the UI (seems unimportant at this stage)
+- [ ] Run the convex function migrations:removeRecipeStatusField on the production instance
+- [ ] Remove status field from recipe schema
+- [ ] Make all necessary preparations and billing setup for an MVP launch (useConvexAuth for has function over clerks useAuth)
+- [ ] Set up Canny
 
 ## Usage notes and feedback
 
@@ -75,13 +66,13 @@
 - [x] The app needs a contact form for support and feature requests
 - [x] Unable to add zero amount ingredients like olive oil, salt and pepper
 - [x] Original recipe attribution should be in the recipe somewhere
-- [ ] API seems to set cook time to zero quite a lot (incomplete schema may be to blame)
 
 ## 🐛 Bug Tracking
 
 - [x] Overflow on the sign in page on ios
-- [ ] Ingredients can be duplicated if used in multiple sections of a recipe, like this one for example: https://www.greatbritishchefs.com/recipes/salmon-kilaw-recipe
+- [ ] Ingredients can be duplicated if used in multiple sections of a recipe, like this one for example: <https://www.greatbritishchefs.com/recipes/salmon-kilaw-recipe>
       Ingredients should be deduped as part of the parsing process OR ingredients should be sectioned (as in for the sauce, for the garnish) that was they can stay as duplicates
+- [ ] Its is possible for the parser to output technically correct but odd ingredient mappings like 0.5 Whole Lime. This can be seen when extracting this recipe: <https://www.greatbritishchefs.com/recipes/salmon-kilaw-recipe>
 
 ## Tech debt
 
@@ -105,7 +96,6 @@
 - [ ] Add a utility function to output image sizes string
 - [ ] On recipe pages add a "Mise en place" section that shows all the preparations steps based on what ingredients have preparation set
 - [ ] Update the UI for selecting units and prep to show categories and share across all forms. Use a categorised table like display
-- [ ] Set recipe to draft or publish (users should be notified what this means. Published does not mean public, users in your house can see your recipes etc. This should be globally saved information so its easy to update)
 - [ ] Sign in / Sign up pages should respect dark mode as well as looking a bit more native to the site
 - [ ] Update app icons.
 - [ ] Add OpenGraph meta information to all pages.

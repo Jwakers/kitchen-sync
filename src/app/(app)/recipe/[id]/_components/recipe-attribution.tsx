@@ -81,7 +81,7 @@ export function RecipeAttribution({ recipe }: RecipeAttributionProps) {
                   rel="noopener noreferrer"
                   className="text-primary hover:underline font-medium inline-flex items-center"
                 >
-                  View original recipe on {domain}
+                  View original recipe{domain ? ` on ${domain}` : ""}
                 </a>
               </div>
             )}

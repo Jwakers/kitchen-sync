@@ -60,9 +60,8 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
   const [isSaved, setIsSaved] = useState(false);
   const creatingRecipe = useRef(false);
 
-  const createDraftRecipeMutation = useMutation(api.recipes.createDraftRecipe);
+  const createEmptyRecipeMutation = useMutation(api.recipes.createEmptyRecipe);
   const updateRecipeMutation = useMutation(api.recipes.updateRecipe);
-  const publishRecipeMutation = useMutation(api.recipes.publishRecipe);
   const generateUploadUrl = useMutation(api.recipes.generateUploadUrl);
   const updateRecipeImageAndDeleteOld = useMutation(
     api.recipes.updateRecipeImageAndDeleteOld
@@ -226,29 +225,11 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
           toast.error(message, {
             description: "Please try again",
           });
-          // Don't return here - continue with publishing attempt
         }
       }
 
-      // Try to publish the recipe
-      const { errors } = await publishRecipeMutation({ recipeId });
-
       // Mark as saved to prevent multiple saves
       setIsSaved(true);
-
-      if (errors?.length) {
-        errors.forEach((error) => {
-          form.setError(error.field, { message: error.message });
-        });
-        toast.info("Recipe saved as draft", {
-          description:
-            "This recipe has been saved to your drafts as it is not fully completed",
-        });
-
-        closeDrawer();
-        router.push(`${ROUTES.RECIPE}/${recipeId}`);
-        return;
-      }
 
       closeDrawer();
       toast.success("Recipe saved successfully");
@@ -275,12 +256,12 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
     });
   };
 
-  // Create a draft recipe on mount
+  // Create an empty recipe on mount
   useEffect(() => {
     if (recipeId || creatingRecipe.current) return;
     creatingRecipe.current = true;
-    // Create a draft recipe and then update as we go
-    createDraftRecipeMutation()
+    // Create an empty recipe and then update as we go
+    createEmptyRecipeMutation()
       .then(({ recipeId, error }) => {
         if (error) {
           toast.error(error);
@@ -299,7 +280,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
       .finally(() => {
         creatingRecipe.current = false;
       });
-  }, [closeDrawer, createDraftRecipeMutation, recipeId]);
+  }, [closeDrawer, createEmptyRecipeMutation, recipeId]);
 
   useEffect(() => {
     // Update the recipe at each step (but not on review step - user should manually save)
@@ -325,7 +306,6 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
     };
     updateRecipe();
   }, [
-    createDraftRecipeMutation,
     currentStep,
     form,
     getMethodData,
