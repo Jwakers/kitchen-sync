@@ -7,25 +7,24 @@ type Ingredient = {
 
 export function IngredientsList(props: { ingredients: Ingredient[] }) {
   return (
-    <ul className="space-y-2">
+    <ul className="space-y-2 list-disc">
       {props.ingredients.map((ingredient, index) => (
         <li
           key={`${index}-${ingredient.name}-${ingredient.amount}-${ingredient.unit}`}
-          className="flex items-start gap-2"
+          className="flex items-start gap-1"
         >
-          <span className="text-muted-foreground mt-1">•</span>
-          <span className="capitalize">
-            {ingredient.amount ? (
-              <span className="font-medium">{ingredient.amount}</span>
-            ) : null}
-            {ingredient.unit ? ` ${ingredient.unit}` : null}
-            {ingredient.name ? ` ${ingredient.name}` : null}
-            {ingredient.preparation ? (
-              <span className="text-muted-foreground italic">
-                , {ingredient.preparation}
-              </span>
-            ) : null}
-          </span>
+          {ingredient.amount ? (
+            <span className="font-medium">{ingredient.amount}</span>
+          ) : null}
+          {ingredient.unit ? <span>{ingredient.unit}</span> : null}
+          {ingredient.name ? (
+            <span className="capitalize">{ingredient.name}</span>
+          ) : null}
+          {ingredient.preparation ? (
+            <span className="text-muted-foreground italic capitalize">
+              - {ingredient.preparation}
+            </span>
+          ) : null}
         </li>
       ))}
     </ul>
