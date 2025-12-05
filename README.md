@@ -68,9 +68,9 @@
 ## 🐛 Bug Tracking
 
 - [x] Overflow on the sign in page on ios
-- [ ] Ingredients can be duplicated if used in multiple sections of a recipe, like this one for example: https://www.greatbritishchefs.com/recipes/salmon-kilaw-recipe
+- [ ] Ingredients can be duplicated if used in multiple sections of a recipe, like this one for example: <https://www.greatbritishchefs.com/recipes/salmon-kilaw-recipe>
       Ingredients should be deduped as part of the parsing process OR ingredients should be sectioned (as in for the sauce, for the garnish) that was they can stay as duplicates
-- [ ] Its is possible for the parser to output technically correct but odd ingredient mappings like 0.5 Whole Lime. This can be seen when extracting this recipe: https://www.greatbritishchefs.com/recipes/salmon-kilaw-recipe
+- [ ] Its is possible for the parser to output technically correct but odd ingredient mappings like 0.5 Whole Lime. This can be seen when extracting this recipe: <https://www.greatbritishchefs.com/recipes/salmon-kilaw-recipe>
 
 ## Tech debt
 
