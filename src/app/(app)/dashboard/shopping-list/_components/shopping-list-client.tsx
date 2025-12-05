@@ -634,10 +634,7 @@ const buildShoppingListItems = (recipes: Recipe[]) => {
           name: ingredient.name,
           unit: ingredient.unit,
           preparation: ingredient.preparation,
-          amount:
-            amountValue !== null && Number.isFinite(amountValue)
-              ? amountValue
-              : amountValue,
+          amount: Number.isFinite(amountValue) ? amountValue : null,
         });
         return;
       }
