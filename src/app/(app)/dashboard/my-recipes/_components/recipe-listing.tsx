@@ -84,16 +84,8 @@ function RecipeCard({
               </div>
             </div>
 
-            {/* Status Badge */}
+            {/* Last Updated */}
             <div className="flex items-center gap-2">
-              <Badge
-                variant={
-                  recipe.status === "published" ? "default" : "secondary"
-                }
-                className="text-xs"
-              >
-                {recipe.status === "published" ? "Published" : "Draft"}
-              </Badge>
               <span className="text-xs text-muted-foreground">
                 {new Date(
                   recipe.updatedAt ?? recipe._creationTime
@@ -205,10 +197,6 @@ export default function RecipeListing() {
       return matchesSearch && matchesCategory;
     }) || [];
 
-  const publishedCount =
-    recipes?.filter((r) => r.status === "published").length || 0;
-  const draftCount = recipes?.filter((r) => r.status === "draft").length || 0;
-
   return (
     <div className="bg-background">
       <div className="container mx-auto px-4 py-8">
@@ -239,17 +227,7 @@ export default function RecipeListing() {
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-primary rounded-full" />
                 <span className="text-sm font-medium">
-                  {publishedCount} Published
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-muted-foreground rounded-full" />
-                <span className="text-sm font-medium">{draftCount} Drafts</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-chart-2 rounded-full" />
-                <span className="text-sm font-medium">
-                  {recipes.length} Total
+                  {recipes.length} {recipes.length === 1 ? "Recipe" : "Recipes"}
                 </span>
               </div>
               <div className="ml-auto">

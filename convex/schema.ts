@@ -53,7 +53,7 @@ export default defineSchema({
       )
     ),
     updatedAt: v.number(),
-    status: v.union(v.literal("draft"), v.literal("published")),
+    status: v.optional(v.union(v.literal("draft"), v.literal("published"))), // DEPRECATED: Removed status field as all recipes are now private by default
     // Attribution & Source Information
     originalUrl: v.optional(v.string()), // URL where recipe was imported from
     originalAuthor: v.optional(v.string()), // Original recipe author/creator
@@ -71,8 +71,7 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_category", ["category"])
     .index("by_user_and_category", ["userId", "category"])
-    .index("by_user_and_status", ["userId", "status"])
-    .index("by_user_status_updatedAt", ["userId", "status", "updatedAt"]),
+    .index("by_user_updatedAt", ["userId", "updatedAt"]),
 
   ingredients: defineTable({
     name: v.string(),

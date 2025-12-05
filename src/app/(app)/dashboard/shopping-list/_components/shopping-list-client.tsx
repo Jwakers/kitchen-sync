@@ -102,7 +102,7 @@ export default function ShoppingListClient() {
   );
   const deleteShoppingList = useMutation(api.shoppingLists.deleteShoppingList);
 
-  // Filter recipes based on search and only show published recipes
+  // Filter recipes based on search
   const filteredRecipes = useMemo(
     () =>
       allRecipes.filter((recipe) => {

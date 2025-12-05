@@ -34,7 +34,7 @@ export const faqSections = [
       {
         question: "What information do I need to include in a recipe?",
         answer:
-          "At minimum, you'll need a recipe name, ingredients list, and cooking instructions. You can also add prep time, cook time, serving size, difficulty level, category, photos, and nutritional information. Recipes can be saved as drafts and continued later.",
+          "At minimum, you'll need a recipe name, ingredients list, and cooking instructions. You can also add prep time, cook time, serving size, difficulty level, category, photos, and nutritional information.",
       },
       {
         question: "Can I organise my recipes?",

@@ -52,35 +52,6 @@ export const getRecipe = query({
   },
 });
 
-export const getDraftRecipes = query({
-  args: {
-    cursor: v.optional(v.string()),
-  },
-  handler: async (ctx) => {
-    const user = await getCurrentUserOrThrow(ctx);
-    return await ctx.db
-      .query("recipes")
-      .withIndex("by_user_and_status", (q) =>
-        q.eq("userId", user._id).eq("status", "draft")
-      )
-      .take(20);
-  },
-});
-
-export const getPublishedRecipes = query({
-  args: {},
-  handler: async (ctx) => {
-    const user = await getCurrentUserOrThrow(ctx);
-    return await ctx.db
-      .query("recipes")
-      .withIndex("by_user_and_status", (q) =>
-        q.eq("userId", user._id).eq("status", "published")
-      )
-      .order("desc")
-      .collect();
-  },
-});
-
 export const getAllUserRecipes = query({
   args: {},
   handler: async (ctx) => {
@@ -111,34 +82,22 @@ export const getRecentActivity = query({
     const user = await getCurrentUser(ctx);
     // Return empty activity if user doesn't exist yet (race condition on sign-in)
     if (!user) {
-      return { drafts: [], recent: [] };
+      return { recent: [] };
     }
 
     const now = Date.now();
     const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
 
-    // Get draft recipes (unfinished)
-    const draftRecipes = await ctx.db
-      .query("recipes")
-      .withIndex("by_user_and_status", (q) =>
-        q.eq("userId", user._id).eq("status", "draft")
-      )
-      .order("desc")
-      .take(3);
-
-    // Get recently updated published recipes (last 7 days)
+    // Get recently updated recipes (last 7 days)
     const recentRecipes = await ctx.db
       .query("recipes")
-      .withIndex("by_user_status_updatedAt", (q) =>
-        q
-          .eq("userId", user._id)
-          .eq("status", "published")
-          .gte("updatedAt", sevenDaysAgo)
+      .withIndex("by_user_updatedAt", (q) =>
+        q.eq("userId", user._id).gte("updatedAt", sevenDaysAgo)
       )
       .order("desc")
       .take(5);
 
-    // Process images for both sets
+    // Process images
     const processRecipes = async (recipes: Doc<"recipes">[]) => {
       return await Promise.all(
         recipes.map(async (recipe) => ({
@@ -148,39 +107,31 @@ export const getRecentActivity = query({
       );
     };
 
-    const [drafts, recent] = await Promise.all([
-      processRecipes(draftRecipes),
-      processRecipes(recentRecipes),
-    ]);
+    const recent = await processRecipes(recentRecipes);
 
     return {
-      drafts,
       recent,
     };
   },
 });
 
-export const createDraftRecipe = mutation({
+export const createEmptyRecipe = mutation({
   args: {},
   handler: async (ctx) => {
     const user = await getCurrentUserOrThrow(ctx);
 
-    const draftRecipes = await ctx.db
+    // Check free tier recipe limit
+    const recipes = await ctx.db
       .query("recipes")
-      .withIndex("by_user_and_status", (q) =>
-        q.eq("userId", user._id).eq("status", "draft")
-      )
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
       .collect();
 
-    // Does this user have too many draft recipes
-    if (draftRecipes.length >= 3) {
+    if (recipes.length >= FREE_TIER_LIMITS.maxRecipes) {
       return {
-        error: "You can only have 3 draft recipes at a time",
+        error: `You've reached the limit of ${FREE_TIER_LIMITS.maxRecipes} recipes on the free plan.`,
         recipeId: null,
       };
     }
-
-    // TODO: Does this user have too many recipes total (USE CLERK FEATURES FOR THIS)
 
     const recipeId = await ctx.db.insert("recipes", {
       userId: user._id,
@@ -190,7 +141,6 @@ export const createDraftRecipe = mutation({
       serves: 0,
       category: "main",
       updatedAt: Date.now(),
-      status: "draft",
     });
 
     return { recipeId, error: null };
@@ -291,7 +241,6 @@ export const createRecipe = mutation({
       importedAt: args.originalUrl ? now : undefined,
       originalPublishedDate,
       updatedAt: now,
-      status: "draft",
     });
 
     const recipe = await ctx.db.get(recipeId);
@@ -299,14 +248,10 @@ export const createRecipe = mutation({
 
     const errors = _validateRecipe(recipe);
 
-    if (errors.length > 0) return { recipeId, errors, published: false };
-
-    await ctx.db.patch(recipe._id, {
-      status: "published",
-      updatedAt: Date.now(),
-    });
-
-    return { recipeId, errors: null, published: true };
+    return {
+      recipeId,
+      errors: errors.length > 0 ? errors : null,
+    };
   },
 });
 
@@ -514,36 +459,6 @@ const _validateRecipe = (recipe: Doc<"recipes">) => {
 
   return errors;
 };
-
-export const publishRecipe = mutation({
-  args: {
-    recipeId: v.id("recipes"),
-  },
-  handler: async (ctx, args) => {
-    const user = await getCurrentUserOrThrow(ctx);
-
-    const recipe = await ctx.db.get(args.recipeId);
-    if (!recipe) {
-      throw new ConvexError("Recipe not found");
-    }
-    if (recipe.userId !== user._id) {
-      throw new ConvexError(
-        "Unauthorised - only the recipe owner can publish it"
-      );
-    }
-
-    const errors = _validateRecipe(recipe);
-
-    if (errors.length > 0) return { errors, success: false };
-
-    await ctx.db.patch(args.recipeId, {
-      status: "published",
-      updatedAt: Date.now(),
-    });
-
-    return { errors: null, success: true };
-  },
-});
 
 export const deleteRecipe = mutation({
   args: {

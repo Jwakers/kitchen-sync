@@ -162,12 +162,6 @@ export function RecipeHeader({
             ).toLocaleDateString()}
           </span>
         </div>
-        <Badge
-          variant={recipe.status === "published" ? "default" : "secondary"}
-          className="ml-auto"
-        >
-          {recipe.status === "published" ? "Published" : "Draft"}
-        </Badge>
       </div>
 
       {/* Change Image Modal */}
