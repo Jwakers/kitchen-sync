@@ -266,7 +266,7 @@ export function ImportRecipeClient() {
       // Nutrition values are already parsed as integers (grams) from the AI parser
       const nutrition = validatedRecipe.nutrition;
 
-      const { recipeId, errors } = await createRecipeMutation({
+      const { recipeId, validationErrors } = await createRecipeMutation({
         title: validatedRecipe.title,
         description: validatedRecipe.description,
         prepTime: validatedRecipe.prepTime,
@@ -281,6 +281,15 @@ export function ImportRecipeClient() {
         originalPublishedDate: parsedRecipe?.originalPublishedDate,
       });
 
+      if (error) {
+        toast.error(error);
+        return;
+      }
+      if (!recipeId) {
+        toast.error("Failed to save recipe");
+        return;
+      }
+
       if (validatedRecipe.imageUrl) {
         const promise = handleImageUpload(recipeId, validatedRecipe.imageUrl);
         toast.promise(promise, {
@@ -290,7 +299,7 @@ export function ImportRecipeClient() {
         });
       }
 
-      if (errors?.length) {
+      if (validationErrors?.length) {
         toast.warning("Some fields are incomplete", {
           description:
             "Your recipe has been saved but may require some manual editing to complete it",

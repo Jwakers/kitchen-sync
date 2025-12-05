@@ -306,7 +306,6 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
     };
     updateRecipe();
   }, [
-    createEmptyRecipeMutation,
     currentStep,
     form,
     getMethodData,

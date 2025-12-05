@@ -192,9 +192,10 @@ export const createRecipe = mutation({
       .collect();
 
     if (recipes.length >= FREE_TIER_LIMITS.maxRecipes) {
-      throw new ConvexError(
-        `You've reached the limit of ${FREE_TIER_LIMITS.maxRecipes} recipes on the free plan.`
-      );
+      return {
+        error: `You've reached the limit of ${FREE_TIER_LIMITS.maxRecipes} recipes on the free plan.`,
+        recipeId: null,
+      };
     }
 
     let ingredients = args.ingredients;
@@ -250,7 +251,7 @@ export const createRecipe = mutation({
 
     return {
       recipeId,
-      errors: errors.length > 0 ? errors : null,
+      validationErrors: errors.length > 0 ? errors : null,
     };
   },
 });
