@@ -52,7 +52,7 @@ export default function PricingPage() {
 
           {/* Pricing Card */}
           <div className="max-w-md mx-auto">
-            <PricingTable 
+            <PricingTable
             checkoutProps={{
               appearance: {
                 elements: {

@@ -107,6 +107,7 @@
 - [ ] Should be able to trigger the add recipe navigation from anywhere. Time to add it to its own page or wrap the app in context to provide a method to open it.
 - [ ] The theme options in the menu are a drop down that opens downwards. This does not look great the options to expand open or the menu should be above not below
 - [ ] Refactor the AI sections to use the vercel AI SDK
+- [ ] On the pricing page the free trial is not at all mentioned on the pro plan
 
 ## Major updates
 
