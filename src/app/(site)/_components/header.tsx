@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "@/app/constants";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,24 +31,29 @@ export function Header() {
           <span className="font-bold text-xl">Kitchen Sync</span>
         </Link>
 
-        {/* Desktop Auth Buttons */}
-        <div className="hidden md:flex items-center space-x-4 ml-auto">
-          <ModeToggle />
-          <Authenticated>
-            <UserButton
-              appearance={{
-                baseTheme: theme === "dark" ? dark : undefined,
-              }}
-            />
-          </Authenticated>
-          <Unauthenticated>
-            <SignInButton mode="modal">
-              <Button variant="ghost">Sign In</Button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <Button>Get Started</Button>
-            </SignUpButton>
-          </Unauthenticated>
+        <div className="flex items-center gap-x-4">
+          <Button variant="ghost" asChild className="hidden md:block">
+            <Link href={ROUTES.PRICING}>Pricing</Link>
+          </Button>
+          {/* Desktop Auth Buttons */}
+          <div className="hidden md:flex items-center gap-x-4">
+            <ModeToggle />
+            <Authenticated>
+              <UserButton
+                appearance={{
+                  baseTheme: theme === "dark" ? dark : undefined,
+                }}
+              />
+            </Authenticated>
+            <Unauthenticated>
+              <SignInButton mode="modal">
+                <Button variant="ghost">Sign In</Button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <Button>Get Started</Button>
+              </SignUpButton>
+            </Unauthenticated>
+          </div>
         </div>
 
         {/* Mobile Menu */}
@@ -72,6 +78,69 @@ export function Header() {
               <SheetTitle>Menu</SheetTitle>
             </SheetHeader>
             <div className="flex flex-col space-y-4 mt-8 px-4">
+              <nav className="flex flex-col space-y-6">
+                {/* Product */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    Product
+                  </h3>
+                  <Link
+                    href={ROUTES.PRICING}
+                    className="block text-foreground hover:text-primary transition-colors"
+                    onClick={() => {
+                      setMenuOpen(false);
+                    }}
+                  >
+                    Pricing
+                  </Link>
+                </div>
+
+                {/* Support */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    Support
+                  </h3>
+                  <div className="flex flex-col space-y-3">
+                    <Link
+                      href={ROUTES.SUPPORT}
+                      className="block text-foreground hover:text-primary transition-colors"
+                      onClick={() => {
+                        setMenuOpen(false);
+                      }}
+                    >
+                      Help & Support
+                    </Link>
+                    <Link
+                      href={ROUTES.CONTACT}
+                      className="block text-foreground hover:text-primary transition-colors"
+                      onClick={() => {
+                        setMenuOpen(false);
+                      }}
+                    >
+                      Contact Us
+                    </Link>
+                    <Link
+                      href={ROUTES.SUPPORT_FAQ}
+                      className="block text-foreground hover:text-primary transition-colors"
+                      onClick={() => {
+                        setMenuOpen(false);
+                      }}
+                    >
+                      FAQ
+                    </Link>
+                    <Link
+                      href={ROUTES.SUPPORT_HOW_TO}
+                      className="block text-foreground hover:text-primary transition-colors"
+                      onClick={() => {
+                        setMenuOpen(false);
+                      }}
+                    >
+                      How to Use
+                    </Link>
+                  </div>
+                </div>
+              </nav>
+
               <div className="pt-4 border-t">
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-sm font-medium">Theme</span>

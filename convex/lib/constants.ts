@@ -140,9 +140,28 @@ export type RecipeCategory = (typeof RECIPE_CATEGORIES)[number];
 export type PreparationOption = (typeof PREPARATION_OPTIONS)[number];
 export type Unit = (typeof UNITS_FLAT)[number];
 
-export const FREE_TIER_LIMITS = {
-  maxRecipes: 15,
-  maxHouseholds: 1,
-  maxMembersPerHousehold: 4,
-  maxActiveShoppingLists: 3,
-} as const;
+// Property names should match clerk subscription tiers
+export const SUBSCRIPTION_TIERS = ["free_user", "pro_user"] as const;
+type SubscriptionTier = (typeof SUBSCRIPTION_TIERS)[number];
+
+type PlanLimits = {
+  maxRecipes: number;
+  maxHouseholds: number;
+  maxActiveShoppingLists: number;
+};
+
+/** Plan limits by subscription tier. Use -1 to represent unlimited. */
+export const PLANS: Record<SubscriptionTier, PlanLimits> = {
+   free_user: {
+     maxRecipes: 15,
+     maxHouseholds: 1,
+     maxActiveShoppingLists: 3,
+   },
+   pro_user: {
+     maxRecipes: -1, // unlimited
+     maxHouseholds: -1, // unlimited
+     maxActiveShoppingLists: -1, // unlimited
+   },
+} as const satisfies Record<SubscriptionTier, PlanLimits>;
+
+export const FREE_TIER_LIMITS = PLANS.free_user;

@@ -6,9 +6,9 @@ export function Footer() {
   return (
     <footer className="border-t bg-background">
       <div className="container py-12 md:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-6xl mx-auto">
           {/* Brand */}
-          <div className="space-y-4">
+          <div className="space-y-4 md:col-span-1">
             <Link href="/" className="flex items-center space-x-2">
               <Utensils className="h-6 w-6 text-primary" />
               <span className="font-bold text-xl">Kitchen Sync</span>
@@ -18,6 +18,21 @@ export function Footer() {
               Create recipes, generate smart shopping lists, and collaborate
               with your household.
             </p>
+          </div>
+
+          {/* Product */}
+          <div className="space-y-4">
+            <h3 className="font-semibold">Product</h3>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link
+                  href={ROUTES.PRICING}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Pricing
+                </Link>
+              </li>
+            </ul>
           </div>
 
           {/* Support */}

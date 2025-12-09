@@ -48,9 +48,10 @@
 - [x] User feedback investigations and create todos
 - [x] Personal feedback (In notes app)
 - [x] Understand the importance of draft and published state in the UI (seems unimportant at this stage)
-- [ ] Run the convex function migrations:removeRecipeStatusField on the production instance
-- [ ] Remove status field from recipe schema
-- [ ] Make all necessary preparations and billing setup for an MVP launch (useConvexAuth for has function over clerks useAuth)
+- [x] Run the convex function migrations:removeRecipeStatusField on the production instance
+- [x] Remove status field from recipe schema
+- [ ] Add text to bottom navigation
+- [ ] Address all uses of free_tier_limits and replace with actual check from clerk
 - [ ] Set up Canny
 
 ## Usage notes and feedback
@@ -106,6 +107,7 @@
 - [ ] Should be able to trigger the add recipe navigation from anywhere. Time to add it to its own page or wrap the app in context to provide a method to open it.
 - [ ] The theme options in the menu are a drop down that opens downwards. This does not look great the options to expand open or the menu should be above not below
 - [ ] Refactor the AI sections to use the vercel AI SDK
+- [ ] On the pricing page the free trial is not at all mentioned on the pro plan
 
 ## Major updates
 
