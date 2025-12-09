@@ -73,6 +73,12 @@ http.route({
   }),
 });
 
+if (!process.env.CLERK_WEBHOOK_SECRET) {
+  throw new Error("CLERK_WEBHOOK_SECRET is not set");
+}
+
+const CLERK_WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
+
 async function validateRequest(req: Request): Promise<WebhookEvent | null> {
   const payloadString = await req.text();
   const svixId = req.headers.get("svix-id");
@@ -89,7 +95,7 @@ async function validateRequest(req: Request): Promise<WebhookEvent | null> {
     "svix-timestamp": svixTimestamp,
     "svix-signature": svixSignature,
   };
-  const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET!);
+  const wh = new Webhook(CLERK_WEBHOOK_SECRET);
   try {
     return wh.verify(payloadString, svixHeaders) as unknown as WebhookEvent;
   } catch (error) {

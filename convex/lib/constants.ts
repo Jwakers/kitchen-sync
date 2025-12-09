@@ -150,6 +150,7 @@ type PlanLimits = {
   maxActiveShoppingLists: number;
 };
 
+/** Plan limits by subscription tier. Use -1 to represent unlimited. */
 export const PLANS: Record<SubscriptionTier, PlanLimits> = {
    free_user: {
      maxRecipes: 15,
