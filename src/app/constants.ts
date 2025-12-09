@@ -15,6 +15,7 @@ export const ROUTES = {
   CONTACT: "/dashboard/support/contact",
   PRIVACY: "/privacy",
   TERMS: "/terms",
+  PRICING: "/pricing",
 } as const;
 
 export const CATEGORY_COLORS: Record<

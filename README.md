@@ -48,9 +48,10 @@
 - [x] User feedback investigations and create todos
 - [x] Personal feedback (In notes app)
 - [x] Understand the importance of draft and published state in the UI (seems unimportant at this stage)
-- [ ] Run the convex function migrations:removeRecipeStatusField on the production instance
-- [ ] Remove status field from recipe schema
-- [ ] Make all necessary preparations and billing setup for an MVP launch (useConvexAuth for has function over clerks useAuth)
+- [x] Run the convex function migrations:removeRecipeStatusField on the production instance
+- [x] Remove status field from recipe schema
+- [ ] Add text to bottom navigation
+- [ ] Address all uses of free_tier_limits and replace with actual check from clerk
 - [ ] Set up Canny
 
 ## Usage notes and feedback

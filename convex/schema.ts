@@ -3,14 +3,16 @@ import { v } from "convex/values";
 import {
   PREPARATION_OPTIONS,
   RECIPE_CATEGORIES,
-  UNITS_FLAT,
+  SUBSCRIPTION_TIERS,
+  UNITS_FLAT
 } from "./lib/constants";
 
 const categoriesUnion = v.union(...RECIPE_CATEGORIES.map(v.literal));
 const preparationUnion = v.union(...PREPARATION_OPTIONS.map(v.literal));
 const unitsUnion = v.union(...UNITS_FLAT.map(v.literal));
+const subscriptionTiersUnion = v.union(...SUBSCRIPTION_TIERS.map(v.literal));
 
-export { categoriesUnion, preparationUnion, unitsUnion };
+export { categoriesUnion, preparationUnion, subscriptionTiersUnion, unitsUnion };
 
 export default defineSchema({
   users: defineTable({
@@ -21,6 +23,12 @@ export default defineSchema({
     image: v.optional(v.string()),
     // this the Clerk ID, stored in the subject JWT field
     externalId: v.string(),
+    subscriptionTier: v.optional(subscriptionTiersUnion),
+    // Subscription tracking for failsafe sync
+    subscriptionStatus: v.optional(v.string()), // active, canceled, etc.
+    subscriptionId: v.optional(v.string()), // Clerk subscription ID
+    subscriptionPeriodEnd: v.optional(v.number()), // timestamp when subscription period ends (for grace period)
+    lastSubscriptionSync: v.optional(v.number()), // timestamp of last sync
   }).index("byExternalId", ["externalId"]),
 
   recipes: defineTable({
@@ -53,7 +61,6 @@ export default defineSchema({
       )
     ),
     updatedAt: v.number(),
-    status: v.optional(v.union(v.literal("draft"), v.literal("published"))), // DEPRECATED: Removed status field as all recipes are now private by default
     // Attribution & Source Information
     originalUrl: v.optional(v.string()), // URL where recipe was imported from
     originalAuthor: v.optional(v.string()), // Original recipe author/creator
