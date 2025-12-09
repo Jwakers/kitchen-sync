@@ -80,7 +80,13 @@ export const updateSubscriptionTier = internalMutation({
     data: v.any() as Validator<ClerkSubscriptionItemWebhookData>,
   },
   async handler(ctx, { data }) {
-    console.log("Subscription webhook received:", data);
+    console.log("Subscription webhook received:", {
+      id: data.id,
+      status: data.status,
+      plan_id: data.plan_id,
+      subscription_id: data.subscription_id,
+      user_id: data.payer.user_id,
+    });
     const userId = data.payer.user_id;
 
     const user = await userByExternalId(ctx, userId);
@@ -89,8 +95,6 @@ export const updateSubscriptionTier = internalMutation({
       throw new ConvexError(`User not found for Clerk user ID: ${userId}`);
     }
 
-    // Map subscription status to tier
-    // Active/upcoming subscriptions get the plan tier, everything else gets free
     let subscriptionTier: (typeof SUBSCRIPTION_TIERS)[number] | undefined =
       user.subscriptionTier;
 

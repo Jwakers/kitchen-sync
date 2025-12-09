@@ -26,7 +26,11 @@ http.route({
           break;
 
         case "user.deleted": {
-          const clerkUserId = event.data.id!;
+          const clerkUserId = event.data.id;
+          if (!clerkUserId) {
+            console.error("user.deleted event missing id");
+            return new Response("Invalid event data", { status: 400 });
+          }
           await ctx.runMutation(internal.users.deleteFromClerk, {
             clerkUserId,
           });
@@ -71,10 +75,19 @@ http.route({
 
 async function validateRequest(req: Request): Promise<WebhookEvent | null> {
   const payloadString = await req.text();
+  const svixId = req.headers.get("svix-id");
+  const svixTimestamp = req.headers.get("svix-timestamp");
+  const svixSignature = req.headers.get("svix-signature");
+
+  if (!svixId || !svixTimestamp || !svixSignature) {
+    console.error("Missing required Svix headers");
+    return null;
+  }
+
   const svixHeaders = {
-    "svix-id": req.headers.get("svix-id")!,
-    "svix-timestamp": req.headers.get("svix-timestamp")!,
-    "svix-signature": req.headers.get("svix-signature")!,
+    "svix-id": svixId,
+    "svix-timestamp": svixTimestamp,
+    "svix-signature": svixSignature,
   };
   const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET!);
   try {
