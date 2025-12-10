@@ -41,6 +41,7 @@ export function Navbar() {
             <Button
               variant="ghost"
               className="h-auto w-auto flex flex-col items-center gap-1 px-3 py-2"
+              aria-label="Shopping List"
             >
               <ShoppingCart className="h-5 w-5" />
               <span className="text-[0.625rem] sm:text-xs">
