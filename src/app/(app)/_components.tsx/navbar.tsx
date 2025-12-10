@@ -27,17 +27,26 @@ export function Navbar() {
         <div className="flex items-center justify-around px-4 py-2">
           {/* Home */}
           <Link href={ROUTES.DASHBOARD}>
-            <Button variant="ghost" size="icon" className="h-12 w-12">
+            <Button
+              variant="ghost"
+              className="h-auto w-auto flex flex-col items-center gap-1 px-3 py-2"
+            >
               <Home className="h-5 w-5" />
-              <span className="sr-only">Home</span>
+              <span className="text-[0.625rem] sm:text-xs">Home</span>
             </Button>
           </Link>
 
           {/* Shopping List */}
           <Link href={ROUTES.SHOPPING_LIST}>
-            <Button variant="ghost" size="icon" className="h-12 w-12">
+            <Button
+              variant="ghost"
+              className="h-auto w-auto flex flex-col items-center gap-1 px-3 py-2"
+              aria-label="Shopping List"
+            >
               <ShoppingCart className="h-5 w-5" />
-              <span className="sr-only">Shopping List</span>
+              <span className="text-[0.625rem] sm:text-xs">
+                Shopping<span className="hidden sm:inline"> list</span>
+              </span>
             </Button>
           </Link>
 
@@ -53,17 +62,23 @@ export function Navbar() {
 
           {/* Chalkboard */}
           <Link href={ROUTES.CHALKBOARD}>
-            <Button variant="ghost" size="icon" className="h-12 w-12">
+            <Button
+              variant="ghost"
+              className="h-auto w-auto flex flex-col items-center gap-1 px-3 py-2"
+            >
               <Clipboard className="h-5 w-5" />
-              <span className="sr-only">Chalkboard</span>
+              <span className="text-[0.625rem] sm:text-xs">Chalkboard</span>
             </Button>
           </Link>
 
           {/* Households */}
           <Link href={ROUTES.HOUSEHOLDS}>
-            <Button variant="ghost" size="icon" className="h-12 w-12">
+            <Button
+              variant="ghost"
+              className="h-auto w-auto flex flex-col items-center gap-1 px-3 py-2"
+            >
               <Users className="h-5 w-5" />
-              <span className="sr-only">Households</span>
+              <span className="text-[0.625rem] sm:text-xs">Households</span>
             </Button>
           </Link>
         </div>

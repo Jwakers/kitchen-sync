@@ -50,7 +50,7 @@
 - [x] Understand the importance of draft and published state in the UI (seems unimportant at this stage)
 - [x] Run the convex function migrations:removeRecipeStatusField on the production instance
 - [x] Remove status field from recipe schema
-- [ ] Add text to bottom navigation
+- [x] Add text to bottom navigation
 - [ ] Address all uses of free_tier_limits and replace with actual check from clerk
 - [ ] Set up Canny
 
