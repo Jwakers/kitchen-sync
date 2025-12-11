@@ -79,7 +79,7 @@ export const updateSubscriptionTier = internalMutation({
       )
     ) {
       throw new ConvexError(
-        `Invalid subscription tier: ${args.subscriptionTier}.`
+        `Invalid subscription tier: ${args.subscriptionTier}. Valid tiers: ${SUBSCRIPTION_TIERS.join(", ")}`
       );
     }
 
@@ -165,6 +165,11 @@ export const syncUserWithClerk = internalAction({
   },
   handler: async (ctx, { externalId }) => {
     try {
+      if (!process.env.CLERK_SECRET_KEY)
+        throw new ConvexError(
+          "CLERK_SECRET_KEY environment variable is not set"
+        );
+
       // Initialize Clerk client
       const clerkClient = createClerkClient({
         secretKey: process.env.CLERK_SECRET_KEY,

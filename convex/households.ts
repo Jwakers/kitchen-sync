@@ -454,7 +454,7 @@ export const createHousehold = mutation({
       memberships.length >= subscription.maxHouseholds
     ) {
       throw new ConvexError(
-        `You've reached the limit of ${subscription.maxHouseholds} household on this plan.`
+        `You've reached the limit of ${subscription.maxHouseholds} household${subscription.maxHouseholds === 1 ? "" : "s"} on this plan.`
       );
     }
 

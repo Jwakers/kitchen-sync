@@ -176,6 +176,10 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
       return;
     }
 
+    // Mark as saved to prevent multiple saves
+    setIsSaved(true);
+    isSavedRef.current = true;
+
     try {
       if (!recipeId) throw new Error("Recipe ID not found");
 
@@ -229,10 +233,6 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
           });
         }
       }
-
-      // Mark as saved to prevent multiple saves
-      setIsSaved(true);
-      isSavedRef.current = true;
 
       closeDrawer();
       toast.success("Recipe saved successfully");
