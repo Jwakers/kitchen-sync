@@ -1,8 +1,11 @@
 import { ConvexError, v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
 import { isHouseholdMember } from "./households";
-import { FREE_TIER_LIMITS } from "./lib/constants";
-import { getCurrentUser, getCurrentUserOrThrow } from "./users";
+import {
+  getCurrentUser,
+  getCurrentUserOrThrow,
+  getUserSubscription,
+} from "./users";
 
 // ============================================================================
 // QUERIES
@@ -91,8 +94,8 @@ export const createShoppingList = mutation({
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
+    const subscription = await getUserSubscription(user, ctx);
 
-    // Check free tier active shopping list limit
     const activeLists = await ctx.db
       .query("shoppingLists")
       .withIndex("by_user_and_status", (q) =>
@@ -100,9 +103,12 @@ export const createShoppingList = mutation({
       )
       .collect();
 
-    if (activeLists.length >= FREE_TIER_LIMITS.maxActiveShoppingLists) {
+    if (
+      subscription.maxActiveShoppingLists !== -1 &&
+      activeLists.length >= subscription.maxActiveShoppingLists
+    ) {
       throw new ConvexError(
-        `You've reached the limit of ${FREE_TIER_LIMITS.maxActiveShoppingLists} active shopping lists. Complete or delete an existing list to create a new one.`
+        `You've reached the limit of ${subscription.maxActiveShoppingLists} active shopping lists. Complete or delete an existing list to create a new one.`
       );
     }
 
@@ -497,6 +503,7 @@ export const finaliseShoppingList = mutation({
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
+    const subscription = await getUserSubscription(user, ctx);
 
     const list = await ctx.db.get(args.listId);
     if (!list) {
@@ -511,7 +518,7 @@ export const finaliseShoppingList = mutation({
       throw new ConvexError("Shopping list is already finalized");
     }
 
-    // Check free tier active shopping list limit before finalizing
+    // Check active shopping list limit before finalizing
     const activeLists = await ctx.db
       .query("shoppingLists")
       .withIndex("by_user_and_status", (q) =>
@@ -519,9 +526,12 @@ export const finaliseShoppingList = mutation({
       )
       .collect();
 
-    if (activeLists.length >= FREE_TIER_LIMITS.maxActiveShoppingLists) {
+    if (
+      subscription.maxActiveShoppingLists !== -1 &&
+      activeLists.length >= subscription.maxActiveShoppingLists
+    ) {
       throw new ConvexError(
-        `You've reached the limit of ${FREE_TIER_LIMITS.maxActiveShoppingLists} active shopping lists. Complete an existing list before finalizing this one.`
+        `You've reached the limit of ${subscription.maxActiveShoppingLists} active shopping lists. Complete an existing list before finalizing this one.`
       );
     }
 

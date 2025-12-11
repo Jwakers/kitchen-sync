@@ -23,10 +23,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import useSubscription from "@/lib/hooks/use-subscription";
 import { titleCase } from "@/lib/utils";
 import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
-import { FREE_TIER_LIMITS } from "convex/lib/constants";
 import { useMutation, useQuery } from "convex/react";
 import type { FunctionReturnType } from "convex/server";
 import {
@@ -62,6 +62,7 @@ export default function ShoppingListClient() {
   const allActiveShoppingLists = useQuery(
     api.shoppingLists.getAllActiveShoppingLists
   );
+  const subscription = useSubscription();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRecipeIds, setSelectedRecipeIds] = useState<
@@ -276,7 +277,7 @@ export default function ShoppingListClient() {
                   </div>
                   <LimitIndicator
                     current={allActiveShoppingLists?.length ?? 0}
-                    max={FREE_TIER_LIMITS.maxActiveShoppingLists}
+                    max={subscription?.maxActiveShoppingLists ?? 0}
                     label="active lists"
                   />
                 </div>

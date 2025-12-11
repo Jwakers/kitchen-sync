@@ -51,7 +51,10 @@
 - [x] Run the convex function migrations:removeRecipeStatusField on the production instance
 - [x] Remove status field from recipe schema
 - [x] Add text to bottom navigation
-- [ ] Address all uses of free_tier_limits and replace with actual check from clerk
+- [x] Address all uses of free_tier_limits and replace with actual check from clerk
+- [x] My recipes should be in the main nav. Remove households for now
+- [x] Add the clerk data scheduler
+- [x] When creating a recipe its possible for an empty one to stay saved when dismounting. In this case the recipe should be deleted from the DB
 - [ ] Set up Canny
 
 ## Usage notes and feedback

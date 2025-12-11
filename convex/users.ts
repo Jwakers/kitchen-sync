@@ -1,51 +1,15 @@
-import { UserJSON } from "@clerk/backend";
-import { ConvexError, v, Validator } from "convex/values";
-import { internalMutation, query, QueryCtx } from "./_generated/server";
-import { SUBSCRIPTION_TIERS } from "./lib/constants";
-
-// Custom type based on actual Clerk webhook payload
-// Clerk's TypeScript definitions don't match the actual webhook payload structure
-export type ClerkSubscriptionItemWebhookData = {
-  id: string;
-  object: "subscription_item";
-  status:
-    | "upcoming"
-    | "active"
-    | "canceled"
-    | "ended"
-    | "past_due"
-    | "incomplete"
-    | "abandoned";
-  interval: "month" | "annual";
-  is_free_trial: boolean;
-  subscription_id: string;
-  plan_id: string;
-  period_start: number;
-  period_end: number;
-  created_at: number;
-  updated_at: number;
-  payer: {
-    id: string;
-    object: "commerce_payer";
-    user_id: string;
-    organization_id: string;
-    organization_name: string;
-    email: string;
-    first_name: string;
-    last_name: string;
-    image_url: string;
-    created_at: number;
-    updated_at: number;
-  };
-  plan: {
-    id: string;
-    name: string;
-    slug: string;
-    amount: number;
-    currency: string;
-    is_recurring: boolean;
-  };
-};
+import { createClerkClient } from "@clerk/backend";
+import { ConvexError, v } from "convex/values";
+import { internal } from "./_generated/api";
+import { Doc } from "./_generated/dataModel";
+import {
+  internalAction,
+  internalMutation,
+  MutationCtx,
+  query,
+  QueryCtx,
+} from "./_generated/server";
+import { PLANS, SUBSCRIPTION_TIERS } from "./lib/constants";
 
 export const current = query({
   args: {},
@@ -55,44 +19,55 @@ export const current = query({
 });
 
 export const upsertFromClerk = internalMutation({
-  args: { data: v.any() as Validator<UserJSON> }, // no runtime validation, trust Clerk
-  async handler(ctx, { data }) {
+  args: {
+    firstName: v.optional(v.union(v.string(), v.null())),
+    lastName: v.optional(v.union(v.string(), v.null())),
+    email: v.optional(v.union(v.string(), v.null())),
+    image: v.optional(v.union(v.string(), v.null())),
+    subscriptionTier: v.optional(v.string()),
+    subscriptionStatus: v.optional(v.string()),
+    subscriptionId: v.optional(v.string()),
+    externalId: v.string(),
+  },
+  async handler(ctx, { firstName, lastName, email, image, externalId }) {
     const userAttributes = {
-      name: `${data.first_name} ${data.last_name}`,
-      firstName: data.first_name ?? undefined,
-      lastName: data.last_name ?? undefined,
-      email: data.email_addresses[0]?.email_address ?? undefined,
-      image: data.image_url ?? undefined,
-      externalId: data.id,
+      name: `${firstName} ${lastName}`,
+      firstName: firstName ?? undefined,
+      lastName: lastName ?? undefined,
+      email: email ?? undefined,
+      image: image ?? undefined,
+      externalId,
     };
 
-    const user = await userByExternalId(ctx, data.id);
+    const user = await userByExternalId(ctx, externalId);
     if (user === null) {
       await ctx.db.insert("users", userAttributes);
     } else {
-      await ctx.db.patch(user._id, userAttributes);
+      await ctx.db.patch(user._id, { ...user, ...userAttributes });
     }
   },
 });
 
 export const updateSubscriptionTier = internalMutation({
   args: {
-    data: v.any() as Validator<ClerkSubscriptionItemWebhookData>,
+    externalId: v.string(),
+    subscriptionTier: v.string(),
+    subscriptionStatus: v.string(),
+    subscriptionId: v.string(),
   },
-  async handler(ctx, { data }) {
+  async handler(ctx, args) {
     console.log("Subscription webhook received:", {
-      id: data.id,
-      status: data.status,
-      plan_id: data.plan_id,
-      subscription_id: data.subscription_id,
-      user_id: data.payer.user_id,
+      subscriptionTier: args.subscriptionTier,
+      subscriptionStatus: args.subscriptionStatus,
+      subscriptionId: args.subscriptionId,
     });
-    const userId = data.payer.user_id;
 
-    const user = await userByExternalId(ctx, userId);
+    const user = await userByExternalId(ctx, args.externalId);
     if (user === null) {
-      console.error(`User not found for Clerk user ID: ${userId}`);
-      throw new ConvexError(`User not found for Clerk user ID: ${userId}`);
+      console.error(`User not found for Clerk user ID: ${args.externalId}`);
+      throw new ConvexError(
+        `User not found for Clerk user ID: ${args.externalId}`
+      );
     }
 
     let subscriptionTier: (typeof SUBSCRIPTION_TIERS)[number] | undefined =
@@ -100,23 +75,26 @@ export const updateSubscriptionTier = internalMutation({
 
     if (
       !SUBSCRIPTION_TIERS.includes(
-        data.plan.slug as (typeof SUBSCRIPTION_TIERS)[number]
+        args.subscriptionTier as (typeof SUBSCRIPTION_TIERS)[number]
       )
     ) {
-      throw new ConvexError(`Invalid subscription tier: ${data.plan.slug}.`);
+      throw new ConvexError(
+        `Invalid subscription tier: ${args.subscriptionTier}.`
+      );
     }
 
-    subscriptionTier = data.plan.slug as (typeof SUBSCRIPTION_TIERS)[number];
+    subscriptionTier =
+      args.subscriptionTier as (typeof SUBSCRIPTION_TIERS)[number];
 
     console.log(
-      `Updating user ${user._id} to ${subscriptionTier} tier (status: ${data.status}, subscription: ${data.subscription_id})`
+      `Updating user ${user._id} to ${subscriptionTier} tier (status: ${args.subscriptionStatus}, subscription: ${args.subscriptionId})`
     );
 
     // Update user with subscription details for failsafe tracking
     await ctx.db.patch(user._id, {
       subscriptionTier,
-      subscriptionStatus: data.status,
-      subscriptionId: data.subscription_id,
+      subscriptionStatus: args.subscriptionStatus,
+      subscriptionId: args.subscriptionId,
       lastSubscriptionSync: Date.now(),
     });
   },
@@ -157,3 +135,60 @@ async function userByExternalId(ctx: QueryCtx, externalId: string) {
     .withIndex("byExternalId", (q) => q.eq("externalId", externalId))
     .unique();
 }
+
+export async function getUserSubscription(
+  user: Doc<"users">,
+  ctx: MutationCtx
+) {
+  // Get the subscription tier from the user
+  const subscriptionTier = user.subscriptionTier ?? "free_user";
+  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+
+  // Last sync greater than 7 days, sync with clerk
+  if (
+    user.subscriptionTier === undefined ||
+    user.lastSubscriptionSync === undefined ||
+    user.lastSubscriptionSync < sevenDaysAgo
+  ) {
+    // Schedule an update
+    await ctx.scheduler.runAfter(0, internal.users.syncUserWithClerk, {
+      externalId: user.externalId,
+    });
+  }
+
+  return PLANS[subscriptionTier];
+}
+
+export const syncUserWithClerk = internalAction({
+  args: {
+    externalId: v.string(),
+  },
+  handler: async (ctx, { externalId }) => {
+    try {
+      // Initialize Clerk client
+      const clerkClient = createClerkClient({
+        secretKey: process.env.CLERK_SECRET_KEY,
+      });
+
+      // Fetch user data from Clerk
+      const clerkUser = await clerkClient.users.getUser(externalId);
+      const subscription = await clerkClient.billing.getUserBillingSubscription(
+        clerkUser.id
+      );
+
+      const [subItem] = subscription.subscriptionItems;
+
+      // Update basic user data
+      await ctx.runMutation(internal.users.updateSubscriptionTier, {
+        externalId,
+        subscriptionTier: subItem.plan.slug,
+        subscriptionStatus: subItem.status,
+        subscriptionId: subscription.id,
+      });
+
+      console.log(`Successfully synced user ${externalId} with Clerk`);
+    } catch (error) {
+      console.error(`Error syncing user ${externalId} with Clerk:`, error);
+    }
+  },
+});

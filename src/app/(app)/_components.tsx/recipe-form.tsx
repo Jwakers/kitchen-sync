@@ -59,6 +59,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const creatingRecipe = useRef(false);
+  const isSavedRef = useRef(false);
 
   const createEmptyRecipeMutation = useMutation(api.recipes.createEmptyRecipe);
   const updateRecipeMutation = useMutation(api.recipes.updateRecipe);
@@ -66,6 +67,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
   const updateRecipeImageAndDeleteOld = useMutation(
     api.recipes.updateRecipeImageAndDeleteOld
   );
+  const deleteRecipeMutation = useMutation(api.recipes.deleteRecipe);
 
   const form = useForm<RecipeFormData>({
     resolver: zodResolver(recipeSchema),
@@ -230,6 +232,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
 
       // Mark as saved to prevent multiple saves
       setIsSaved(true);
+      isSavedRef.current = true;
 
       closeDrawer();
       toast.success("Recipe saved successfully");
@@ -322,6 +325,20 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
       }
     };
   }, [imagePreviewUrl]);
+
+  // Clean up empty/unsaved recipe on unmount
+  useEffect(() => {
+    return () => {
+      // If recipe was created but never saved, delete it
+      // Use ref to get the latest saved state at unmount time
+      if (recipeId && !isSavedRef.current) {
+        deleteRecipeMutation({ recipeId }).catch((error) => {
+          console.error("Failed to delete unsaved recipe:", error);
+        });
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recipeId]);
 
   const renderStepContent = () => {
     switch (currentStep) {

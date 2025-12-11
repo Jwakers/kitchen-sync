@@ -13,29 +13,15 @@ export function LimitIndicator({
   label,
   className,
 }: LimitIndicatorProps) {
-  const percentage = (current / max) * 100;
-  const isNearLimit = percentage >= 80;
-  const isAtLimit = current >= max;
+  const maximum = max === -1 ? Infinity : max;
+  const isAtLimit = current >= maximum;
 
   return (
-    <div className={cn("text-sm", className)}>
-      <span
-        className={cn(
-          isAtLimit
-            ? "text-destructive"
-            : isNearLimit
-              ? "text-orange-600"
-              : "text-muted-foreground"
-        )}
-      >
-        {current}/{max} {label}
+    <div className={cn("text-xs space-x-1", className)}>
+      <span className="text-muted-foreground">
+        {current}/{max === -1 ? "unlimited" : max} {label}
       </span>
-      {isNearLimit && !isAtLimit && (
-        <span className="ml-2 text-xs text-orange-600">(nearing limit)</span>
-      )}
-      {isAtLimit && (
-        <span className="ml-2 text-xs text-destructive">(limit reached)</span>
-      )}
+      {isAtLimit && <span>(limit reached)</span>}
     </div>
   );
 }

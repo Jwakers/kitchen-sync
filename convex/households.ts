@@ -7,8 +7,11 @@ import {
   query,
   QueryCtx,
 } from "./_generated/server";
-import { FREE_TIER_LIMITS } from "./lib/constants";
-import { getCurrentUser, getCurrentUserOrThrow } from "./users";
+import {
+  getCurrentUser,
+  getCurrentUserOrThrow,
+  getUserSubscription,
+} from "./users";
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -434,6 +437,7 @@ export const createHousehold = mutation({
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
+    const subscription = await getUserSubscription(user, ctx);
 
     if (!args.name || args.name.trim().length === 0) {
       throw new ConvexError("Household name is required");
@@ -445,9 +449,12 @@ export const createHousehold = mutation({
       .withIndex("by_user", (q) => q.eq("userId", user._id))
       .collect();
 
-    if (memberships.length >= FREE_TIER_LIMITS.maxHouseholds) {
+    if (
+      subscription.maxHouseholds !== -1 &&
+      memberships.length >= subscription.maxHouseholds
+    ) {
       throw new ConvexError(
-        `You've reached the limit of ${FREE_TIER_LIMITS.maxHouseholds} household on this plan.`
+        `You've reached the limit of ${subscription.maxHouseholds} household on this plan.`
       );
     }
 
