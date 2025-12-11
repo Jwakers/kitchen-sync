@@ -2,9 +2,12 @@ import { ConvexError, v } from "convex/values";
 import { Doc } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
 import { canAccessRecipe } from "./households";
-import { FREE_TIER_LIMITS } from "./lib/constants";
 import { categoriesUnion, preparationUnion, unitsUnion } from "./schema";
-import { getCurrentUser, getCurrentUserOrThrow } from "./users";
+import {
+  getCurrentUser,
+  getCurrentUserOrThrow,
+  getUserSubscription,
+} from "./users";
 
 export const getRecipe = query({
   args: {
@@ -119,16 +122,20 @@ export const createEmptyRecipe = mutation({
   args: {},
   handler: async (ctx) => {
     const user = await getCurrentUserOrThrow(ctx);
+    const subscription = await getUserSubscription(user, ctx);
 
-    // Check free tier recipe limit
+    // Check recipe limit
     const recipes = await ctx.db
       .query("recipes")
       .withIndex("by_user", (q) => q.eq("userId", user._id))
       .collect();
 
-    if (recipes.length >= FREE_TIER_LIMITS.maxRecipes) {
+    if (
+      subscription.maxRecipes !== -1 &&
+      recipes.length >= subscription.maxRecipes
+    ) {
       return {
-        error: `You've reached the limit of ${FREE_TIER_LIMITS.maxRecipes} recipes on the free plan.`,
+        error: `You've reached the limit of ${subscription.maxRecipes} recipes on this plan.`,
         recipeId: null,
       };
     }
@@ -184,16 +191,20 @@ export const createRecipe = mutation({
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
+    const subscription = await getUserSubscription(user, ctx);
 
-    // Check free tier recipe limit
+    // Check recipe limit
     const recipes = await ctx.db
       .query("recipes")
       .withIndex("by_user", (q) => q.eq("userId", user._id))
       .collect();
 
-    if (recipes.length >= FREE_TIER_LIMITS.maxRecipes) {
+    if (
+      subscription.maxRecipes !== -1 &&
+      recipes.length >= subscription.maxRecipes
+    ) {
       return {
-        error: `You've reached the limit of ${FREE_TIER_LIMITS.maxRecipes} recipes on the free plan.`,
+        error: `You've reached the limit of ${subscription.maxRecipes} recipes on this plan.`,
         recipeId: null,
         validationErrors: null,
       };

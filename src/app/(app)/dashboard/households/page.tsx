@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { FREE_TIER_LIMITS } from "convex/lib/constants";
+import useSubscription from "@/lib/hooks/use-subscription";
 import { useQuery } from "convex/react";
 import { Plus, Settings, Users } from "lucide-react";
 import Link from "next/link";
@@ -19,6 +19,7 @@ import { CreateHouseholdDialog } from "./_components/create-household-dialog";
 
 export default function HouseholdsPage() {
   const households = useQuery(api.households.getUserHouseholds);
+  const subscription = useSubscription();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   if (households === undefined) {
@@ -38,7 +39,7 @@ export default function HouseholdsPage() {
 
   return (
     <div className="container mx-auto py-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
         <div className="flex-1">
           <h1 className="text-3xl font-bold tracking-tight">Households</h1>
           <p className="text-muted-foreground mt-1">
@@ -46,16 +47,19 @@ export default function HouseholdsPage() {
           </p>
         </div>
         <div className="flex items-center gap-4">
-          <LimitIndicator
-            current={households?.length ?? 0}
-            max={FREE_TIER_LIMITS.maxHouseholds}
-            label="households"
-          />
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Create Household
           </Button>
         </div>
+      </div>
+
+      <div className="flex justify-end my-4">
+        <LimitIndicator
+          current={households?.length ?? 0}
+          max={subscription?.maxHouseholds ?? 0}
+          label="households"
+        />
       </div>
 
       {households.length === 0 ? (

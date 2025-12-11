@@ -2,7 +2,7 @@
 
 import { ROUTES } from "@/app/constants";
 import { Button } from "@/components/ui/button";
-import { Clipboard, Home, Plus, ShoppingCart, Users } from "lucide-react";
+import { ChefHat, Clipboard, Home, Plus, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { AddRecipeDrawer } from "./add-recipe-drawer";
@@ -72,13 +72,13 @@ export function Navbar() {
           </Link>
 
           {/* Households */}
-          <Link href={ROUTES.HOUSEHOLDS}>
+          <Link href={ROUTES.MY_RECIPES}>
             <Button
               variant="ghost"
               className="h-auto w-auto flex flex-col items-center gap-1 px-3 py-2"
             >
-              <Users className="h-5 w-5" />
-              <span className="text-[0.625rem] sm:text-xs">Households</span>
+              <ChefHat className="h-5 w-5" />
+              <span className="text-[0.625rem] sm:text-xs">My Recipes</span>
             </Button>
           </Link>
         </div>

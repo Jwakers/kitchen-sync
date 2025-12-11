@@ -14,9 +14,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import useSubscription from "@/lib/hooks/use-subscription";
 import { titleCase } from "@/lib/utils";
 import { api } from "convex/_generated/api";
-import { FREE_TIER_LIMITS, RECIPE_CATEGORIES } from "convex/lib/constants";
+import { RECIPE_CATEGORIES } from "convex/lib/constants";
 import { useQuery } from "convex/react";
 import type { FunctionReturnType } from "convex/server";
 import { Clock, Filter, Plus, Search, Users } from "lucide-react";
@@ -183,6 +184,7 @@ export default function RecipeListing() {
   const [showAddRecipeDrawer, setShowAddRecipeDrawer] = useState(false);
 
   const recipes = useQuery(api.recipes.getAllUserRecipes);
+  const subscription = useSubscription();
 
   // Filter recipes based on search and category
   const filteredRecipes =
@@ -233,7 +235,7 @@ export default function RecipeListing() {
               <div className="ml-auto">
                 <LimitIndicator
                   current={recipes?.length ?? 0}
-                  max={FREE_TIER_LIMITS.maxRecipes}
+                  max={subscription?.maxRecipes ?? 0}
                   label="recipes"
                 />
               </div>

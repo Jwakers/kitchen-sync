@@ -59,6 +59,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const creatingRecipe = useRef(false);
+  const isSavedRef = useRef(false);
 
   const createEmptyRecipeMutation = useMutation(api.recipes.createEmptyRecipe);
   const updateRecipeMutation = useMutation(api.recipes.updateRecipe);
@@ -66,6 +67,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
   const updateRecipeImageAndDeleteOld = useMutation(
     api.recipes.updateRecipeImageAndDeleteOld
   );
+  const deleteRecipeMutation = useMutation(api.recipes.deleteRecipe);
 
   const form = useForm<RecipeFormData>({
     resolver: zodResolver(recipeSchema),
@@ -174,6 +176,10 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
       return;
     }
 
+    // Mark as saved to prevent multiple saves
+    setIsSaved(true);
+    isSavedRef.current = true;
+
     try {
       if (!recipeId) throw new Error("Recipe ID not found");
 
@@ -228,15 +234,15 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
         }
       }
 
-      // Mark as saved to prevent multiple saves
-      setIsSaved(true);
-
       closeDrawer();
       toast.success("Recipe saved successfully");
       // Redirect to recipe page
       router.push(`${ROUTES.RECIPE}/${recipeId}`);
     } catch (error) {
       console.error(error);
+      // Reset save flags so cleanup can remove the incomplete recipe
+      setIsSaved(false);
+      isSavedRef.current = false;
       toast.error("Unexpected error. Unable to save recipe", {
         description: "Please try again",
       });
@@ -322,6 +328,20 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
       }
     };
   }, [imagePreviewUrl]);
+
+  // Clean up empty/unsaved recipe on unmount
+  useEffect(() => {
+    return () => {
+      // If recipe was created but never saved, delete it
+      // Use ref to get the latest saved state at unmount time
+      if (recipeId && !isSavedRef.current) {
+        deleteRecipeMutation({ recipeId }).catch((error) => {
+          console.error("Failed to delete unsaved recipe:", error);
+        });
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recipeId]);
 
   const renderStepContent = () => {
     switch (currentStep) {

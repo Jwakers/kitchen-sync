@@ -3,7 +3,6 @@ import { httpRouter } from "convex/server";
 import { Webhook } from "svix";
 import { internal } from "./_generated/api";
 import { httpAction } from "./_generated/server";
-import type { ClerkSubscriptionItemWebhookData } from "./users";
 
 const http = httpRouter();
 
@@ -21,7 +20,11 @@ http.route({
         case "user.created": // intentional fallthrough
         case "user.updated":
           await ctx.runMutation(internal.users.upsertFromClerk, {
-            data: event.data,
+            firstName: event.data.first_name,
+            lastName: event.data.last_name,
+            email: event.data.email_addresses[0]?.email_address,
+            image: event.data.image_url,
+            externalId: event.data.id,
           });
           break;
 
@@ -50,8 +53,23 @@ http.route({
 
           // FAILSAFE: If this mutation fails, Clerk/Svix will retry the webhook automatically.
           // Additionally, our daily cron job (syncStaleSubscriptions) will catch any missed updates.
+          const data =
+            event.data as unknown as ClerkSubscriptionItemWebhookData;
+          if (
+            !data.payer?.user_id ||
+            !data.plan.slug ||
+            !data.status ||
+            !data.subscription_id
+          ) {
+            console.error("Invalid subscription item webhook data", data);
+            return new Response("Invalid event data", { status: 400 });
+          }
+
           await ctx.runMutation(internal.users.updateSubscriptionTier, {
-            data: event.data as unknown as ClerkSubscriptionItemWebhookData,
+            externalId: data.payer?.user_id,
+            subscriptionTier: data.plan.slug,
+            subscriptionStatus: data.status,
+            subscriptionId: data.subscription_id,
           });
           break;
         }
@@ -103,5 +121,49 @@ async function validateRequest(req: Request): Promise<WebhookEvent | null> {
     return null;
   }
 }
+
+// Custom type based on actual Clerk webhook payload
+// Clerk's TypeScript definitions don't match the actual webhook payload structure
+type ClerkSubscriptionItemWebhookData = {
+  id: string;
+  object: "subscription_item";
+  status:
+    | "upcoming"
+    | "active"
+    | "canceled"
+    | "ended"
+    | "past_due"
+    | "incomplete"
+    | "abandoned";
+  interval: "month" | "annual";
+  is_free_trial: boolean;
+  subscription_id: string;
+  plan_id: string;
+  period_start: number;
+  period_end: number;
+  created_at: number;
+  updated_at: number;
+  payer: {
+    id: string;
+    object: "commerce_payer";
+    user_id: string;
+    organization_id: string;
+    organization_name: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    image_url: string;
+    created_at: number;
+    updated_at: number;
+  };
+  plan: {
+    id: string;
+    name: string;
+    slug: string;
+    amount: number;
+    currency: string;
+    is_recurring: boolean;
+  };
+};
 
 export default http;
