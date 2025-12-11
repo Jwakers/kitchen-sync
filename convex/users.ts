@@ -30,8 +30,9 @@ export const upsertFromClerk = internalMutation({
     externalId: v.string(),
   },
   async handler(ctx, { firstName, lastName, email, image, externalId }) {
+    const nameParts = [firstName, lastName].filter(Boolean);
     const userAttributes = {
-      name: `${firstName} ${lastName}`,
+      name: nameParts.join(" ") ?? undefined,
       firstName: firstName ?? undefined,
       lastName: lastName ?? undefined,
       email: email ?? undefined,
@@ -43,7 +44,7 @@ export const upsertFromClerk = internalMutation({
     if (user === null) {
       await ctx.db.insert("users", userAttributes);
     } else {
-      await ctx.db.patch(user._id, { ...user, ...userAttributes });
+      await ctx.db.patch(user._id, userAttributes);
     }
   },
 });
@@ -182,6 +183,19 @@ export const syncUserWithClerk = internalAction({
       );
 
       const [subItem] = subscription.subscriptionItems;
+
+      if (!subItem) {
+        console.log(
+          `User ${externalId} has no active subscription, defaulting to free tier`
+        );
+        await ctx.runMutation(internal.users.updateSubscriptionTier, {
+          externalId,
+          subscriptionTier: "free_user",
+          subscriptionStatus: "active",
+          subscriptionId: subscription.id ?? "",
+        });
+        return;
+      }
 
       // Update basic user data
       await ctx.runMutation(internal.users.updateSubscriptionTier, {

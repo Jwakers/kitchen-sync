@@ -240,6 +240,9 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
       router.push(`${ROUTES.RECIPE}/${recipeId}`);
     } catch (error) {
       console.error(error);
+      // Reset save flags so cleanup can remove the incomplete recipe
+      setIsSaved(false);
+      isSavedRef.current = false;
       toast.error("Unexpected error. Unable to save recipe", {
         description: "Please try again",
       });
