@@ -55,6 +55,7 @@
 - [x] My recipes should be in the main nav. Remove households for now
 - [x] Add the clerk data scheduler
 - [x] When creating a recipe its possible for an empty one to stay saved when dismounting. In this case the recipe should be deleted from the DB
+- [x] All users of a household should be able to add and remove any chalkboard items
 - [ ] Set up Canny
 
 ## Usage notes and feedback

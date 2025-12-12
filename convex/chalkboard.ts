@@ -215,7 +215,7 @@ export const deletePersonalItem = mutation({
 });
 
 /**
- * Delete an item from household chalkboard (must be the owner)
+ * Delete an item from household chalkboard (any household member can delete)
  */
 export const deleteHouseholdItem = mutation({
   args: {
@@ -229,14 +229,15 @@ export const deleteHouseholdItem = mutation({
       throw new ConvexError("Item not found");
     }
 
-    // Check if user owns the item
-    if (item.addedBy !== user._id) {
-      throw new ConvexError("You can only delete your own items");
-    }
-
     // Check if it's a household item
     if (item.householdId === undefined) {
       throw new ConvexError("This is not a household item");
+    }
+
+    // Check if user is a member of the household (any member can delete)
+    const isMember = await isHouseholdMember(ctx, user._id, item.householdId);
+    if (!isMember) {
+      throw new ConvexError("Only household members can delete items");
     }
 
     await ctx.db.delete(args.itemId);
