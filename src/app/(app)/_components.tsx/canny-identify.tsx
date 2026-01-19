@@ -70,7 +70,7 @@ export function CannyFeedbackButton() {
     <a
       data-canny-link
       href={cannyBoardUrl}
-      rel="noreferrer"
+      rel="noreferrer noopener"
       target="_blank"
       aria-label="Leave feedback"
       className="fixed bottom-[calc(var(--nav-height,72px)_+_0.5rem)] left-4 z-50 inline-flex items-center gap-1 rounded-full bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-lg transition-colors hover:bg-primary/90"
