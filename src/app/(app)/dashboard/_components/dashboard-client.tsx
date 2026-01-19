@@ -31,6 +31,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 type RecentActivity = FunctionReturnType<typeof api.recipes.getRecentActivity>;
+const cannyBoardUrl = process.env.NEXT_PUBLIC_CANNY_BOARD_URL;
 
 function HeroSection() {
   const { user } = useUser();
@@ -295,12 +296,19 @@ function FeedbackSection() {
           share your experience, we&apos;d love to hear from you!
         </p>
 
-        <Button asChild className="shadow-md">
-          <Link href={ROUTES.CONTACT}>
-            <MessageSquare className="h-4 w-4 mr-2" />
-            Share Feedback
-          </Link>
-        </Button>
+        {cannyBoardUrl ? (
+          <Button asChild className="shadow-md">
+            <a
+              data-canny-link
+              href={cannyBoardUrl}
+              rel="noreferrer"
+              target="_blank"
+            >
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Share Feedback
+            </a>
+          </Button>
+        ) : null}
       </div>
     </div>
   );

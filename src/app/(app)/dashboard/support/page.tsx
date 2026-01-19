@@ -29,6 +29,7 @@ import Link from "next/link";
 import { faqSections } from "./faq/page";
 
 const featuredFAQs = faqSections.flatMap((section) => section.questions[0]);
+const cannyBoardUrl = process.env.NEXT_PUBLIC_CANNY_BOARD_URL;
 
 export default function SupportPage() {
   return (
@@ -197,12 +198,19 @@ export default function SupportPage() {
             input helps us prioritize improvements and build the features that
             matter most to our community.
           </p>
-          <Button asChild className="w-full">
-            <Link href={ROUTES.CONTACT}>
-              <MessageSquare className="mr-2 h-4 w-4" />
-              Share Your Feedback
-            </Link>
-          </Button>
+          {cannyBoardUrl ? (
+            <Button asChild className="w-full">
+              <a
+                data-canny-link
+                href={cannyBoardUrl}
+                rel="noreferrer"
+                target="_blank"
+              >
+                <MessageSquare className="mr-2 h-4 w-4" />
+                Share Your Feedback
+              </a>
+            </Button>
+          ) : null}
         </CardContent>
       </Card>
     </div>
