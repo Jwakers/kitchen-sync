@@ -32,6 +32,7 @@ import {
   LogOut,
   Menu,
   MessageCircleQuestionMark,
+  MessageSquare,
   Moon,
   ShoppingCart,
   Sun,
@@ -50,6 +51,7 @@ export function Header() {
   const user = useQuery(api.users.current);
   const { openUserProfile, openSignIn, signOut } = useClerk();
   const router = useRouter();
+  const cannyBoardUrl = process.env.NEXT_PUBLIC_CANNY_BOARD_URL;
 
   useEffect(() => {
     if (headerRef.current) {
@@ -117,6 +119,31 @@ export function Header() {
                       </Link>
                     </Button>
                   </li>
+                  {cannyBoardUrl ? (
+                    <li>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start h-auto"
+                        asChild
+                      >
+                        <a
+                          data-canny-link
+                          href={cannyBoardUrl}
+                          onClick={() => setMenuOpen(false)}
+                          rel="noreferrer"
+                          target="_blank"
+                        >
+                          <MessageSquare className="size-4 mr-3" />
+                          <div className="text-left">
+                            <div className="font-medium">Give feedback</div>
+                            <div className="text-sm text-muted-foreground">
+                              Share beta feedback
+                            </div>
+                          </div>
+                        </a>
+                      </Button>
+                    </li>
+                  ) : null}
                   <li>
                     <Button
                       variant="ghost"
