@@ -157,7 +157,7 @@ export default function BetaLandingPage() {
                   </Button>
                 </SignUpButton>
                 <Button asChild variant="outline" size="lg" className="text-lg px-8">
-                  <Link href={ROUTES.SIGN_UP}>Sign In</Link>
+                  <Link href={ROUTES.SIGN_IN}>Sign In</Link>
                 </Button>
               </Unauthenticated>
             </div>
