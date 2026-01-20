@@ -2,6 +2,8 @@ import { RECIPE_CATEGORIES } from "convex/lib/constants";
 
 export const ROUTES = {
   HOME: "/",
+  SIGN_IN: "/sign-in",
+  SIGN_UP: "/sign-up",
   DASHBOARD: "/dashboard",
   MY_RECIPES: "/dashboard/my-recipes",
   RECIPE: "/recipe",
