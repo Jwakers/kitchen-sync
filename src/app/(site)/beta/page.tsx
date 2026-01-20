@@ -27,7 +27,7 @@ export default function BetaLandingPage() {
               Kitchen Sync Beta
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground">
-              Build a repeatable meal planning rhythm for your household. We're
+              Build a repeatable meal planning rhythm for your household. We&apos;re
               looking for people who cook regularly and want to help shape the
               product through honest feedback.
             </p>
@@ -48,19 +48,18 @@ export default function BetaLandingPage() {
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </SignUpButton>
-                <Button asChild variant="outline" size="lg" className="text-lg px-8">
-                  <Link href="/sign-in">Sign In</Link>
-                </Button>
               </Unauthenticated>
             </div>
 
-            <p className="text-sm text-muted-foreground">
-              Already have access?{" "}
-              <Link href="/sign-in" className="text-primary hover:text-primary/80">
-                Sign in here
-              </Link>
-              .
-            </p>
+            <Unauthenticated>
+              <p className="text-sm text-muted-foreground">
+                Already have access?{" "}
+                <Link href={ROUTES.SIGN_IN} className="text-primary hover:text-primary/80">
+                  Sign in here
+                </Link>
+                .
+              </p>
+            </Unauthenticated>
           </div>
         </div>
       </section>
@@ -138,7 +137,7 @@ export default function BetaLandingPage() {
           <div className="mx-auto max-w-2xl space-y-4">
             <h2 className="text-3xl font-bold">Ready to join the beta?</h2>
             <p className="text-muted-foreground">
-              We're keeping the beta small so we can listen closely to feedback.
+              We&apos;re keeping the beta small so we can listen closely to feedback.
               Sign up to get started right away.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -158,7 +157,7 @@ export default function BetaLandingPage() {
                   </Button>
                 </SignUpButton>
                 <Button asChild variant="outline" size="lg" className="text-lg px-8">
-                  <Link href="/sign-in">Sign In</Link>
+                  <Link href={ROUTES.SIGN_UP}>Sign In</Link>
                 </Button>
               </Unauthenticated>
             </div>
