@@ -1,5 +1,6 @@
 "use client";
 
+import { getCannyBoardUrl } from "@/app/(app)/_components.tsx/canny-identify";
 import { ROUTES } from "@/app/constants";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,7 +31,6 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getCannyBoardUrl } from "@/app/(app)/_components.tsx/canny-identify";
 
 type RecentActivity = FunctionReturnType<typeof api.recipes.getRecentActivity>;
 const baseCannyBoardUrl = process.env.NEXT_PUBLIC_CANNY_BOARD_URL;

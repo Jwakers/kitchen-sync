@@ -1,5 +1,6 @@
 "use client";
 
+import { getCannyBoardUrl } from "@/app/(app)/_components.tsx/canny-identify";
 import { ROUTES } from "@/app/constants";
 import {
   Accordion,
@@ -26,7 +27,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getCannyBoardUrl } from "@/app/(app)/_components.tsx/canny-identify";
 
 import { faqSections } from "./faq/page";
 
