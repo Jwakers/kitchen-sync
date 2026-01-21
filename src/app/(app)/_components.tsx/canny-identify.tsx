@@ -1,12 +1,39 @@
 "use client";
 
+import { CANNY_BOARD_SLUGS, ROUTES } from "@/app/constants";
 import { useUser } from "@clerk/nextjs";
 import { MessageSquare } from "lucide-react";
+import { usePathname } from "next/navigation";
 import Script from "next/script";
 import { useEffect, useState } from "react";
 
 const cannyAppId = process.env.NEXT_PUBLIC_CANNY_APP_ID;
 const cannyBoardUrl = process.env.NEXT_PUBLIC_CANNY_BOARD_URL;
+
+export function getCannyBoardSlug(pathname: string): string | null {
+  if (pathname.startsWith(ROUTES.IMPORT_RECIPE)) {
+    return CANNY_BOARD_SLUGS.RECIPE_IMPORT_PARSING;
+  }
+  if (pathname.startsWith(ROUTES.MY_RECIPES) || pathname.startsWith(ROUTES.RECIPE)) {
+    return CANNY_BOARD_SLUGS.RECIPES_ORGANISATION;
+  }
+  if (pathname.startsWith(ROUTES.HOUSEHOLDS)) {
+    return CANNY_BOARD_SLUGS.HOUSEHOLD_SHARING;
+  }
+  if (pathname.startsWith(ROUTES.SHOPPING_LIST)) {
+    return CANNY_BOARD_SLUGS.SHOPPING_LISTS;
+  }
+  if (pathname.startsWith(ROUTES.SUPPORT)) {
+    return CANNY_BOARD_SLUGS.IDEAS_FEATURE_REQUESTS;
+  }
+  return null;
+}
+
+export function getCannyBoardUrl(pathname: string): string {
+  if (!cannyBoardUrl) return "";
+  const slug = getCannyBoardSlug(pathname);
+  return slug ? `${cannyBoardUrl}/${slug}` : cannyBoardUrl;
+}
 
 type CannyFn = ((...args: unknown[]) => void) & { q?: unknown[] };
 
@@ -64,12 +91,15 @@ export function CannyIdentify() {
 }
 
 export function CannyFeedbackButton() {
+  const pathname = usePathname();
+  const boardUrl = getCannyBoardUrl(pathname);
+
   if (!cannyAppId || !cannyBoardUrl) return null;
 
   return (
     <a
       data-canny-link
-      href={cannyBoardUrl}
+      href={boardUrl}
       rel="noreferrer noopener"
       target="_blank"
       aria-label="Leave feedback"

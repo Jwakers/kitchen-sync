@@ -4,45 +4,46 @@ import { ROUTES } from "@/app/constants";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
 } from "@/components/ui/sheet";
 import { useClerk } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import { api } from "convex/_generated/api";
 import { useQuery } from "convex/react";
 import {
-  ChefHat,
-  ChevronsUpDown,
-  Clipboard,
-  Globe,
-  Home,
-  LogOut,
-  Menu,
-  MessageCircleQuestionMark,
-  MessageSquare,
-  Moon,
-  ShoppingCart,
-  Sun,
-  Users,
-  Utensils,
+    ChefHat,
+    ChevronsUpDown,
+    Clipboard,
+    Globe,
+    Home,
+    LogOut,
+    Menu,
+    MessageCircleQuestionMark,
+    MessageSquare,
+    Moon,
+    ShoppingCart,
+    Sun,
+    Users,
+    Utensils,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { getCannyBoardUrl } from "./canny-identify";
 
 export function Header() {
   const { resolvedTheme, setTheme } = useTheme();
@@ -51,7 +52,9 @@ export function Header() {
   const user = useQuery(api.users.current);
   const { openUserProfile, openSignIn, signOut } = useClerk();
   const router = useRouter();
-  const cannyBoardUrl = process.env.NEXT_PUBLIC_CANNY_BOARD_URL;
+  const pathname = usePathname();
+  const baseCannyBoardUrl = process.env.NEXT_PUBLIC_CANNY_BOARD_URL;
+  const cannyBoardUrl = baseCannyBoardUrl ? getCannyBoardUrl(pathname) : null;
 
   useEffect(() => {
     if (headerRef.current) {
