@@ -25,13 +25,17 @@ import {
   Utensils,
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { getCannyBoardUrl } from "@/app/(app)/_components.tsx/canny-identify";
 
 import { faqSections } from "./faq/page";
 
 const featuredFAQs = faqSections.flatMap((section) => section.questions[0]);
-const cannyBoardUrl = process.env.NEXT_PUBLIC_CANNY_BOARD_URL;
+const baseCannyBoardUrl = process.env.NEXT_PUBLIC_CANNY_BOARD_URL;
 
 export default function SupportPage() {
+  const pathname = usePathname();
+  const cannyBoardUrl = baseCannyBoardUrl ? getCannyBoardUrl(pathname) : null;
   return (
     <div className="container mx-auto px-4 py-6 max-w-4xl">
       {/* Hero Section */}

@@ -38,3 +38,12 @@ export const CATEGORY_COLORS: Record<
     "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
   dinner: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
 };
+
+export const CANNY_BOARD_SLUGS = {
+  RECIPE_IMPORT_PARSING: "recipe-import-parsing",
+  RECIPES_ORGANISATION: "recipes-organisation",
+  HOUSEHOLD_SHARING: "household-sharing",
+  SHOPPING_LISTS: "shopping-lists",
+  BUGS_BROKEN_THINGS: "bugs-broken-things",
+  IDEAS_FEATURE_REQUESTS: "ideas-feature-requests",
+} as const;

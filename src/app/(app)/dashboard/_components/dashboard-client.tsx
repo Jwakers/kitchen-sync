@@ -29,9 +29,11 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { getCannyBoardUrl } from "@/app/(app)/_components.tsx/canny-identify";
 
 type RecentActivity = FunctionReturnType<typeof api.recipes.getRecentActivity>;
-const cannyBoardUrl = process.env.NEXT_PUBLIC_CANNY_BOARD_URL;
+const baseCannyBoardUrl = process.env.NEXT_PUBLIC_CANNY_BOARD_URL;
 
 function HeroSection() {
   const { user } = useUser();
@@ -270,6 +272,9 @@ function HouseholdsSection() {
 }
 
 function FeedbackSection() {
+  const pathname = usePathname();
+  const cannyBoardUrl = baseCannyBoardUrl ? getCannyBoardUrl(pathname) : null;
+
   return (
     <div className="relative overflow-hidden bg-gradient-to-br from-accent/20 via-accent/10 to-background rounded-xl border border-accent/30 p-6 mb-6">
       <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-accent/20 blur-2xl" />
