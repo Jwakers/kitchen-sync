@@ -136,15 +136,10 @@ function cleanMethodSteps(
   title: string;
   description?: string;
 }> {
-  return method.map((step) => {
-    const cleaned: { title: string; description?: string } = {
-      title: step.title,
-    };
-    if (step.description !== null && step.description !== undefined) {
-      cleaned.description = step.description;
-    }
-    return cleaned;
-  });
+  return method.map((step) => ({
+    title: step.title,
+    ...(step.description != null && { description: step.description }),
+  }));
 }
 
 /**
@@ -645,8 +640,7 @@ NOT valid recipes:
           const parsedText = JSON.parse(error.text);
           partialData = extractPartialRecipeData(parsedText);
         } catch {
-          // If text isn't valid JSON, try to extract from raw text object
-          partialData = extractPartialRecipeData(error.text);
+          // JSON parsing failed, no partial data available
         }
       }
 
@@ -845,7 +839,11 @@ export async function parseRecipeFromSiteWithAI(
 
     // 2️⃣ Fetch page HTML with manual redirect handling for SSRF protection
     const MAX_REDIRECTS = 5;
-    let currentUrl = validation.url!;
+    if (!validation.url) {
+      console.error("SSRF Protection: URL missing after validation");
+      return null;
+    }
+    let currentUrl = validation.url;
     let response: Response | null = null;
     let redirectCount = 0;
 
