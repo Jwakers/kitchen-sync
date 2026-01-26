@@ -1,5 +1,6 @@
 "use client";
 
+import { validateImageFile } from "@/app/constants";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -45,11 +46,11 @@ export function ChangeImageModal({
       return;
     }
 
-    // Check file size (10MB limit)
-    const maxSizeInBytes = 10 * 1024 * 1024; // 10M
-    if (file.size > maxSizeInBytes) {
-      toast.error("Image too large", {
-        description: "Please select an image smaller than 10MB",
+    // Validate image file
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      toast.error(validation.error || "Invalid file", {
+        description: validation.error,
       });
       return;
     }

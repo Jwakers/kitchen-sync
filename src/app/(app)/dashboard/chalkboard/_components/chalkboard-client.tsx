@@ -1,5 +1,6 @@
 "use client";
 
+import { TEXT_LIMITS } from "convex/lib/constants";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -32,7 +33,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ChalkboardItem } from "./types";
 
-const MAX_TEXT_LENGTH = 100;
+const MAX_TEXT_LENGTH = TEXT_LIMITS.CHALKBOARD_MAX_LENGTH;
 
 export default function ChalkboardClient() {
   const [activeTab, setActiveTab] = useState<"personal" | "household">(

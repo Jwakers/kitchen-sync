@@ -1,5 +1,6 @@
 "use client";
 
+import { TEXT_LIMITS } from "convex/lib/constants";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -54,8 +55,8 @@ export function TextToRecipeParser({
   };
 
   const characterCount = text.length;
-  const isNearLimit = characterCount > 5400;
-  const isOverLimit = characterCount > 6000;
+  const isNearLimit = characterCount > TEXT_LIMITS.RECIPE_TEXT_MAX_LENGTH * 0.9;
+  const isOverLimit = characterCount > TEXT_LIMITS.RECIPE_TEXT_MAX_LENGTH;
 
   return (
     <Card className={showAsError ? "border-muted-foreground/20" : ""}>
@@ -141,7 +142,7 @@ Instructions:
           />
           <div className="flex justify-between items-center text-xs">
             <p className="text-muted-foreground">
-              Minimum 50 characters, maximum 6,000 characters
+              Minimum {TEXT_LIMITS.RECIPE_TEXT_MIN_LENGTH} characters, maximum {TEXT_LIMITS.RECIPE_TEXT_MAX_LENGTH.toLocaleString()} characters
             </p>
             <p
               className={`${

@@ -44,8 +44,8 @@
 
 - [x] Consolidate how ingredients, method and nutrition data is rendered
 - [x] Consolidate form schemas
-- [ ] Consolidate the two AI recipe parse functions
-- [ ] Create limits and restrictions rules like image uploads in one place and share across the app. Single source of truth
+- [x] Consolidate the two AI recipe parse functions
+- [x] Create limits and restrictions rules like image uploads in one place and share across the app. Single source of truth
 - [ ] Consolidate all image upload UI and functionality
 - [ ] Store app name in a global const and replace all instances with it
 - [ ] Consolidate recipe card designs and reusability

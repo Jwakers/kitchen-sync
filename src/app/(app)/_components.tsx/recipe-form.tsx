@@ -1,6 +1,7 @@
 "use client";
 
-import { ROUTES } from "@/app/constants";
+import { ROUTES, validateImageFile } from "@/app/constants";
+import { IMAGE_LIMITS } from "convex/lib/constants";
 import { PreparationSelector } from "@/components/preparation-selector";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -569,7 +570,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                                     Click to upload image
                                   </span>
                                   <span className="text-xs text-muted-foreground mt-1">
-                                    Max 10MB
+                                    Max {IMAGE_LIMITS.MAX_FILE_SIZE_MB}MB
                                   </span>
                                 </label>
                                 <Input
@@ -580,22 +581,11 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                                   onChange={(e) => {
                                     const file = e.target.files?.[0];
                                     if (file) {
-                                      // Check file size (10MB limit)
-                                      const maxSizeInBytes = 10 * 1024 * 1024; // 10MB
-                                      if (!file.type?.startsWith("image/")) {
-                                        toast.error("Invalid file type", {
-                                          description:
-                                            "Please select an image file",
-                                        });
-                                        e.target.value = "";
-                                        onChange(undefined);
-                                        return;
-                                      }
-
-                                      if (file.size > maxSizeInBytes) {
-                                        toast.error("Image too large", {
-                                          description:
-                                            "Please select an image smaller than 10MB",
+                                      // Validate image file
+                                      const validation = validateImageFile(file);
+                                      if (!validation.valid) {
+                                        toast.error(validation.error || "Invalid file", {
+                                          description: validation.error,
                                         });
                                         e.target.value = "";
                                         onChange(undefined);
@@ -638,22 +628,11 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                                   onChange={(e) => {
                                     const file = e.target.files?.[0];
                                     if (file) {
-                                      // Check file size (10MB limit)
-                                      const maxSizeInBytes = 10 * 1024 * 1024; // 10MB
-                                      if (!file.type?.startsWith("image/")) {
-                                        toast.error("Invalid file type", {
-                                          description:
-                                            "Please select an image file",
-                                        });
-                                        e.target.value = "";
-                                        onChange(undefined);
-                                        return;
-                                      }
-
-                                      if (file.size > maxSizeInBytes) {
-                                        toast.error("Image too large", {
-                                          description:
-                                            "Please select an image smaller than 10MB",
+                                      // Validate image file
+                                      const validation = validateImageFile(file);
+                                      if (!validation.valid) {
+                                        toast.error(validation.error || "Invalid file", {
+                                          description: validation.error,
                                         });
                                         e.target.value = "";
                                         onChange(undefined);

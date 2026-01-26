@@ -1,5 +1,6 @@
 "use server";
 
+import { TEXT_LIMITS } from "convex/lib/constants";
 import {
   IngredientSchema,
   MethodStepSchema,
@@ -675,7 +676,7 @@ export async function parseTextToRecipe(text: string): Promise<{
     };
   }
 
-  if (trimmedText.length < 50) {
+  if (trimmedText.length < TEXT_LIMITS.RECIPE_TEXT_MIN_LENGTH) {
     return {
       success: false,
       error:
@@ -683,10 +684,10 @@ export async function parseTextToRecipe(text: string): Promise<{
     };
   }
 
-  if (trimmedText.length > 6000) {
+  if (trimmedText.length > TEXT_LIMITS.RECIPE_TEXT_MAX_LENGTH) {
     return {
       success: false,
-      error: "That's a lot of text! Please keep it under 6,000 characters.",
+      error: `That's a lot of text! Please keep it under ${TEXT_LIMITS.RECIPE_TEXT_MAX_LENGTH.toLocaleString()} characters.`,
     };
   }
 

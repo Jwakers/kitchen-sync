@@ -1,5 +1,6 @@
 "use client";
 
+import { validateImageFile } from "@/app/constants";
 import { MethodList } from "@/app/(app)/_components.tsx/method-list";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,9 +62,10 @@ export function MethodSection({
       return;
     }
 
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("Image size must be less than 10MB");
+    // Validate image file
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      toast.error(validation.error || "Invalid file");
       return;
     }
 

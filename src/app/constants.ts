@@ -47,3 +47,47 @@ export const CANNY_BOARD_SLUGS = {
   BUGS_BROKEN_THINGS: "bugs-broken-things",
   IDEAS_FEATURE_REQUESTS: "ideas-feature-requests",
 } as const;
+
+// ============================================================================
+// CLIENT-SIDE HELPER FUNCTIONS
+// These use browser APIs (File) so must remain on the client
+// Limits are defined in convex/lib/constants.ts (single source of truth)
+// ============================================================================
+
+import { IMAGE_LIMITS } from "convex/lib/constants";
+
+/**
+ * Helper function to format file size for display
+ */
+export function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/**
+ * Helper function to validate image file
+ * Uses limits from convex/lib/constants.ts
+ */
+export function validateImageFile(file: File): {
+  valid: boolean;
+  error?: string;
+} {
+  // Check file type
+  if (!file.type.startsWith("image/")) {
+    return {
+      valid: false,
+      error: "Please select an image file",
+    };
+  }
+
+  // Check file size
+  if (file.size > IMAGE_LIMITS.MAX_FILE_SIZE_BYTES) {
+    return {
+      valid: false,
+      error: `Please select an image smaller than ${IMAGE_LIMITS.MAX_FILE_SIZE_MB}MB`,
+    };
+  }
+
+  return { valid: true };
+}
