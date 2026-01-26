@@ -1,4 +1,4 @@
-import { ROUTES } from "@/app/constants";
+import { APP_NAME, ROUTES } from "@/app/constants";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
@@ -8,7 +8,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Terms of Service",
   description:
-    "Read the terms and conditions for using Kitchen Sync meal planning application.",
+    `Read the terms and conditions for using ${APP_NAME} meal planning application.`,
 };
 
 const TERMS_OF_SERVICE_LAST_UPDATED = "3 December 2025"; // update manually when terms change
@@ -38,7 +38,7 @@ export default function TermsPage() {
             </CardHeader>
             <CardContent className="prose prose-slate dark:prose-invert max-w-none">
               <p>
-                By accessing and using Kitchen Sync (&quot;the Service&quot;),
+                By accessing and using {APP_NAME} (&quot;the Service&quot;),
                 you accept and agree to be bound by these Terms of Service. If
                 you do not agree to these terms, please do not use the Service.
               </p>
@@ -50,7 +50,7 @@ export default function TermsPage() {
               <CardTitle>Description of Service</CardTitle>
             </CardHeader>
             <CardContent className="prose prose-slate dark:prose-invert max-w-none">
-              <p>Kitchen Sync is a meal planning application that helps you:</p>
+              <p>{APP_NAME} is a meal planning application that helps you:</p>
               <ul>
                 <li>Create, import, and manage recipes</li>
                 <li>Generate shopping lists from recipes</li>
@@ -70,7 +70,7 @@ export default function TermsPage() {
               <CardTitle>User Accounts</CardTitle>
             </CardHeader>
             <CardContent className="prose prose-slate dark:prose-invert max-w-none">
-              <p>To use Kitchen Sync, you must:</p>
+              <p>To use {APP_NAME}, you must:</p>
               <ul>
                 <li>Be at least 13 years of age</li>
                 <li>Create an account with accurate information</li>
@@ -92,7 +92,7 @@ export default function TermsPage() {
               <h3 className="text-lg font-semibold mt-4 mb-2">Your Content</h3>
               <p>
                 You retain ownership of all content you create or upload to
-                Kitchen Sync, including recipes, images, notes, and lists. By
+                {APP_NAME}, including recipes, images, notes, and lists. By
                 using the Service, you grant us a license to store, display, and
                 process your content solely to provide the Service.
               </p>
@@ -198,7 +198,7 @@ export default function TermsPage() {
             </CardHeader>
             <CardContent className="prose prose-slate dark:prose-invert max-w-none">
               <p>
-                Kitchen Sync and its original content, features, and
+                {APP_NAME} and its original content, features, and
                 functionality are owned by us and are protected by international
                 copyright, trademark, and other intellectual property laws.
               </p>
@@ -211,7 +211,7 @@ export default function TermsPage() {
             </CardHeader>
             <CardContent className="prose prose-slate dark:prose-invert max-w-none">
               <p>
-                To the fullest extent permitted by law, Kitchen Sync shall not
+                To the fullest extent permitted by law, {APP_NAME} shall not
                 be liable for any indirect, incidental, special, consequential,
                 or punitive damages resulting from:
               </p>

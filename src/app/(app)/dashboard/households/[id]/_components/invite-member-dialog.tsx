@@ -1,5 +1,6 @@
 "use client";
 
+import { APP_NAME } from "@/app/constants";
 import { api } from "@/../convex/_generated/api";
 import { Id } from "@/../convex/_generated/dataModel";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -75,7 +76,7 @@ export function InviteMemberDialog({
 
     if (canShare) {
       await share(
-        `Join ${householdName} on Kitchen Sync`,
+        `Join ${householdName} on ${APP_NAME}`,
         `You've been invited to join ${householdName}! Click the link to accept.`,
         invitationUrl
       );

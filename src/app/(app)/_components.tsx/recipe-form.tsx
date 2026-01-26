@@ -22,7 +22,11 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { UnitSelector } from "@/components/unit-selector";
-import { recipeSchema, type RecipeFormData } from "@/lib/schemas/recipe";
+import { useImageUpload } from "@/lib/hooks/use-image-upload";
+import {
+  recipeCreateSchema,
+  type RecipeCreateFormData,
+} from "@/lib/schemas/recipe";
 import { titleCase } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "convex/_generated/api";
@@ -31,19 +35,12 @@ import { RECIPE_CATEGORIES } from "convex/lib/constants";
 import { useMutation } from "convex/react";
 import { ConvexError } from "convex/values";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  ArrowLeft,
-  ArrowRight,
-  ImageIcon,
-  Loader2,
-  Plus,
-  X,
-} from "lucide-react";
-import Image from "next/image";
+import { ArrowLeft, ArrowRight, Loader2, Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FieldErrors, useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { RecipeImageField } from "./recipe-image-field";
 
 type RecipeFormProps = {
   closeDrawer: () => void;
@@ -56,7 +53,6 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
   const [currentStep, setCurrentStep] = useState<FormStep>("basic");
   const [slideDirection, setSlideDirection] = useState<"next" | "prev">("next");
   const [recipeId, setRecipeId] = useState<Id<"recipes"> | null>(null);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const creatingRecipe = useRef(false);
   const isSavedRef = useRef(false);
@@ -65,12 +61,17 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
   const updateRecipeMutation = useMutation(api.recipes.updateRecipe);
   const generateUploadUrl = useMutation(api.recipes.generateUploadUrl);
   const updateRecipeImageAndDeleteOld = useMutation(
-    api.recipes.updateRecipeImageAndDeleteOld
+    api.recipes.updateRecipeImageAndDeleteOld,
   );
+
+  // Image upload hook (for preview only - upload happens on submit)
+  const imageUpload = useImageUpload({
+    showToasts: false, // We'll handle toasts in onSubmit
+  });
   const deleteRecipeMutation = useMutation(api.recipes.deleteRecipe);
 
-  const form = useForm<RecipeFormData>({
-    resolver: zodResolver(recipeSchema),
+  const form = useForm<RecipeCreateFormData>({
+    resolver: zodResolver(recipeCreateSchema),
     defaultValues: {
       category: "main",
       title: "",
@@ -148,29 +149,16 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
     });
   };
 
-  const getMethodData = useCallback(
-    async (values: RecipeFormData) => {
-      return await Promise.all(
-        values.method.map(async (step) => {
-          const image = step.image;
-          if (image) {
-            const postUrl = await generateUploadUrl();
-            const result = await fetch(postUrl, {
-              method: "POST",
-              headers: { "Content-Type": image.type },
-              body: image,
-            });
-            const { storageId } = await result.json();
-            return { ...step, image: image ? storageId : undefined };
-          }
-          return { ...step, image: undefined };
-        })
-      );
-    },
-    [generateUploadUrl]
-  );
+  const getMethodData = useCallback(async (values: RecipeCreateFormData) => {
+    // Method step images are handled separately in method-section component
+    // This just returns the method steps as-is (images should already be storage IDs)
+    return values.method.map((step) => ({
+      ...step,
+      image: step.image instanceof File ? undefined : step.image,
+    }));
+  }, []);
 
-  const onSubmit = async (values: RecipeFormData) => {
+  const onSubmit = async (values: RecipeCreateFormData) => {
     // Only allow submission when on the review step and not already saved
     if (currentStep !== "review" || isSaved) {
       return;
@@ -200,11 +188,9 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
 
       // Handle image upload only if there's a new image
       const image = values.image;
-      if (image) {
+      if (image instanceof File) {
         try {
-          // Step 1: Get a short-lived upload URL
           const postUrl = await generateUploadUrl();
-
           const ac = new AbortController();
           const t = setTimeout(() => ac.abort(), 30_000);
           const result = await fetch(postUrl, {
@@ -214,13 +200,12 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
             signal: ac.signal,
           }).finally(() => clearTimeout(t));
 
+          if (!result.ok) {
+            throw new Error("Failed to upload image");
+          }
+
           const { storageId } = await result.json();
-          // Step 2: Save the newly allocated storage id to the database
           await updateRecipeImageAndDeleteOld({ recipeId, storageId });
-
-          form.setValue("image", undefined);
-          setImagePreviewUrl(null);
-
           toast.success("Image uploaded successfully");
         } catch (error) {
           const message =
@@ -249,7 +234,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
     }
   };
 
-  const onError = (errors: FieldErrors<RecipeFormData>) => {
+  const onError = (errors: FieldErrors<RecipeCreateFormData>) => {
     const errorList = (
       <ul className="list-disc">
         {Object.values(errors).map((error) => (
@@ -319,15 +304,6 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
     updateRecipeMutation,
     isSaved,
   ]);
-
-  // Clean up image preview URL when component unmounts or when image changes
-  useEffect(() => {
-    return () => {
-      if (imagePreviewUrl) {
-        URL.revokeObjectURL(imagePreviewUrl);
-      }
-    };
-  }, [imagePreviewUrl]);
 
   // Clean up empty/unsaved recipe on unmount
   useEffect(() => {
@@ -413,7 +389,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                             onChange={(e) => {
                               const { value } = e.target;
                               field.onChange(
-                                value === "" ? undefined : Number(value)
+                                value === "" ? undefined : Number(value),
                               );
                             }}
                           />
@@ -436,7 +412,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                             onChange={(e) => {
                               const value = e.target.value;
                               field.onChange(
-                                value === "" ? undefined : Number(value)
+                                value === "" ? undefined : Number(value),
                               );
                             }}
                           />
@@ -463,9 +439,12 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                             type="number"
                             placeholder="4"
                             {...field}
-                            onChange={(e) =>
-                              field.onChange(Number(e.target.value))
-                            }
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              field.onChange(
+                                value === "" ? undefined : Number(value),
+                              );
+                            }}
                           />
                         </FormControl>
                         <FormMessage />
@@ -515,167 +494,8 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                   <FormField
                     control={form.control}
                     name="image"
-                    render={({ field: { onChange } }) => (
-                      <FormItem>
-                        <FormLabel>Recipe Image (Optional)</FormLabel>
-                        <FormControl>
-                          <div className="space-y-3">
-                            {/* Image Preview */}
-                            {imagePreviewUrl && (
-                              <div className="relative aspect-[16/9] bg-gradient-to-br from-primary/20 to-primary/5 overflow-hidden rounded-lg group">
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                                <Image
-                                  src={imagePreviewUrl}
-                                  alt="Recipe preview"
-                                  fill
-                                  sizes="(max-width: 768px) 100vw, 500px"
-                                  className="object-cover size-full"
-                                  unoptimized
-                                />
-                                {/* Remove button overlay */}
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                  <Button
-                                    type="button"
-                                    variant="secondary"
-                                    size="sm"
-                                    onClick={() => {
-                                      // Revoke old URL if it exists
-                                      if (imagePreviewUrl) {
-                                        URL.revokeObjectURL(imagePreviewUrl);
-                                      }
-                                      onChange(undefined);
-                                      setImagePreviewUrl(null);
-                                    }}
-                                  >
-                                    <X className="h-4 w-4" />
-                                    Remove Image
-                                  </Button>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* File Input - Hidden when preview is shown */}
-                            {!imagePreviewUrl && (
-                              <div className="relative aspect-[16/9] bg-gradient-to-br from-primary/20 to-primary/5 overflow-hidden rounded-lg border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 transition-colors">
-                                <label
-                                  htmlFor="recipe-image-input"
-                                  className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer"
-                                >
-                                  <ImageIcon className="h-12 w-12 text-muted-foreground mb-2" />
-                                  <span className="text-sm text-muted-foreground">
-                                    Click to upload image
-                                  </span>
-                                  <span className="text-xs text-muted-foreground mt-1">
-                                    Max 10MB
-                                  </span>
-                                </label>
-                                <Input
-                                  id="recipe-image-input"
-                                  type="file"
-                                  accept="image/*"
-                                  className="sr-only"
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) {
-                                      // Check file size (10MB limit)
-                                      const maxSizeInBytes = 10 * 1024 * 1024; // 10MB
-                                      if (!file.type?.startsWith("image/")) {
-                                        toast.error("Invalid file type", {
-                                          description:
-                                            "Please select an image file",
-                                        });
-                                        e.target.value = "";
-                                        onChange(undefined);
-                                        return;
-                                      }
-
-                                      if (file.size > maxSizeInBytes) {
-                                        toast.error("Image too large", {
-                                          description:
-                                            "Please select an image smaller than 10MB",
-                                        });
-                                        e.target.value = "";
-                                        onChange(undefined);
-                                        return;
-                                      }
-
-                                      // Create preview URL
-                                      const previewUrl =
-                                        URL.createObjectURL(file);
-                                      setImagePreviewUrl(previewUrl);
-                                      onChange(file);
-                                    }
-                                  }}
-                                />
-                              </div>
-                            )}
-
-                            {/* Show "Change Image" button when there's a preview */}
-                            {imagePreviewUrl && (
-                              <label
-                                htmlFor="recipe-image-change-input"
-                                className="inline-flex"
-                              >
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  asChild
-                                >
-                                  <span>
-                                    <ImageIcon className="h-4 w-4" />
-                                    Change Image
-                                  </span>
-                                </Button>
-                                <Input
-                                  id="recipe-image-change-input"
-                                  type="file"
-                                  accept="image/*"
-                                  className="sr-only"
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) {
-                                      // Check file size (10MB limit)
-                                      const maxSizeInBytes = 10 * 1024 * 1024; // 10MB
-                                      if (!file.type?.startsWith("image/")) {
-                                        toast.error("Invalid file type", {
-                                          description:
-                                            "Please select an image file",
-                                        });
-                                        e.target.value = "";
-                                        onChange(undefined);
-                                        return;
-                                      }
-
-                                      if (file.size > maxSizeInBytes) {
-                                        toast.error("Image too large", {
-                                          description:
-                                            "Please select an image smaller than 10MB",
-                                        });
-                                        e.target.value = "";
-                                        onChange(undefined);
-                                        return;
-                                      }
-
-                                      // Revoke old preview URL if it exists
-                                      if (imagePreviewUrl) {
-                                        URL.revokeObjectURL(imagePreviewUrl);
-                                      }
-
-                                      // Create new preview URL
-                                      const previewUrl =
-                                        URL.createObjectURL(file);
-                                      setImagePreviewUrl(previewUrl);
-                                      onChange(file);
-                                    }
-                                  }}
-                                />
-                              </label>
-                            )}
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                    render={({ field }) => (
+                      <RecipeImageField field={field} upload={imageUpload} />
                     )}
                   />
                 </motion.div>
@@ -757,7 +577,9 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
                                     onChange={(e) => {
                                       const value = e.target.value;
                                       field.onChange(
-                                        value === "" ? undefined : Number(value)
+                                        value === ""
+                                          ? undefined
+                                          : Number(value),
                                       );
                                     }}
                                   />

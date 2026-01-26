@@ -1,10 +1,11 @@
 import { ConvexError, v } from "convex/values";
 import { Doc, Id } from "./_generated/dataModel";
 import { mutation, query, QueryCtx } from "./_generated/server";
+import { TEXT_LIMITS } from "./lib/constants";
 import { isHouseholdMember } from "./households";
 import { getCurrentUser, getCurrentUserOrThrow } from "./users";
 
-const MAX_TEXT_LENGTH = 100;
+const MAX_TEXT_LENGTH = TEXT_LIMITS.CHALKBOARD_MAX_LENGTH;
 
 // ============================================================================
 // QUERIES

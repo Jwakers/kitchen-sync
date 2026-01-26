@@ -10,6 +10,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Form } from "@/components/ui/form";
 import useShare from "@/lib/hooks/use-share";
+import {
+  recipeEditSchema,
+  type RecipeEditFormData,
+} from "@/lib/schemas/recipe";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "convex/_generated/api";
@@ -39,7 +43,6 @@ import { RecipeAttribution } from "./recipe-attribution";
 import { RecipeHeader } from "./recipe-header";
 import { RecipeLoading } from "./recipe-loading";
 import { RecipeNotFound } from "./recipe-not-found";
-import { RecipeEditFormData, recipeEditSchema } from "./schema";
 import { ShareToHouseholdDialog } from "./share-to-household-dialog";
 
 type RecipeClientProps = {
@@ -55,6 +58,7 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
   const [recipeToDelete, setRecipeToDelete] = useState<Recipe | null>(null);
 
   const recipe = useQuery(api.recipes.getRecipe, { recipeId });
+  const recipeForEdit = useQuery(api.recipes.getRecipeForEdit, { recipeId });
   const updateRecipeMutation = useMutation(api.recipes.updateRecipe);
   const deleteRecipeMutation = useMutation(api.recipes.deleteRecipe);
 
@@ -79,19 +83,41 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
       return;
     }
 
-    if (recipe) {
-      form.reset({
-        title: recipe.title,
-        description: recipe.description || "",
-        prepTime: recipe.prepTime,
-        cookTime: recipe.cookTime,
-        serves: recipe.serves,
-        category: recipe.category,
-        ingredients: recipe.ingredients || [],
-        method: recipe.method || [],
+    // Check if recipeForEdit is loaded before entering edit mode
+    if (recipeForEdit === undefined) {
+      toast.info("Loading recipe data...", {
+        description: "Please wait while we prepare the form for editing.",
       });
+      return;
     }
-    setIsEditMode(true);
+
+    if (!recipeForEdit) {
+      toast.error("Unable to load recipe data", {
+        description: "Please refresh the page and try again.",
+      });
+      return;
+    }
+
+    // Only enter edit mode after successfully populating form with recipeForEdit data
+    if (recipe && recipeForEdit) {
+      form.reset({
+        // Use recipeForEdit which has all fields with storage IDs (not URLs)
+        title: recipeForEdit.title || "",
+        description: recipeForEdit.description || "",
+        prepTime: recipeForEdit.prepTime ?? 0,
+        cookTime: recipeForEdit.cookTime ?? undefined,
+        serves: recipeForEdit.serves ?? 0,
+        category: recipeForEdit.category,
+        ingredients: recipeForEdit.ingredients || [],
+        // Convert storage ID to string for form
+        method: (recipeForEdit.method || []).map((step) => ({
+          title: step.title,
+          description: step.description,
+          image: step.image ? String(step.image) : undefined, // Convert Id to string
+        })),
+      });
+      setIsEditMode(true);
+    }
   };
 
   const handleSave = async (data: RecipeEditFormData) => {
@@ -108,8 +134,9 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
         category: data.category,
         ingredients: data.ingredients,
         method: data.method.map((step) => ({
-          ...step,
-          image: undefined, // TODO
+          title: step.title,
+          description: step.description,
+          image: step.image ? (step.image as Id<"_storage">) : undefined, // Convert string back to Id
         })),
       });
 
@@ -176,6 +203,7 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
               onToggleEditMode={handleToggleEditMode}
               onDelete={handleDelete}
               canEdit={canEdit}
+              isRecipeForEditLoaded={recipeForEdit !== undefined}
             />
 
             {isEditMode && <EditableRecipeMeta recipe={recipe} form={form} />}
@@ -220,12 +248,14 @@ function RecipeControls({
   onDelete,
   recipe,
   canEdit,
+  isRecipeForEditLoaded,
 }: {
   isEditMode: boolean;
   recipe: NonNullable<Recipe>;
   onToggleEditMode: () => void;
   onDelete: (recipe: NonNullable<Recipe>) => void;
   canEdit: boolean;
+  isRecipeForEditLoaded: boolean;
 }) {
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const { canShare, share, copyToClipboard } = useShare();
@@ -237,7 +267,7 @@ function RecipeControls({
       await share(
         recipe.title,
         `Check out this recipe: ${recipe.title}`,
-        recipeUrl
+        recipeUrl,
       );
     } else {
       await copyToClipboard(recipeUrl);
@@ -248,7 +278,7 @@ function RecipeControls({
     <div
       className={cn(
         "flex items-center flex-wrap gap-3 py-4",
-        isEditMode ? "sticky top-0 bg-background border-b" : ""
+        isEditMode ? "sticky top-0 bg-background border-b" : "",
       )}
     >
       {isEditMode ? (
@@ -313,9 +343,14 @@ function RecipeControls({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem variant="default" onClick={onToggleEditMode}>
+                <DropdownMenuItem
+                  variant="default"
+                  onClick={onToggleEditMode}
+                  disabled={!isRecipeForEditLoaded}
+                >
                   <Edit className="h-4 w-4 mr-2" />
                   Edit Recipe
+                  {!isRecipeForEditLoaded && " (Loading...)"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   variant="destructive"

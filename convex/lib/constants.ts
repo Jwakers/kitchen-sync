@@ -165,3 +165,46 @@ export const PLANS: Record<SubscriptionTier, PlanLimits> = {
 } as const satisfies Record<SubscriptionTier, PlanLimits>;
 
 export const FREE_TIER_LIMITS = PLANS.free_user;
+
+// ============================================================================
+// APP LIMITS & RESTRICTIONS
+// Single source of truth for all limits, restrictions, and validations
+// ============================================================================
+
+/**
+ * Image upload limits
+ */
+export const IMAGE_LIMITS = {
+  /** Maximum file size for image uploads in bytes (10MB) */
+  MAX_FILE_SIZE_BYTES: 10 * 1024 * 1024,
+  /** Maximum file size for image uploads in MB (for display) */
+  MAX_FILE_SIZE_MB: 10,
+  /** Allowed image MIME types */
+  ALLOWED_TYPES: [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/webp",
+    "image/gif",
+  ] as const,
+} as const;
+
+/**
+ * Text input limits
+ */
+export const TEXT_LIMITS = {
+  /** Maximum length for chalkboard items */
+  CHALKBOARD_MAX_LENGTH: 100,
+  /** Minimum length for recipe text parsing */
+  RECIPE_TEXT_MIN_LENGTH: 50,
+  /** Maximum length for recipe text parsing */
+  RECIPE_TEXT_MAX_LENGTH: 6000,
+} as const;
+
+/**
+ * Recipe limits
+ */
+export const RECIPE_LIMITS = {
+  /** Pagination limit for recipe listings */
+  PAGINATION_LIMIT: 20,
+} as const;

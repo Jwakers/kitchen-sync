@@ -1,3 +1,4 @@
+import { APP_NAME } from "@/app/constants";
 import { Metadata } from "next";
 import {
   CannyFeedbackButton,
@@ -8,10 +9,10 @@ import { Navbar } from "./_components.tsx/navbar";
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | Kitchen Sync",
-    default: "Kitchen Sync",
+    template: `%s | ${APP_NAME}`,
+    default: APP_NAME,
   },
-  description: "Kitchen Sync - Family Meal Planning",
+  description: `${APP_NAME} - Family Meal Planning`,
 };
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {

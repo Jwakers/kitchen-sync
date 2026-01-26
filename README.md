@@ -1,62 +1,23 @@
 # Kitchen Sync - Family Meal Planning Made Simple
 
-## 🚀 Launch Preparation - Action Required
-
-**Status:** ~90% Ready for Launch | All code complete, awaiting assets & testing
-
-### Critical (Before Launch)
-
-- [x] **Create Visual Assets** (See: `PWA_ASSETS_GUIDE.md`)
-  - [x] OpenGraph social sharing image (`/og-image.png` - 1200x630px)
-  - [x] PWA app icons (192x192 and 512x512) - ✅ Generated and configured
-  - [x] Apple touch icon (180x180) - ✅ Generated and configured
-  - [x] Favicons (ico, svg, 96x96) - ✅ Already in place
-  - [x] Apple splash screens
-  - **Tool:** Use [PWA Builder](https://www.pwabuilder.com/imageGenerator) to generate all sizes
-
-- [ ] **Complete Testing** (See: `PRE_LAUNCH_TESTING_CHECKLIST.md`)
-  - [ ] Test authentication flows (Google & Email)
-  - [ ] Test recipe creation and AI import
-  - [ ] Test shopping lists and kitchen chalkboard
-  - [ ] Test household collaboration end-to-end
-  - [ ] Test PWA installation (iOS Safari & Android Chrome)
-  - [ ] Verify contact form sends emails
-  - [ ] Test on multiple browsers (Chrome, Safari, Firefox, Edge)
-  - [ ] Check mobile responsiveness on real devices
-
-- [ ] **Verify Environment** (See: `ENV_SETUP.md`)
-  - [ ] Confirm all Vercel environment variables are set
-  - [ ] Verify Convex environment variables are configured
-  - [ ] Test that OpenAI API key has credits
-  - [ ] Confirm email SMTP settings work in production
-
-### Quick Reference Documents
-
-- `LAUNCH_SUMMARY.md` - Complete overview of what was done and next steps
-- `PWA_ASSETS_GUIDE.md` - Image requirements and design guidelines
-- `ENV_SETUP.md` - Environment variables setup and troubleshooting
-- `PRE_LAUNCH_TESTING_CHECKLIST.md` - Comprehensive testing checklist (200+ checks)
-
-### Launch beta!
-
 ---
 
 ### Next Immediate Steps
 
-- [x] Shopping list cannot be created from household recipes
-- [x] Bugs bugs bugs
-- [x] User feedback investigations and create todos
-- [x] Personal feedback (In notes app)
-- [x] Understand the importance of draft and published state in the UI (seems unimportant at this stage)
-- [x] Run the convex function migrations:removeRecipeStatusField on the production instance
-- [x] Remove status field from recipe schema
-- [x] Add text to bottom navigation
-- [x] Address all uses of free_tier_limits and replace with actual check from clerk
-- [x] My recipes should be in the main nav. Remove households for now
-- [x] Add the clerk data scheduler
-- [x] When creating a recipe its possible for an empty one to stay saved when dismounting. In this case the recipe should be deleted from the DB
-- [x] All users of a household should be able to add and remove any chalkboard items
-- [x] Set up Canny
+- [ ] Complete technical debt remediation in one sprint.
+- [ ] Refactor to use [Vercel AI SDK](https://ai-sdk.dev/docs/introduction).
+- [ ] Work out what will make me use the app more. What feature is it missing for me right now?
+  - [ ] Dictate a recipe.
+  - [ ] Photograph a recipe book and import.
+- [ ] Do the above.
+- [ ] Try the post on Reddit again and see if we can get any active users.
+- [ ] The app is supposed to make meal planning and weekly shops easier. Does it do that? If not yet, what are the next steps?
+
+### Social, SEO and AEO
+
+- Confirm branding identity, logo and name etc
+- Set up a blogging system for the site (sanity or similar CMS)
+- Set up social channels: TikTok and X
 
 ## Usage notes and feedback
 
@@ -82,14 +43,11 @@
 ## Tech debt
 
 - [x] Consolidate how ingredients, method and nutrition data is rendered
-- [ ] Consolidate how cook time/serves/prep looks
-- [ ] Consolidate form schemas
-- [ ] Consolidate the two AI recipe parse functions
-- [ ] Create limits and restrictions rules like image uploads in one place and share across the app. Single source of truth
-- [ ] Consolidate all image upload UI and functionality
-- [ ] Store app name in a global const and replace all instances with it
-- [ ] Consolidate recipe card designs and reusability
-- [ ] Check and centralise all site validations, text limits, image limits etc. Store these on the server and share across the site
+- [x] Consolidate form schemas
+- [x] Consolidate the two AI recipe parse functions
+- [x] Create limits and restrictions rules like image uploads in one place and share across the app. Single source of truth
+- [x] Consolidate all image upload UI and functionality
+- [x] Store app name in a global const and replace all instances with it
 - [ ] Shopping list is very complex. A refactor is needed keeping all state at the root and reducing complexity where possible. Components should be abstracted where possible and optimistic updates should also be added. This needs to be done manually and not with AI.
 
 ## Minor updates
@@ -160,7 +118,7 @@
 - [x] **Recipe Categories**: Enable filtering by existing categories (main, dessert, snack, etc.)
 - [ ] Scale ingredients (serves modifier)
 - [ ] Metric and imperial conversion + user default
-- [ ] **Recipe Tags**: Auto-detect dietary tags like plant-based, coeliac friendly, gluten free from ingredients
+- [ ] **Recipe Tags**: Auto-detect dietary tags like plant-based, coeliac friendly, gluten-free from ingredients. Cuisine types, Italian, Mexican etc.
 - [ ] **Ingredient Categories**: Add categorization to ingredients (meat, poultry, vegetable, spice etc) (or extract from an existing external ingredient DB while still allowing custom ingredients)
 - [x] **AI Recipe Import**: Build URL scraping or text parsing for importing recipes from websites
 
@@ -202,9 +160,8 @@ A place to ad hoc add things you need for your kitchen, this can be optionally m
 
 #### AI Features
 
-- [ ] **OpenAI Integration**: Set up GPT-4o-mini API integration for recipe parsing and suggestions
+- [x] **OpenAI Integration**: Set up GPT-4o-mini API integration for recipe parsing and suggestions
 - [ ] **Basic Meal Suggestions**: AI-powered recipe recommendations based on user preferences and available ingredients
-- [ ] **Smart Ingredient Merging**: AI to intelligently combine similar ingredients (e.g., "onion" + "yellow onion" = "onion")
 
 #### PWA & Offline Support
 
@@ -230,6 +187,7 @@ This is to help users use recipes to cook meals
 - [ ] **Recipe Cloning**: Duplicate recipes with modifications
 - [ ] **Recipe Versioning**: Track recipe changes over time
 - [ ] Recipe notes
+- [ ] Ingredients grouping (for the sauce, marinade, etc)
 
 #### Meal Planning
 

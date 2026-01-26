@@ -59,7 +59,7 @@ try {
 
 The following server actions are protected against SSRF:
 
-1. **Recipe Import from URL** (`parse-recipe-from-site-with-ai.ts`)
+1. **Recipe Import from URL** (`parse-recipe.ts`)
    - Validates recipe site URLs before fetching
    - Prevents access to internal services
 

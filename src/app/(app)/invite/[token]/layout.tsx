@@ -1,5 +1,6 @@
 import { api } from "convex/_generated/api";
 import { fetchQuery } from "convex/nextjs";
+import { APP_NAME } from "@/app/constants";
 import { Metadata } from "next";
 
 export async function generateMetadata({
@@ -25,13 +26,13 @@ export async function generateMetadata({
   const metadata = {
     title: "Join Household",
     description:
-      "You've been invited to join a household on Kitchen Sync. Share and discover recipes together!",
+      `You've been invited to join a household on ${APP_NAME}. Share and discover recipes together!`,
     openGraph: {
       title: "Join Household",
       description:
         "You've been invited to join a household. Share and discover recipes together!",
       type: "website",
-      siteName: "Kitchen Sync",
+      siteName: APP_NAME,
       images: ["/og-image.png"],
     },
     twitter: {
@@ -45,7 +46,7 @@ export async function generateMetadata({
 
   if (invitationDetails.householdName && invitationDetails.invitedByName) {
     metadata.title = `Join ${invitationDetails.householdName}`;
-    metadata.description = `You've been invited by ${invitationDetails.invitedByName} to join ${invitationDetails.householdName} on Kitchen Sync. Share and discover recipes together!`;
+    metadata.description = `You've been invited by ${invitationDetails.invitedByName} to join ${invitationDetails.householdName} on ${APP_NAME}. Share and discover recipes together!`;
     metadata.openGraph.title = `Join ${invitationDetails.householdName}`;
     metadata.openGraph.description = `You've been invited by ${invitationDetails.invitedByName} to join ${invitationDetails.householdName}. Share and discover recipes together!`;
     metadata.twitter.title = `Join ${invitationDetails.householdName}`;

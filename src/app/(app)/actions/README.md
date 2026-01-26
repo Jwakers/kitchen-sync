@@ -4,8 +4,9 @@ This directory contains server actions for scraping and parsing recipe data from
 
 ## Files
 
-- **`parse-recipe-from-site-with-ai.ts`** - Uses AI to extract recipes directly from any recipe website (primary method)
-- **`parse-text-to-recipe.ts`** - Uses AI to parse unstructured recipe text into structured format
+- **`parse-recipe.ts`** - Consolidated parser with shared logic for both URL and text parsing
+  - Uses AI to extract recipes directly from any recipe website (primary method)
+  - Uses AI to parse unstructured recipe text into structured format
 
 ## Setup
 
@@ -25,7 +26,7 @@ Get your OpenAI API key from: https://platform.openai.com/api-keys
 ### Import Recipe from URL
 
 ```typescript
-import { parseRecipeFromSiteWithAI } from "./actions/parse-recipe-from-site-with-ai";
+import { parseRecipeFromSiteWithAI } from "./actions/parse-recipe";
 
 // Parse recipe directly from URL using AI
 const parsedRecipe = await parseRecipeFromSiteWithAI(
@@ -69,7 +70,7 @@ console.log(parsedRecipe);
 ### Parse Recipe from Text
 
 ```typescript
-import { parseTextToRecipe } from "./actions/parse-text-to-recipe";
+import { parseTextToRecipe } from "./actions/parse-recipe";
 
 const recipeText = `
 Chocolate Chip Cookies

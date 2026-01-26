@@ -1,7 +1,7 @@
 "use client";
 
 import { getCannyBoardUrl } from "@/app/(app)/_components.tsx/canny-identify";
-import { ROUTES } from "@/app/constants";
+import { APP_NAME, ROUTES } from "@/app/constants";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -296,7 +296,7 @@ function FeedbackSection() {
         </div>
 
         <p className="text-muted-foreground mb-4 max-w-2xl">
-          Your feedback helps us make Kitchen Sync better for everyone. Whether
+          Your feedback helps us make {APP_NAME} better for everyone. Whether
           you have suggestions for new features, found a bug, or just want to
           share your experience, we&apos;d love to hear from you!
         </p>

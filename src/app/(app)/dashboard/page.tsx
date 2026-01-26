@@ -1,7 +1,7 @@
 import DashboardClient from "./_components/dashboard-client";
 
 export const metadata = {
-  title: "Dashboard | Kitchen Sync",
+  title: "Dashboard",
 };
 
 export default function DashboardPage() {

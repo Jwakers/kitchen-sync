@@ -1,4 +1,4 @@
-import { ROUTES } from "@/app/constants";
+import { APP_NAME, ROUTES } from "@/app/constants";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
@@ -8,7 +8,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "Learn how Kitchen Sync collects, uses, and protects your personal information.",
+    `Learn how ${APP_NAME} collects, uses, and protects your personal information.`,
 };
 
 const PRIVACY_POLICY_LAST_UPDATED = "3 December 2025"; // update manually when terms change
@@ -38,7 +38,7 @@ export default function PrivacyPage() {
             </CardHeader>
             <CardContent className="prose prose-slate dark:prose-invert max-w-none">
               <p>
-                Kitchen Sync (&quot;we&quot;, &quot;our&quot;, or
+                {APP_NAME} (&quot;we&quot;, &quot;our&quot;, or
                 &quot;us&quot;) is committed to protecting your privacy. This
                 Privacy Policy explains how we collect, use, and safeguard your
                 information when you use our meal planning application.
@@ -62,7 +62,7 @@ export default function PrivacyPage() {
               </ul>
 
               <h3 className="text-lg font-semibold mt-4 mb-2">Usage Data</h3>
-              <p>When you use Kitchen Sync, we collect:</p>
+              <p>When you use {APP_NAME}, we collect:</p>
               <ul>
                 <li>Recipes you create, import, or save</li>
                 <li>Shopping lists and kitchen chalkboard items</li>
@@ -88,7 +88,7 @@ export default function PrivacyPage() {
             <CardContent className="prose prose-slate dark:prose-invert max-w-none">
               <p>We use your information to:</p>
               <ul>
-                <li>Provide and maintain Kitchen Sync services</li>
+                <li>Provide and maintain {APP_NAME} services</li>
                 <li>Enable recipe management and meal planning features</li>
                 <li>Facilitate household collaboration</li>
                 <li>Process and respond to your support requests</li>
@@ -135,7 +135,7 @@ export default function PrivacyPage() {
                   lists, and chalkboard items)
                 </li>
                 <li>
-                  With service providers necessary to operate Kitchen Sync
+                  With service providers necessary to operate {APP_NAME}
                   (Clerk, Convex, email service)
                 </li>
                 <li>When required by law or to protect our rights</li>
@@ -184,7 +184,7 @@ export default function PrivacyPage() {
             </CardHeader>
             <CardContent className="prose prose-slate dark:prose-invert max-w-none">
               <p>
-                Kitchen Sync uses essential cookies and local storage to
+                {APP_NAME} uses essential cookies and local storage to
                 maintain your session and provide core functionality. We do not
                 use advertising or third-party tracking cookies.
               </p>
@@ -197,7 +197,7 @@ export default function PrivacyPage() {
             </CardHeader>
             <CardContent className="prose prose-slate dark:prose-invert max-w-none">
               <p>
-                Kitchen Sync is not intended for children under 13. We do not
+                {APP_NAME} is not intended for children under 13. We do not
                 knowingly collect personal information from children under 13.
                 If you believe we have collected such information, please
                 contact us immediately.

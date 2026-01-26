@@ -1,3 +1,4 @@
+import { APP_NAME } from "@/app/constants";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata, Viewport } from "next";
@@ -11,17 +12,15 @@ const lexendSans = Lexend({
   subsets: ["latin"],
 });
 
-const APP_NAME = "Kitchen Sync";
-const APP_DEFAULT_TITLE = "Kitchen Sync - Family Meal Planning";
-const APP_TITLE_TEMPLATE = "%s | Kitchen Sync";
-const APP_DESCRIPTION =
-  "Create recipes, plan weekly meals, and generate smart shopping lists. Take the pain out of family meal planning with Kitchen Sync.";
+const APP_DEFAULT_TITLE = `${APP_NAME} - Family Meal Planning`;
+const APP_TITLE_TEMPLATE = `%s | ${APP_NAME}`;
+const APP_DESCRIPTION = `Create recipes, plan weekly meals, and generate smart shopping lists. Take the pain out of family meal planning with ${APP_NAME}.`;
 
 const APP_URL = new URL(
   process.env.VERCEL_URL
     ? (process.env.NODE_ENV === "production" ? "https://" : "http://") +
       process.env.VERCEL_URL
-    : "https://kitchen-sync-app.com"
+    : "https://kitchen-sync-app.com",
 );
 
 export const metadata: Metadata = {
@@ -253,7 +252,7 @@ export const metadata: Metadata = {
     "mobile-web-app-capable": "yes",
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "black-translucent",
-    "apple-mobile-web-app-title": APP_NAME,
+    "apple-mobile-web-app-title": APP_NAME!,
   },
   openGraph: {
     type: "website",
@@ -268,7 +267,7 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Kitchen Sync - Family Meal Planning Made Simple",
+        alt: `${APP_NAME} - Family Meal Planning Made Simple`,
       },
     ],
   },

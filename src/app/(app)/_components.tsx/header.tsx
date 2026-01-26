@@ -1,43 +1,43 @@
 "use client";
 
-import { ROUTES } from "@/app/constants";
+import { APP_NAME, ROUTES } from "@/app/constants";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
 } from "@/components/ui/sheet";
 import { useClerk } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import { api } from "convex/_generated/api";
 import { useQuery } from "convex/react";
 import {
-    ChefHat,
-    ChevronsUpDown,
-    Clipboard,
-    Globe,
-    Home,
-    LogOut,
-    Menu,
-    MessageCircleQuestionMark,
-    MessageSquare,
-    Moon,
-    ShoppingCart,
-    Sun,
-    Users,
-    Utensils,
+  ChefHat,
+  ChevronsUpDown,
+  Clipboard,
+  Globe,
+  Home,
+  LogOut,
+  Menu,
+  MessageCircleQuestionMark,
+  MessageSquare,
+  Moon,
+  ShoppingCart,
+  Sun,
+  Users,
+  Utensils,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
@@ -60,7 +60,7 @@ export function Header() {
     if (headerRef.current) {
       document.body.style.setProperty(
         "--header-height",
-        `${headerRef.current.clientHeight}px`
+        `${headerRef.current.clientHeight}px`,
       );
     }
   }, []);
@@ -79,7 +79,7 @@ export function Header() {
         {/* Logo */}
         <Link href={ROUTES.DASHBOARD} className="flex items-center space-x-2">
           <Utensils className="h-6 w-6 text-primary" />
-          <span className="font-bold text-xl">Kitchen Sync</span>
+          <span className="font-bold text-xl">{APP_NAME}</span>
         </Link>
 
         {/* Right side - Menu button only */}

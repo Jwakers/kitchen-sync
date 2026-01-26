@@ -1,5 +1,6 @@
 "use client";
 
+import { APP_NAME } from "@/app/constants";
 import { Check, Download, Share, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -24,7 +25,7 @@ export default function InstallPrompt() {
       /iPad|iPhone|iPod/.test(ua) ||
       (ua.includes("Mac") && "ontouchend" in window);
     const standaloneMedia = window.matchMedia(
-      "(display-mode: standalone)"
+      "(display-mode: standalone)",
     ).matches;
     const iosStandalone =
       typeof (navigator as unknown as { standalone?: boolean }).standalone ===
@@ -49,7 +50,7 @@ export default function InstallPrompt() {
     return () => {
       window.removeEventListener(
         "beforeinstallprompt",
-        handleBeforeInstallPrompt
+        handleBeforeInstallPrompt,
       );
     };
   }, []);
@@ -62,8 +63,7 @@ export default function InstallPrompt() {
 
         if (outcome === "accepted") {
           toast.success("App installed successfully", {
-            description:
-              "Kitchen Sync has been added to your home screen. Enjoy the app experience!",
+            description: `${APP_NAME} has been added to your home screen. Enjoy the app experience!`,
           });
         } else {
           toast.info("Installation cancelled", {
@@ -90,7 +90,7 @@ export default function InstallPrompt() {
             window.open(
               "https://support.google.com/chrome/answer/9658361",
               "_blank",
-              "noopener,noreferrer"
+              "noopener,noreferrer",
             );
           },
         },
@@ -109,9 +109,7 @@ export default function InstallPrompt() {
           <Smartphone className="w-5 h-5 text-success" />
         </div>
         <div>
-          <h3 className="font-semibold text-foreground">
-            Install Kitchen Sync
-          </h3>
+          <h3 className="font-semibold text-foreground">Install {APP_NAME}</h3>
           <p className="text-sm text-muted-foreground">
             Get quick access and a better experience
           </p>
@@ -170,7 +168,7 @@ export default function InstallPrompt() {
                     Enjoy the app experience
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Launch Kitchen Sync from your home screen anytime
+                    Launch {APP_NAME} from your home screen anytime
                   </p>
                 </div>
               </div>
@@ -197,7 +195,7 @@ export default function InstallPrompt() {
           <div className="space-y-3">
             <Button onClick={handleInstallClick} className="w-full" size="lg">
               <Download className="w-4 h-4 mr-2" />
-              {deferredPrompt ? "Install Kitchen Sync" : "Install via Browser"}
+              {deferredPrompt ? `Install ${APP_NAME}` : "Install via Browser"}
             </Button>
           </div>
         </div>

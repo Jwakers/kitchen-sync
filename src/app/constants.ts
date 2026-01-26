@@ -1,4 +1,14 @@
-import { RECIPE_CATEGORIES } from "convex/lib/constants";
+import { IMAGE_LIMITS, RECIPE_CATEGORIES } from "convex/lib/constants";
+
+// ============================================================================
+// APP BRANDING
+// ============================================================================
+
+/**
+ * Application name - used throughout the app for branding
+ * Falls back to "Kitchen Sync" if environment variable is not set
+ */
+export const APP_NAME = process.env.APP_NAME || "Kitchen Sync";
 
 export const ROUTES = {
   HOME: "/",
@@ -47,3 +57,45 @@ export const CANNY_BOARD_SLUGS = {
   BUGS_BROKEN_THINGS: "bugs-broken-things",
   IDEAS_FEATURE_REQUESTS: "ideas-feature-requests",
 } as const;
+
+// ============================================================================
+// CLIENT-SIDE HELPER FUNCTIONS
+// These use browser APIs (File) so must remain on the client
+// Limits are defined in convex/lib/constants.ts (single source of truth)
+// ============================================================================
+
+/**
+ * Helper function to format file size for display
+ */
+export function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/**
+ * Helper function to validate image file
+ * Uses limits from convex/lib/constants.ts
+ */
+export function validateImageFile(file: File): {
+  valid: boolean;
+  error?: string;
+} {
+  // Check file type against allowed types
+  if (!IMAGE_LIMITS.ALLOWED_TYPES.includes(file.type as (typeof IMAGE_LIMITS.ALLOWED_TYPES)[number])) {
+    return {
+      valid: false,
+      error: `Please select a valid image file. Allowed types: ${IMAGE_LIMITS.ALLOWED_TYPES.join(", ")}`,
+    };
+  }
+
+  // Check file size
+  if (file.size > IMAGE_LIMITS.MAX_FILE_SIZE_BYTES) {
+    return {
+      valid: false,
+      error: `Please select an image smaller than ${IMAGE_LIMITS.MAX_FILE_SIZE_MB}MB`,
+    };
+  }
+
+  return { valid: true };
+}

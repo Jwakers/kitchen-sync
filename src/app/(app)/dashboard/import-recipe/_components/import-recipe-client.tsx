@@ -4,8 +4,10 @@ import { IngredientsList } from "@/app/(app)/_components.tsx/ingredients-list";
 import { MethodList } from "@/app/(app)/_components.tsx/method-list";
 import { Nutrition } from "@/app/(app)/_components.tsx/nutrition";
 import { fetchImageServerSide } from "@/app/(app)/actions/fetch-image";
-import { parseRecipeFromSiteWithAI } from "@/app/(app)/actions/parse-recipe-from-site-with-ai";
-import { parseTextToRecipe } from "@/app/(app)/actions/parse-text-to-recipe";
+import {
+  parseRecipeFromSiteWithAI,
+  parseTextToRecipe,
+} from "@/app/(app)/actions/parse-recipe";
 import { ROUTES } from "@/app/constants";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -19,9 +21,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import {
-  importedRecipeSchema,
-  type ImportedRecipeFormData,
-} from "@/lib/schemas/imported-recipe";
+  recipeImportSchema,
+  type RecipeImportFormData,
+} from "@/lib/schemas/recipe";
 import { type ParsedRecipeForDB } from "@/lib/types/recipe-parser";
 import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
@@ -234,20 +236,20 @@ export function ImportRecipeClient() {
   }, [isSaved, savedRecipeId, router]);
 
   const validateAndSaveRecipe = async (
-    recipeData: ParsedRecipeForDB | ImportedRecipeFormData
+    recipeData: ParsedRecipeForDB | RecipeImportFormData
   ) => {
     try {
       setIsSaving(true);
 
       // Validate the recipe before saving
-      const validationResult = importedRecipeSchema.safeParse(recipeData);
+      const validationResult = recipeImportSchema.safeParse(recipeData);
 
       if (!validationResult.success) {
         // Validation failed, enter edit mode
 
         const errors = z.flattenError(validationResult.error).fieldErrors;
         const errorMessages = Object.entries(errors)
-          .map(([field, messages]) => `${field}: ${messages?.join(", ")}`)
+          .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(", ") : messages || "Invalid"}`)
           .join("; ");
 
         toast.error("Recipe validation failed", {
@@ -325,7 +327,7 @@ export function ImportRecipeClient() {
     await validateAndSaveRecipe(parsedRecipe);
   };
 
-  const handleEditSave = async (editedRecipe: ImportedRecipeFormData) => {
+  const handleEditSave = async (editedRecipe: RecipeImportFormData) => {
     if (isSaving || isSaved) return;
     await validateAndSaveRecipe(editedRecipe);
   };

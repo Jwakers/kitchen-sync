@@ -1,5 +1,6 @@
 "use client";
 
+import { APP_NAME } from "@/app/constants";
 import InstallPrompt from "@/components/installation-prompt";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -52,7 +53,7 @@ export default function Home() {
 
               <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
                 Focus on exciting meals and cooking, not dreading the weekly
-                shop. Kitchen Sync makes planning trivial so you can enjoy the
+                shop. {APP_NAME} makes planning trivial so you can enjoy the
                 fun parts.
               </p>
             </div>
@@ -269,7 +270,7 @@ export default function Home() {
                   MAKE PLANNING TRIVIAL
                 </h2>
                 <p className="text-xl text-muted-foreground">
-                  Kitchen Sync makes meal planning fun and interesting, so you
+                  {APP_NAME} makes meal planning fun and interesting, so you
                   can focus on exciting meals and cooking.
                 </p>
               </div>
@@ -342,10 +343,10 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl font-bold mb-6">
-              A bit about Kitchen Sync
+              A bit about {APP_NAME}
             </h2>
             <p className="text-lg text-primary-foreground/90 leading-relaxed">
-              Kitchen Sync was born from the frustration of endless
+              {APP_NAME} was born from the frustration of endless
               &quot;What&apos;s for dinner?&quot; questions and chaotic grocery
               shopping. We believe meal planning should be simple,
               collaborative, and stress-free. Our platform brings families

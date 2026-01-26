@@ -1,11 +1,11 @@
+import { APP_NAME } from "@/app/constants";
 import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Kitchen Sync - Family Meal Planning",
-    short_name: "Kitchen Sync",
-    description:
-      "Create recipes, plan weekly meals, and generate smart shopping lists. Take the pain out of family meal planning with Kitchen Sync.",
+    name: `${APP_NAME} - Family Meal Planning`,
+    short_name: APP_NAME,
+    description: `Create recipes, plan weekly meals, and generate smart shopping lists. Take the pain out of family meal planning with ${APP_NAME}.`,
     orientation: "portrait",
     categories: ["food", "lifestyle", "productivity"],
     display: "standalone",
