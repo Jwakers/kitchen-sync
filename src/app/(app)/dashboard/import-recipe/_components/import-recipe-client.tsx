@@ -4,8 +4,10 @@ import { IngredientsList } from "@/app/(app)/_components.tsx/ingredients-list";
 import { MethodList } from "@/app/(app)/_components.tsx/method-list";
 import { Nutrition } from "@/app/(app)/_components.tsx/nutrition";
 import { fetchImageServerSide } from "@/app/(app)/actions/fetch-image";
-import { parseRecipeFromSiteWithAI } from "@/app/(app)/actions/parse-recipe-from-site-with-ai";
-import { parseTextToRecipe } from "@/app/(app)/actions/parse-text-to-recipe";
+import {
+  parseRecipeFromSiteWithAI,
+  parseTextToRecipe,
+} from "@/app/(app)/actions/parse-recipe";
 import { ROUTES } from "@/app/constants";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
