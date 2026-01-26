@@ -4,13 +4,13 @@
 
 ### Next Immediate Steps
 
-- [ ] Complete technical debt remediation in one sprint.
-- [ ] Refactor to use [Vercel AI SDK](https://ai-sdk.dev/docs/introduction).
+- [x] Complete technical debt remediation in one sprint.
+- [x] Refactor to use [Vercel AI SDK](https://ai-sdk.dev/docs/introduction).
 - [ ] Work out what will make me use the app more. What feature is it missing for me right now?
-  - [ ] Dictate a recipe.
   - [ ] Photograph a recipe book and import.
+  - [ ] Dictate a recipe.
 - [ ] Do the above.
-- [ ] Try the post on Reddit again and see if we can get any active users.
+- [ ] Try the post on Reddit and IH again and see if we can get any active users.
 - [ ] The app is supposed to make meal planning and weekly shops easier. Does it do that? If not yet, what are the next steps?
 
 ### Social, SEO and AEO
@@ -48,7 +48,7 @@
 - [x] Create limits and restrictions rules like image uploads in one place and share across the app. Single source of truth
 - [x] Consolidate all image upload UI and functionality
 - [x] Store app name in a global const and replace all instances with it
-- [ ] Shopping list is very complex. A refactor is needed keeping all state at the root and reducing complexity where possible. Components should be abstracted where possible and optimistic updates should also be added. This needs to be done manually and not with AI.
+- [ s] Shopping list is very complex. A refactor is needed keeping all state at the root and reducing complexity where possible. Components should be abstracted where possible and optimistic updates should also be added. This needs to be done manually and not with AI.
 
 ## Minor updates
 

@@ -918,7 +918,7 @@ export async function parseRecipeFromSiteWithAI(
     // Extract text from body
     const pageText = $("body").text().replace(/\s+/g, " ").trim();
 
-    // Truncate if too long (GPT-4o-mini has token limits)
+    // Truncate if too long
     const truncatedText = pageText.slice(0, 15000);
 
     if (truncatedText.length < 100) {
