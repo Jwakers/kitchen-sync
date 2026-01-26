@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 import { UseFormReturn, useFieldArray } from "react-hook-form";
 import { toast } from "sonner";
 import { Recipe } from "./recipe-client";
-import { RecipeEditFormData } from "./schema";
+import { type RecipeEditFormData } from "@/lib/schemas/recipe";
 
 interface MethodSectionProps {
   recipe: Recipe;

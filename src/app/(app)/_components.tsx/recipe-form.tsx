@@ -22,7 +22,10 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { UnitSelector } from "@/components/unit-selector";
-import { recipeSchema, type RecipeFormData } from "@/lib/schemas/recipe";
+import {
+  recipeCreateSchema,
+  type RecipeCreateFormData,
+} from "@/lib/schemas/recipe";
 import { titleCase } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "convex/_generated/api";
@@ -69,8 +72,8 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
   );
   const deleteRecipeMutation = useMutation(api.recipes.deleteRecipe);
 
-  const form = useForm<RecipeFormData>({
-    resolver: zodResolver(recipeSchema),
+  const form = useForm<RecipeCreateFormData>({
+    resolver: zodResolver(recipeCreateSchema),
     defaultValues: {
       category: "main",
       title: "",
@@ -149,7 +152,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
   };
 
   const getMethodData = useCallback(
-    async (values: RecipeFormData) => {
+    async (values: RecipeCreateFormData) => {
       return await Promise.all(
         values.method.map(async (step) => {
           const image = step.image;
@@ -170,7 +173,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
     [generateUploadUrl]
   );
 
-  const onSubmit = async (values: RecipeFormData) => {
+  const onSubmit = async (values: RecipeCreateFormData) => {
     // Only allow submission when on the review step and not already saved
     if (currentStep !== "review" || isSaved) {
       return;
@@ -249,7 +252,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
     }
   };
 
-  const onError = (errors: FieldErrors<RecipeFormData>) => {
+  const onError = (errors: FieldErrors<RecipeCreateFormData>) => {
     const errorList = (
       <ul className="list-disc">
         {Object.values(errors).map((error) => (

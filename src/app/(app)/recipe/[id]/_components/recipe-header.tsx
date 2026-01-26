@@ -19,7 +19,7 @@ import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { ChangeImageModal } from "./change-image-modal";
 import { Recipe } from "./recipe-client";
-import { RecipeEditFormData } from "./schema";
+import { type RecipeEditFormData } from "@/lib/schemas/recipe";
 
 interface RecipeHeaderProps {
   recipe: NonNullable<Recipe>;

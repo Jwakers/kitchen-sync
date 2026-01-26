@@ -22,9 +22,9 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { UnitSelector } from "@/components/unit-selector";
 import {
-  importedRecipeSchema,
-  type ImportedRecipeFormData,
-} from "@/lib/schemas/imported-recipe";
+  recipeImportSchema,
+  type RecipeImportFormData,
+} from "@/lib/schemas/recipe";
 import { ParsedRecipeForDB } from "@/lib/types/recipe-parser";
 import { titleCase } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,7 +35,7 @@ import { useFieldArray, useForm } from "react-hook-form";
 type EditImportedRecipeProps = {
   recipe: ParsedRecipeForDB;
   onCancel: () => void;
-  onSave: (recipe: ImportedRecipeFormData) => Promise<void>;
+  onSave: (recipe: RecipeImportFormData) => Promise<void>;
   isSaving: boolean;
 };
 
@@ -45,8 +45,8 @@ export function EditImportedRecipe({
   onSave,
   isSaving,
 }: EditImportedRecipeProps) {
-  const form = useForm<ImportedRecipeFormData>({
-    resolver: zodResolver(importedRecipeSchema),
+  const form = useForm<RecipeImportFormData>({
+    resolver: zodResolver(recipeImportSchema),
     defaultValues: {
       title: recipe.title,
       description: recipe.description || "",
@@ -85,7 +85,7 @@ export function EditImportedRecipe({
     name: "method",
   });
 
-  const onSubmit = async (values: ImportedRecipeFormData) => {
+  const onSubmit = async (values: RecipeImportFormData) => {
     // Preserve original source metadata that shouldn't be edited
     const recipeWithSourceData = {
       ...values,

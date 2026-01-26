@@ -1,62 +1,21 @@
 # Kitchen Sync - Family Meal Planning Made Simple
 
-## 🚀 Launch Preparation - Action Required
-
-**Status:** ~90% Ready for Launch | All code complete, awaiting assets & testing
-
-### Critical (Before Launch)
-
-- [x] **Create Visual Assets** (See: `PWA_ASSETS_GUIDE.md`)
-  - [x] OpenGraph social sharing image (`/og-image.png` - 1200x630px)
-  - [x] PWA app icons (192x192 and 512x512) - ✅ Generated and configured
-  - [x] Apple touch icon (180x180) - ✅ Generated and configured
-  - [x] Favicons (ico, svg, 96x96) - ✅ Already in place
-  - [x] Apple splash screens
-  - **Tool:** Use [PWA Builder](https://www.pwabuilder.com/imageGenerator) to generate all sizes
-
-- [ ] **Complete Testing** (See: `PRE_LAUNCH_TESTING_CHECKLIST.md`)
-  - [ ] Test authentication flows (Google & Email)
-  - [ ] Test recipe creation and AI import
-  - [ ] Test shopping lists and kitchen chalkboard
-  - [ ] Test household collaboration end-to-end
-  - [ ] Test PWA installation (iOS Safari & Android Chrome)
-  - [ ] Verify contact form sends emails
-  - [ ] Test on multiple browsers (Chrome, Safari, Firefox, Edge)
-  - [ ] Check mobile responsiveness on real devices
-
-- [ ] **Verify Environment** (See: `ENV_SETUP.md`)
-  - [ ] Confirm all Vercel environment variables are set
-  - [ ] Verify Convex environment variables are configured
-  - [ ] Test that OpenAI API key has credits
-  - [ ] Confirm email SMTP settings work in production
-
-### Quick Reference Documents
-
-- `LAUNCH_SUMMARY.md` - Complete overview of what was done and next steps
-- `PWA_ASSETS_GUIDE.md` - Image requirements and design guidelines
-- `ENV_SETUP.md` - Environment variables setup and troubleshooting
-- `PRE_LAUNCH_TESTING_CHECKLIST.md` - Comprehensive testing checklist (200+ checks)
-
-### Launch beta!
-
 ---
 
 ### Next Immediate Steps
 
-- [x] Shopping list cannot be created from household recipes
-- [x] Bugs bugs bugs
-- [x] User feedback investigations and create todos
-- [x] Personal feedback (In notes app)
-- [x] Understand the importance of draft and published state in the UI (seems unimportant at this stage)
-- [x] Run the convex function migrations:removeRecipeStatusField on the production instance
-- [x] Remove status field from recipe schema
-- [x] Add text to bottom navigation
-- [x] Address all uses of free_tier_limits and replace with actual check from clerk
-- [x] My recipes should be in the main nav. Remove households for now
-- [x] Add the clerk data scheduler
-- [x] When creating a recipe its possible for an empty one to stay saved when dismounting. In this case the recipe should be deleted from the DB
-- [x] All users of a household should be able to add and remove any chalkboard items
-- [x] Set up Canny
+- [ ] Go HAM on tech dept. Finish that shit in one go.
+- [ ] Refactor to use Vercel's AI SDK https://ai-sdk.dev/docs/introduction
+- [ ] Work out what will make ME use the app more. What feature is it missing for ME right now.
+- [ ] Do the above
+- [ ] Try the post on reddit again and see if we can get any active users.
+- [ ] The app is supposed to make meal planning and weekly shops easier, DOES IT DO THAT. If not yet, what are the next steps.
+
+### Social, SEO and AEO
+
+- Confirm branding identity, logo and name etc
+- Set up a blogging system for the site (sanity or similar CMS)
+- Set up social channels: TikTok and X
 
 ## Usage notes and feedback
 
@@ -82,7 +41,6 @@
 ## Tech debt
 
 - [x] Consolidate how ingredients, method and nutrition data is rendered
-- [ ] Consolidate how cook time/serves/prep looks
 - [ ] Consolidate form schemas
 - [ ] Consolidate the two AI recipe parse functions
 - [ ] Create limits and restrictions rules like image uploads in one place and share across the app. Single source of truth
@@ -202,9 +160,8 @@ A place to ad hoc add things you need for your kitchen, this can be optionally m
 
 #### AI Features
 
-- [ ] **OpenAI Integration**: Set up GPT-4o-mini API integration for recipe parsing and suggestions
+- [x] **OpenAI Integration**: Set up GPT-4o-mini API integration for recipe parsing and suggestions
 - [ ] **Basic Meal Suggestions**: AI-powered recipe recommendations based on user preferences and available ingredients
-- [ ] **Smart Ingredient Merging**: AI to intelligently combine similar ingredients (e.g., "onion" + "yellow onion" = "onion")
 
 #### PWA & Offline Support
 

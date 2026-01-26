@@ -39,7 +39,10 @@ import { RecipeAttribution } from "./recipe-attribution";
 import { RecipeHeader } from "./recipe-header";
 import { RecipeLoading } from "./recipe-loading";
 import { RecipeNotFound } from "./recipe-not-found";
-import { RecipeEditFormData, recipeEditSchema } from "./schema";
+import {
+  recipeEditSchema,
+  type RecipeEditFormData,
+} from "@/lib/schemas/recipe";
 import { ShareToHouseholdDialog } from "./share-to-household-dialog";
 
 type RecipeClientProps = {

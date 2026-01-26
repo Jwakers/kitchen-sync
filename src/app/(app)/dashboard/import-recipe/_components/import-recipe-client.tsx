@@ -19,9 +19,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import {
-  importedRecipeSchema,
-  type ImportedRecipeFormData,
-} from "@/lib/schemas/imported-recipe";
+  recipeImportSchema,
+  type RecipeImportFormData,
+} from "@/lib/schemas/recipe";
 import { type ParsedRecipeForDB } from "@/lib/types/recipe-parser";
 import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
@@ -234,20 +234,20 @@ export function ImportRecipeClient() {
   }, [isSaved, savedRecipeId, router]);
 
   const validateAndSaveRecipe = async (
-    recipeData: ParsedRecipeForDB | ImportedRecipeFormData
+    recipeData: ParsedRecipeForDB | RecipeImportFormData
   ) => {
     try {
       setIsSaving(true);
 
       // Validate the recipe before saving
-      const validationResult = importedRecipeSchema.safeParse(recipeData);
+      const validationResult = recipeImportSchema.safeParse(recipeData);
 
       if (!validationResult.success) {
         // Validation failed, enter edit mode
 
         const errors = z.flattenError(validationResult.error).fieldErrors;
         const errorMessages = Object.entries(errors)
-          .map(([field, messages]) => `${field}: ${messages?.join(", ")}`)
+          .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(", ") : messages || "Invalid"}`)
           .join("; ");
 
         toast.error("Recipe validation failed", {
@@ -325,7 +325,7 @@ export function ImportRecipeClient() {
     await validateAndSaveRecipe(parsedRecipe);
   };
 
-  const handleEditSave = async (editedRecipe: ImportedRecipeFormData) => {
+  const handleEditSave = async (editedRecipe: RecipeImportFormData) => {
     if (isSaving || isSaved) return;
     await validateAndSaveRecipe(editedRecipe);
   };

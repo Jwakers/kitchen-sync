@@ -16,7 +16,7 @@ import { PREPARATION_OPTIONS, UNITS_FLAT } from "convex/lib/constants";
 import { Plus, Trash2 } from "lucide-react";
 import { UseFormReturn, useFieldArray } from "react-hook-form";
 import { Recipe } from "./recipe-client";
-import { RecipeEditFormData } from "./schema";
+import { type RecipeEditFormData } from "@/lib/schemas/recipe";
 
 interface IngredientsSectionProps {
   recipe: Recipe;

@@ -21,7 +21,7 @@ import { RECIPE_CATEGORIES } from "convex/lib/constants";
 import { Calendar, Clock } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { Recipe } from "./recipe-client";
-import { RecipeEditFormData } from "./schema";
+import { type RecipeEditFormData } from "@/lib/schemas/recipe";
 
 interface EditableRecipeMetaProps {
   recipe: NonNullable<Recipe>;
