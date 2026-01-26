@@ -189,6 +189,7 @@ This is to help users use recipes to cook meals
 - [ ] **Recipe Cloning**: Duplicate recipes with modifications
 - [ ] **Recipe Versioning**: Track recipe changes over time
 - [ ] Recipe notes
+- [ ] Ingredients grouping (for the sauce, marinade, etc)
 
 #### Meal Planning
 

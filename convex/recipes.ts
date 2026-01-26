@@ -55,6 +55,36 @@ export const getRecipe = query({
   },
 });
 
+/**
+ * Get recipe data for editing (includes storage IDs, not just URLs)
+ * This is used when initializing the edit form
+ */
+export const getRecipeForEdit = query({
+  args: {
+    recipeId: v.id("recipes"),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    if (!user) throw new ConvexError("User not found");
+    const recipe = await ctx.db.get(args.recipeId);
+
+    if (!recipe) return null;
+
+    // Check if user can access this recipe
+    const { canAccess, isOwner } = await canAccessRecipe(
+      ctx,
+      user._id,
+      args.recipeId
+    );
+    if (!canAccess || !isOwner) return null; // Only owner can edit
+
+    // Return recipe with storage IDs (not URLs) for form initialization
+    return {
+      method: recipe.method || [],
+    };
+  },
+});
+
 export const getAllUserRecipes = query({
   args: {},
   handler: async (ctx) => {

@@ -1,21 +1,16 @@
 "use client";
 
-import { validateImageFile } from "@/app/constants";
 import { MethodList } from "@/app/(app)/_components.tsx/method-list";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { api } from "convex/_generated/api";
-import { useMutation } from "convex/react";
-import { ImageIcon, Plus, Trash2, Upload, X } from "lucide-react";
-import Image from "next/image";
-import { useEffect, useState } from "react";
-import { UseFormReturn, useFieldArray } from "react-hook-form";
-import { toast } from "sonner";
-import { Recipe } from "./recipe-client";
 import { type RecipeEditFormData } from "@/lib/schemas/recipe";
+import { Plus, Trash2 } from "lucide-react";
+import { UseFormReturn, useFieldArray } from "react-hook-form";
+import { MethodStepImageUpload } from "./method-step-image-upload";
+import { Recipe } from "./recipe-client";
 
 interface MethodSectionProps {
   recipe: Recipe;
@@ -33,128 +28,9 @@ export function MethodSection({
     name: "method",
   });
 
-  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
-  const [imagePreviews, setImagePreviews] = useState<
-    Record<number, string | null>
-  >({});
-
-  const generateUploadUrl = useMutation(api.recipes.generateUploadUrl);
-
-  // Initialize image previews from existing recipe data
-  useEffect(() => {
-    if (recipe?.method && isEditMode) {
-      const previews: Record<number, string | null> = {};
-      recipe.method.forEach((step, index) => {
-        if (step.imageUrl) {
-          previews[index] = step.imageUrl;
-        }
-      });
-      setImagePreviews(previews);
-    }
-  }, [recipe, isEditMode]);
-
-  const handleImageSelect = async (index: number, file: File | null) => {
-    if (!file || !form) return;
-
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please select a valid image file");
-      return;
-    }
-
-    // Validate image file
-    const validation = validateImageFile(file);
-    if (!validation.valid) {
-      toast.error(validation.error || "Invalid file");
-      return;
-    }
-
-    setUploadingIndex(index);
-
-    try {
-      // Create preview
-      const previewUrl = URL.createObjectURL(file);
-      setImagePreviews((prev) => ({ ...prev, [index]: previewUrl }));
-
-      // Upload to Convex
-      const postUrl = await generateUploadUrl();
-      const result = await fetch(postUrl, {
-        method: "POST",
-        headers: { "Content-Type": file.type },
-        body: file,
-      });
-
-      if (!result.ok) {
-        throw new Error("Failed to upload image");
-      }
-
-      const { storageId } = await result.json();
-
-      // Update form with storage ID
-      form.setValue(`method.${index}.image`, storageId);
-
-      toast.success("Image uploaded successfully");
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to upload image");
-      // Remove preview on error
-      setImagePreviews((prev) => {
-        const newPreviews = { ...prev };
-        delete newPreviews[index];
-        return newPreviews;
-      });
-    } finally {
-      setUploadingIndex(null);
-    }
-  };
-
-  const handleRemoveImage = (index: number) => {
-    if (!form) return;
-
-    form.setValue(`method.${index}.image`, undefined);
-    setImagePreviews((prev) => {
-      const newPreviews = { ...prev };
-      if (newPreviews[index] && newPreviews[index]?.startsWith("blob:")) {
-        URL.revokeObjectURL(newPreviews[index]!);
-      }
-      delete newPreviews[index];
-      return newPreviews;
-    });
-    toast.success("Image removed");
-  };
-
   const handleRemoveStep = (index: number) => {
-    const previewToRemove = imagePreviews[index];
-    if (previewToRemove?.startsWith("blob:")) {
-      URL.revokeObjectURL(previewToRemove);
-    }
-
     remove(index);
-
-    setImagePreviews((prev) => {
-      const next: Record<number, string | null> = {};
-      Object.entries(prev).forEach(([key, value]) => {
-        const numericKey = Number(key);
-        if (numericKey === index) {
-          return;
-        }
-        const nextKey = numericKey > index ? numericKey - 1 : numericKey;
-        next[nextKey] = value;
-      });
-      return next;
-    });
   };
-
-  // Cleanup blob URLs on unmount
-  useEffect(() => {
-    return () => {
-      Object.values(imagePreviews).forEach((url) => {
-        if (url?.startsWith("blob:")) {
-          URL.revokeObjectURL(url);
-        }
-      });
-    };
-  }, [imagePreviews]);
 
   if (isEditMode && form) {
     return (
@@ -218,66 +94,15 @@ export function MethodSection({
                       />
                     </div>
                     {/* Image Upload Section */}
-                    <div>
-                      <Label className="text-xs mb-2 block">
-                        Step Image (optional)
-                      </Label>
-                      {imagePreviews[index] ? (
-                        <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-border">
-                          <Image
-                            src={imagePreviews[index]!}
-                            alt={`Step ${index + 1} preview`}
-                            fill
-                            className="object-cover"
-                            unoptimized
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                          />
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleRemoveImage(index)}
-                            className="absolute top-2 right-2"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="relative">
-                          <Input
-                            id={`method.${index}.image`}
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) =>
-                              handleImageSelect(
-                                index,
-                                e.target.files?.[0] || null
-                              )
-                            }
-                            disabled={uploadingIndex === index}
-                            className="hidden"
-                          />
-                          <Label
-                            htmlFor={`method.${index}.image`}
-                            className="flex items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer hover:bg-accent transition-colors"
-                          >
-                            {uploadingIndex === index ? (
-                              <div className="flex items-center gap-2 text-muted-foreground">
-                                <Upload className="h-5 w-5 animate-pulse" />
-                                <span className="text-sm">Uploading...</span>
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2 text-muted-foreground">
-                                <ImageIcon className="h-5 w-5" />
-                                <span className="text-sm">
-                                  Click to upload image
-                                </span>
-                              </div>
-                            )}
-                          </Label>
-                        </div>
-                      )}
-                    </div>
+                    {form && (
+                      <MethodStepImageUpload
+                        form={form}
+                        stepIndex={index}
+                        existingImageUrl={
+                          recipe?.method?.[index]?.imageUrl || undefined
+                        }
+                      />
+                    )}
                   </div>
                   <Button
                     type="button"

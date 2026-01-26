@@ -10,6 +10,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Form } from "@/components/ui/form";
 import useShare from "@/lib/hooks/use-share";
+import {
+  recipeEditSchema,
+  type RecipeEditFormData,
+} from "@/lib/schemas/recipe";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "convex/_generated/api";
@@ -39,10 +43,6 @@ import { RecipeAttribution } from "./recipe-attribution";
 import { RecipeHeader } from "./recipe-header";
 import { RecipeLoading } from "./recipe-loading";
 import { RecipeNotFound } from "./recipe-not-found";
-import {
-  recipeEditSchema,
-  type RecipeEditFormData,
-} from "@/lib/schemas/recipe";
 import { ShareToHouseholdDialog } from "./share-to-household-dialog";
 
 type RecipeClientProps = {
@@ -58,6 +58,7 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
   const [recipeToDelete, setRecipeToDelete] = useState<Recipe | null>(null);
 
   const recipe = useQuery(api.recipes.getRecipe, { recipeId });
+  const recipeForEdit = useQuery(api.recipes.getRecipeForEdit, { recipeId });
   const updateRecipeMutation = useMutation(api.recipes.updateRecipe);
   const deleteRecipeMutation = useMutation(api.recipes.deleteRecipe);
 
@@ -82,7 +83,7 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
       return;
     }
 
-    if (recipe) {
+    if (recipe && recipeForEdit) {
       form.reset({
         title: recipe.title,
         description: recipe.description || "",
@@ -91,7 +92,13 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
         serves: recipe.serves,
         category: recipe.category,
         ingredients: recipe.ingredients || [],
-        method: recipe.method || [],
+        // Use recipeForEdit which has storage IDs (not URLs)
+        // Convert storage ID to string for form
+        method: (recipeForEdit.method || []).map((step) => ({
+          title: step.title,
+          description: step.description,
+          image: step.image ? String(step.image) : undefined, // Convert Id to string
+        })),
       });
     }
     setIsEditMode(true);
@@ -111,8 +118,9 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
         category: data.category,
         ingredients: data.ingredients,
         method: data.method.map((step) => ({
-          ...step,
-          image: undefined, // TODO
+          title: step.title,
+          description: step.description,
+          image: step.image ? (step.image as Id<"_storage">) : undefined, // Convert string back to Id
         })),
       });
 
@@ -240,7 +248,7 @@ function RecipeControls({
       await share(
         recipe.title,
         `Check out this recipe: ${recipe.title}`,
-        recipeUrl
+        recipeUrl,
       );
     } else {
       await copyToClipboard(recipeUrl);
@@ -251,7 +259,7 @@ function RecipeControls({
     <div
       className={cn(
         "flex items-center flex-wrap gap-3 py-4",
-        isEditMode ? "sticky top-0 bg-background border-b" : ""
+        isEditMode ? "sticky top-0 bg-background border-b" : "",
       )}
     >
       {isEditMode ? (
