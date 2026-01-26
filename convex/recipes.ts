@@ -79,7 +79,15 @@ export const getRecipeForEdit = query({
     if (!canAccess || !isOwner) return null; // Only owner can edit
 
     // Return recipe with storage IDs (not URLs) for form initialization
+    // Include all fields required by RecipeEditFormData schema
     return {
+      title: recipe.title || "",
+      description: recipe.description || "",
+      prepTime: recipe.prepTime ?? 0,
+      cookTime: recipe.cookTime ?? undefined,
+      serves: recipe.serves ?? 0,
+      category: recipe.category,
+      ingredients: recipe.ingredients || [],
       method: recipe.method || [],
     };
   },

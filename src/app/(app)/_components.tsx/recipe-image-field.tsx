@@ -8,7 +8,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 import { ControllerRenderProps } from "react-hook-form";
 import { type RecipeCreateFormData } from "@/lib/schemas/recipe";
 
@@ -22,6 +22,10 @@ interface RecipeImageFieldProps {
  * Handles syncing between form field and upload hook
  */
 export function RecipeImageField({ field, upload }: RecipeImageFieldProps) {
+  // Generate unique ID for this field instance
+  const uniqueId = useId();
+  const inputId = `${field.name}-image-input-${uniqueId}`;
+
   // Sync hook preview with form value
   useEffect(() => {
     const currentFile = field.value instanceof File ? field.value : null;
@@ -39,7 +43,7 @@ export function RecipeImageField({ field, upload }: RecipeImageFieldProps) {
       <FormControl>
         <ImageUploadArea
           upload={upload}
-          inputId="recipe-image-input"
+          inputId={inputId}
           label="Click to upload image"
           aspectRatio="aspect-[16/9]"
           onFileSelect={(file) => {

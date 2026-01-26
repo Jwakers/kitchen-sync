@@ -10,7 +10,7 @@ import { Navbar } from "./_components.tsx/navbar";
 export const metadata: Metadata = {
   title: {
     template: `%s | ${APP_NAME}`,
-    default: APP_NAME,
+    default: APP_NAME!,
   },
   description: `${APP_NAME} - Family Meal Planning`,
 };

@@ -1,8 +1,7 @@
-import { APP_NAME } from "@/app/constants";
 import DashboardClient from "./_components/dashboard-client";
 
 export const metadata = {
-  title: `Dashboard | ${APP_NAME}`,
+  title: "Dashboard",
 };
 
 export default function DashboardPage() {

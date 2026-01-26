@@ -1,4 +1,4 @@
-import { RECIPE_CATEGORIES } from "convex/lib/constants";
+import { IMAGE_LIMITS, RECIPE_CATEGORIES } from "convex/lib/constants";
 
 // ============================================================================
 // APP BRANDING
@@ -6,8 +6,9 @@ import { RECIPE_CATEGORIES } from "convex/lib/constants";
 
 /**
  * Application name - used throughout the app for branding
+ * Falls back to "Kitchen Sync" if environment variable is not set
  */
-export const APP_NAME = process.env.APP_NAME;
+export const APP_NAME = process.env.APP_NAME || "Kitchen Sync";
 
 export const ROUTES = {
   HOME: "/",
@@ -63,8 +64,6 @@ export const CANNY_BOARD_SLUGS = {
 // Limits are defined in convex/lib/constants.ts (single source of truth)
 // ============================================================================
 
-import { IMAGE_LIMITS } from "convex/lib/constants";
-
 /**
  * Helper function to format file size for display
  */
@@ -82,11 +81,11 @@ export function validateImageFile(file: File): {
   valid: boolean;
   error?: string;
 } {
-  // Check file type
-  if (!file.type.startsWith("image/")) {
+  // Check file type against allowed types
+  if (!IMAGE_LIMITS.ALLOWED_TYPES.includes(file.type as (typeof IMAGE_LIMITS.ALLOWED_TYPES)[number])) {
     return {
       valid: false,
-      error: "Please select an image file",
+      error: `Please select a valid image file. Allowed types: ${IMAGE_LIMITS.ALLOWED_TYPES.join(", ")}`,
     };
   }
 

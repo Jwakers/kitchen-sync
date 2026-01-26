@@ -11,7 +11,7 @@ import { z } from "zod";
 
 const baseIngredientSchema = z.object({
   name: z.string().min(1, "Ingredient name is required"),
-  amount: z.number().min(0, "Amount must be 0 or greater").optional(),
+  amount: z.number().positive("Amount must be greater than 0").optional(),
   unit: z.enum(UNITS_FLAT).optional(),
   preparation: z.enum(PREPARATION_OPTIONS).optional(),
 });

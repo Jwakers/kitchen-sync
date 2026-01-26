@@ -4,14 +4,14 @@
 
 ### Next Immediate Steps
 
-- [ ] Go HAM on tech dept. Finish that shit in one go.
-- [ ] Refactor to use Vercel's AI SDK https://ai-sdk.dev/docs/introduction
-- [ ] Work out what will make ME use the app more. What feature is it missing for ME right now.
-  - [ ] Dictate a recipe
-  - [ ] Photograph a recipe book and import
-- [ ] Do the above
-- [ ] Try the post on reddit again and see if we can get any active users.
-- [ ] The app is supposed to make meal planning and weekly shops easier, DOES IT DO THAT. If not yet, what are the next steps.
+- [ ] Complete technical debt remediation in one sprint.
+- [ ] Refactor to use [Vercel AI SDK](https://ai-sdk.dev/docs/introduction).
+- [ ] Work out what will make me use the app more. What feature is it missing for me right now?
+  - [ ] Dictate a recipe.
+  - [ ] Photograph a recipe book and import.
+- [ ] Do the above.
+- [ ] Try the post on Reddit again and see if we can get any active users.
+- [ ] The app is supposed to make meal planning and weekly shops easier. Does it do that? If not yet, what are the next steps?
 
 ### Social, SEO and AEO
 
@@ -48,7 +48,6 @@
 - [x] Create limits and restrictions rules like image uploads in one place and share across the app. Single source of truth
 - [x] Consolidate all image upload UI and functionality
 - [x] Store app name in a global const and replace all instances with it
-- [ ] Consolidate recipe card designs and reusability
 - [ ] Shopping list is very complex. A refactor is needed keeping all state at the root and reducing complexity where possible. Components should be abstracted where possible and optimistic updates should also be added. This needs to be done manually and not with AI.
 
 ## Minor updates
@@ -119,7 +118,7 @@
 - [x] **Recipe Categories**: Enable filtering by existing categories (main, dessert, snack, etc.)
 - [ ] Scale ingredients (serves modifier)
 - [ ] Metric and imperial conversion + user default
-- [ ] **Recipe Tags**: Auto-detect dietary tags like plant-based, coeliac friendly, gluten free from ingredients. Cuisine types, Italian, Mexican etc
+- [ ] **Recipe Tags**: Auto-detect dietary tags like plant-based, coeliac friendly, gluten-free from ingredients. Cuisine types, Italian, Mexican etc.
 - [ ] **Ingredient Categories**: Add categorization to ingredients (meat, poultry, vegetable, spice etc) (or extract from an existing external ingredient DB while still allowing custom ingredients)
 - [x] **AI Recipe Import**: Build URL scraping or text parsing for importing recipes from websites
 

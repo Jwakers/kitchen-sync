@@ -104,7 +104,7 @@ export default function SignInPage() {
           <div className="text-center space-y-2">
             <Link href="/" className="inline-flex items-center space-x-2">
               <Utensils className="h-8 w-8 text-primary" />
-              <span className="font-bold text-2xl">Kitchen Sync</span>
+              <span className="font-bold text-2xl">{APP_NAME}</span>
             </Link>
             <p className="text-muted-foreground">
               Welcome back! Sign in to continue planning your family&apos;s

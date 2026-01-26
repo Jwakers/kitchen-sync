@@ -1,10 +1,10 @@
 "use client";
 
-import { TEXT_LIMITS } from "convex/lib/constants";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { TEXT_LIMITS } from "convex/lib/constants";
 import {
   AlertCircle,
   CheckCircle2,
@@ -42,7 +42,7 @@ export function TextToRecipeParser({
     } catch (err) {
       console.error(err);
       setError(
-        err instanceof Error ? err.message : "An unexpected error occurred"
+        err instanceof Error ? err.message : "An unexpected error occurred",
       );
     } finally {
       setIsLoading(false);
@@ -142,7 +142,8 @@ Instructions:
           />
           <div className="flex justify-between items-center text-xs">
             <p className="text-muted-foreground">
-              Minimum {TEXT_LIMITS.RECIPE_TEXT_MIN_LENGTH} characters, maximum {TEXT_LIMITS.RECIPE_TEXT_MAX_LENGTH.toLocaleString()} characters
+              Minimum {TEXT_LIMITS.RECIPE_TEXT_MIN_LENGTH} characters, maximum{" "}
+              {TEXT_LIMITS.RECIPE_TEXT_MAX_LENGTH.toLocaleString()} characters
             </p>
             <p
               className={`${
@@ -153,7 +154,8 @@ Instructions:
                     : "text-muted-foreground"
               }`}
             >
-              {characterCount.toLocaleString()} / 6,000
+              {characterCount.toLocaleString()} /{" "}
+              {TEXT_LIMITS.RECIPE_TEXT_MAX_LENGTH.toLocaleString()}
             </p>
           </div>
         </div>

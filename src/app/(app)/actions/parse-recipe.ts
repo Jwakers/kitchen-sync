@@ -21,12 +21,9 @@ import {
 } from "convex/lib/constants";
 import OpenAI from "openai";
 import { z } from "zod";
-import {
-  RECIPE_INGREDIENT_SCHEMA,
-  RECIPE_METHOD_STEP_SCHEMA,
-  RECIPE_NUTRITION_SCHEMA,
-  TEXT_RECIPE_PARSING_SCHEMA,
-} from "./shared-recipe-schema";
+// Note: We now generate JSON schemas from Zod schemas to avoid drift
+// The shared-recipe-schema.ts file is kept for backward compatibility
+// but JSON schemas are generated from Zod schemas below
 
 // ============================================================================
 // Shared OpenAI Client
@@ -40,43 +37,7 @@ const openai = new OpenAI({
 // Shared Schema Definitions
 // ============================================================================
 
-// Schema for HTML recipe parsing (includes imageUrl and author)
-const HTML_RECIPE_PARSING_SCHEMA = {
-  type: "object" as const,
-  properties: {
-    title: { type: "string" as const },
-    description: { type: "string" as const },
-    prepTime: { type: "number" as const },
-    cookTime: { type: "number" as const },
-    serves: { type: "number" as const },
-    category: { type: "string" as const },
-    ingredients: {
-      type: "array" as const,
-      items: RECIPE_INGREDIENT_SCHEMA,
-    },
-    method: {
-      type: "array" as const,
-      items: RECIPE_METHOD_STEP_SCHEMA,
-    },
-    imageUrl: { type: "string" as const },
-    author: { type: "string" as const },
-  },
-  required: [
-    "title",
-    "description",
-    "prepTime",
-    "cookTime",
-    "serves",
-    "category",
-    "ingredients",
-    "method",
-    "imageUrl",
-    "author",
-  ],
-  additionalProperties: false,
-};
-
-// Zod schemas for validation
+// Zod schemas for validation (single source of truth)
 const TextRecipeSchema = z.object({
   success: z.boolean(),
   errorMessage: z.string(),
@@ -108,6 +69,32 @@ const HtmlRecipeSchema = z.object({
   imageUrl: z.string(),
   author: z.string(),
 });
+
+// Generate JSON schemas from Zod schemas to avoid drift
+// Using Zod v4's native JSON schema generation
+// This ensures the JSON schema used for OpenAI matches the Zod validation schema
+const htmlRecipeJsonSchema = z.toJSONSchema(HtmlRecipeSchema);
+const HTML_RECIPE_PARSING_SCHEMA = {
+  ...htmlRecipeJsonSchema,
+  additionalProperties: false, // Required for OpenAI strict mode
+} as {
+  type: "object";
+  properties: Record<string, unknown>;
+  required: string[];
+  additionalProperties: false;
+};
+
+// Generate JSON schema for text recipe parsing from Zod schema
+const textRecipeJsonSchema = z.toJSONSchema(TextRecipeSchema);
+const TEXT_RECIPE_PARSING_SCHEMA_GENERATED = {
+  ...textRecipeJsonSchema,
+  additionalProperties: false, // Required for OpenAI strict mode
+} as {
+  type: "object";
+  properties: Record<string, unknown>;
+  required: string[];
+  additionalProperties: false;
+};
 
 // ============================================================================
 // Shared Helper Functions
@@ -552,7 +539,7 @@ NOT valid recipes:
         json_schema: {
           name: "recipe_parser",
           strict: true,
-          schema: TEXT_RECIPE_PARSING_SCHEMA,
+          schema: TEXT_RECIPE_PARSING_SCHEMA_GENERATED,
         },
       },
       temperature: 0.2,
@@ -833,18 +820,65 @@ export async function parseRecipeFromSiteWithAI(
       return null;
     }
 
-    // 2️⃣ Fetch page HTML
-    const response = await fetch(validation.url!.toString(), {
-      signal: AbortSignal.timeout(10000), // 10 second timeout
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (compatible; RecipeBot/1.0; +https://kitchen-sync.app)",
-      },
-    });
+    // 2️⃣ Fetch page HTML with manual redirect handling for SSRF protection
+    const MAX_REDIRECTS = 5;
+    let currentUrl = validation.url!;
+    let response: Response | null = null;
+    let redirectCount = 0;
 
-    if (!response.ok) {
+    while (redirectCount < MAX_REDIRECTS) {
+      // Validate current URL before fetching
+      const currentValidation = await validateUrlForSSRF(currentUrl.toString());
+      if (!currentValidation.valid) {
+        console.error(
+          `SSRF Protection: Redirect target validation failed - ${currentValidation.reason}`
+        );
+        return null;
+      }
+
+      // Fetch with manual redirect handling
+      response = await fetch(currentValidation.url!.toString(), {
+        signal: AbortSignal.timeout(10000), // 10 second timeout
+        redirect: "manual", // Handle redirects manually
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (compatible; RecipeBot/1.0; +https://kitchen-sync.app)",
+        },
+      });
+
+      // Check if we need to follow a redirect
+      if (
+        response.status >= 300 &&
+        response.status < 400 &&
+        response.headers.get("location")
+      ) {
+        const location = response.headers.get("location")!;
+        try {
+          // Resolve relative redirects against current URL
+          currentUrl = new URL(location, currentUrl);
+          redirectCount++;
+          continue; // Follow the redirect
+        } catch (error) {
+          console.error(
+            `Invalid redirect location: ${location}`,
+            error instanceof Error ? error.message : "Unknown error"
+          );
+          return null;
+        }
+      }
+
+      // Not a redirect, break the loop
+      break;
+    }
+
+    if (redirectCount >= MAX_REDIRECTS) {
+      console.error(`Too many redirects (max ${MAX_REDIRECTS})`);
+      return null;
+    }
+
+    if (!response || !response.ok) {
       console.error(
-        `Failed to fetch URL: ${response.status} ${response.statusText}`
+        `Failed to fetch URL: ${response?.status || "unknown"} ${response?.statusText || "unknown"}`
       );
       return null;
     }

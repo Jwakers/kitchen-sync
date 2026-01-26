@@ -94,15 +94,13 @@ export function MethodSection({
                       />
                     </div>
                     {/* Image Upload Section */}
-                    {form && (
-                      <MethodStepImageUpload
-                        form={form}
-                        stepIndex={index}
-                        existingImageUrl={
-                          recipe?.method?.[index]?.imageUrl || undefined
-                        }
-                      />
-                    )}
+                    <MethodStepImageUpload
+                      form={form}
+                      stepIndex={index}
+                      existingImageUrl={
+                        recipe?.method?.[index]?.imageUrl || undefined
+                      }
+                    />
                   </div>
                   <Button
                     type="button"

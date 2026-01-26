@@ -85,14 +85,14 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
 
     if (recipe && recipeForEdit) {
       form.reset({
-        title: recipe.title,
-        description: recipe.description || "",
-        prepTime: recipe.prepTime,
-        cookTime: recipe.cookTime,
-        serves: recipe.serves,
-        category: recipe.category,
-        ingredients: recipe.ingredients || [],
-        // Use recipeForEdit which has storage IDs (not URLs)
+        // Use recipeForEdit which has all fields with storage IDs (not URLs)
+        title: recipeForEdit.title || "",
+        description: recipeForEdit.description || "",
+        prepTime: recipeForEdit.prepTime ?? 0,
+        cookTime: recipeForEdit.cookTime ?? undefined,
+        serves: recipeForEdit.serves ?? 0,
+        category: recipeForEdit.category,
+        ingredients: recipeForEdit.ingredients || [],
         // Convert storage ID to string for form
         method: (recipeForEdit.method || []).map((step) => ({
           title: step.title,
