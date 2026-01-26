@@ -1,6 +1,6 @@
 "use client";
 
-import { ROUTES } from "@/app/constants";
+import { APP_NAME, ROUTES } from "@/app/constants";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -77,7 +77,7 @@ export default function PricingPage() {
                 </h3>
                 <div className="space-y-3 text-muted-foreground">
                   <p>
-                    Kitchen Sync is currently in beta, and only our free plan is
+                    {APP_NAME} is currently in beta, and only our free plan is
                     available at this time. Your feedback during this period is
                     invaluable as we continue to improve and refine the
                     platform.
@@ -155,7 +155,7 @@ export default function PricingPage() {
               Ready to simplify meal planning?
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Join Kitchen Sync today and experience stress-free meal planning
+              Join {APP_NAME} today and experience stress-free meal planning
               with your family.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

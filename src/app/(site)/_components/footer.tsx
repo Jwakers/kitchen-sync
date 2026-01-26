@@ -1,4 +1,4 @@
-import { ROUTES } from "@/app/constants";
+import { APP_NAME, ROUTES } from "@/app/constants";
 import { Utensils } from "lucide-react";
 import Link from "next/link";
 
@@ -11,7 +11,7 @@ export function Footer() {
           <div className="space-y-4 md:col-span-1">
             <Link href="/" className="flex items-center space-x-2">
               <Utensils className="h-6 w-6 text-primary" />
-              <span className="font-bold text-xl">Kitchen Sync</span>
+              <span className="font-bold text-xl">{APP_NAME}</span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-md">
               Making family meal planning simple, organised, and stress-free.
@@ -101,7 +101,7 @@ export function Footer() {
         <div className="mt-12 pt-8 border-t">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} Kitchen Sync. All rights reserved.
+              © {new Date().getFullYear()} {APP_NAME}. All rights reserved.
             </p>
             <p className="text-sm text-muted-foreground">
               Making meal planning fun and simple

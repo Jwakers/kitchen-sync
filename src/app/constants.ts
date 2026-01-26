@@ -1,5 +1,14 @@
 import { RECIPE_CATEGORIES } from "convex/lib/constants";
 
+// ============================================================================
+// APP BRANDING
+// ============================================================================
+
+/**
+ * Application name - used throughout the app for branding
+ */
+export const APP_NAME = process.env.APP_NAME;
+
 export const ROUTES = {
   HOME: "/",
   SIGN_IN: "/sign-in",

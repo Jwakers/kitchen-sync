@@ -1,5 +1,6 @@
 "use client";
 
+import { APP_NAME } from "@/app/constants";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -42,7 +43,7 @@ export default function SignUpPage() {
                 className="inline-flex items-center space-x-2 mb-8"
               >
                 <Utensils className="h-8 w-8" />
-                <span className="font-bold text-2xl">Kitchen Sync</span>
+                <span className="font-bold text-2xl">{APP_NAME}</span>
               </Link>
 
               <h1 className="text-4xl lg:text-5xl font-bold leading-tight">

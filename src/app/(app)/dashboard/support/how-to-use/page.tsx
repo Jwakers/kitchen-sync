@@ -1,6 +1,6 @@
 "use client";
 
-import { ROUTES } from "@/app/constants";
+import { APP_NAME, ROUTES } from "@/app/constants";
 import {
   Accordion,
   AccordionContent,
@@ -36,7 +36,7 @@ export default function HowToUsePage() {
       step: 1,
       title: "Sign up for an account",
       description:
-        "Create your Kitchen Sync account to start organising your recipes and meal planning.",
+        `Create your ${APP_NAME} account to start organising your recipes and meal planning.`,
       icon: <Users className="h-5 w-5" />,
     },
     {
@@ -247,10 +247,10 @@ export default function HowToUsePage() {
           <div className="p-2 bg-primary/10 rounded-lg">
             <BookOpen className="h-6 w-6 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold">How to Use Kitchen Sync</h1>
+          <h1 className="text-2xl font-bold">How to Use {APP_NAME}</h1>
         </div>
         <p className="text-muted-foreground">
-          Learn how to get the most out of Kitchen Sync with our comprehensive
+          Learn how to get the most out of {APP_NAME} with our comprehensive
           guides.
         </p>
       </div>
@@ -265,7 +265,7 @@ export default function HowToUsePage() {
             Getting Started
           </CardTitle>
           <CardDescription>
-            Follow these steps to set up Kitchen Sync and start organising your
+            Follow these steps to set up {APP_NAME} and start organising your
             recipes.
           </CardDescription>
         </CardHeader>

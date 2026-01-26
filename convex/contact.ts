@@ -56,7 +56,7 @@ export const sendContactEmail = action({
 
       // Email content
       const emailContent = {
-        from: `Kitchen Sync App <${process.env.HOSTINGER_CONTACT_EMAIL}>`,
+        from: `${process.env.APP_NAME || "Kitchen Sync"} App <${process.env.HOSTINGER_CONTACT_EMAIL}>`,
         to: CONTACT_EMAIL,
         subject: `Contact Form: ${escapeHtml(reason)}`,
         html: `

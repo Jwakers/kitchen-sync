@@ -1,6 +1,6 @@
 "use client";
 
-import { ROUTES } from "@/app/constants";
+import { APP_NAME, ROUTES } from "@/app/constants";
 import {
   Accordion,
   AccordionContent,
@@ -185,9 +185,9 @@ export const faqSections = [
           "Some features work offline, but for the best experience, we recommend using the app with an internet connection. This ensures your data syncs properly across devices.",
       },
       {
-        question: "Can I use Kitchen Sync on my phone?",
+        question: `Can I use ${APP_NAME} on my phone?`,
         answer:
-          "Yes! Kitchen Sync is a web app that works great on mobile devices. You can add it to your home screen for easy access.",
+          `Yes! ${APP_NAME} is a web app that works great on mobile devices. You can add it to your home screen for easy access.`,
       },
     ],
   },
@@ -212,7 +212,7 @@ export default function FAQPage() {
           <h1 className="text-2xl font-bold">Frequently Asked Questions</h1>
         </div>
         <p className="text-muted-foreground">
-          Find answers to common questions about using Kitchen Sync.
+          Find answers to common questions about using {APP_NAME}.
         </p>
       </div>
 

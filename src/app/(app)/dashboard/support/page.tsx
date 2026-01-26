@@ -1,7 +1,7 @@
 "use client";
 
 import { getCannyBoardUrl } from "@/app/(app)/_components.tsx/canny-identify";
-import { ROUTES } from "@/app/constants";
+import { APP_NAME, ROUTES } from "@/app/constants";
 import {
   Accordion,
   AccordionContent,
@@ -47,7 +47,7 @@ export default function SupportPage() {
           <h1 className="text-3xl font-bold">Help & Support</h1>
         </div>
         <p className="text-lg text-muted-foreground">
-          Find answers to common questions, learn how to use Kitchen Sync, or
+          Find answers to common questions, learn how to use {APP_NAME}, or
           get in touch with our support team.
         </p>
       </div>
@@ -84,7 +84,7 @@ export default function SupportPage() {
             </div>
             <CardDescription>
               Step-by-step guides to help you get started and master all the
-              features of Kitchen Sync.
+              features of {APP_NAME}.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -189,10 +189,10 @@ export default function SupportPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
-            Help Us Improve Kitchen Sync
+            Help Us Improve {APP_NAME}
           </CardTitle>
           <CardDescription>
-            Your feedback helps us make Kitchen Sync better for everyone.
+            Your feedback helps us make {APP_NAME} better for everyone.
           </CardDescription>
         </CardHeader>
         <CardContent>

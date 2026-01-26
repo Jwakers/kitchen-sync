@@ -1,6 +1,6 @@
 "use client";
 
-import { ROUTES } from "@/app/constants";
+import { APP_NAME, ROUTES } from "@/app/constants";
 import InstallPrompt from "@/components/installation-prompt";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ export default function BetaLandingPage() {
               This is a beta
             </Badge>
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-              Kitchen Sync Beta
+              {APP_NAME} Beta
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground">
               Build a repeatable meal planning rhythm for your household. We&apos;re
@@ -121,7 +121,7 @@ export default function BetaLandingPage() {
               <ol className="space-y-3 text-muted-foreground list-decimal list-inside">
                 <li>Sign up and add a few recipes you already love.</li>
                 <li>Plan a week of meals and build your shopping list.</li>
-                <li>Use Kitchen Sync as you normally would during the week.</li>
+                <li>Use {APP_NAME} as you normally would during the week.</li>
                 <li>Share feedback or feature requests whenever something stands out.</li>
               </ol>
               <p className="mt-4 text-sm text-muted-foreground">

@@ -46,10 +46,9 @@
 - [x] Consolidate form schemas
 - [x] Consolidate the two AI recipe parse functions
 - [x] Create limits and restrictions rules like image uploads in one place and share across the app. Single source of truth
-- [ ] Consolidate all image upload UI and functionality
-- [ ] Store app name in a global const and replace all instances with it
+- [x] Consolidate all image upload UI and functionality
+- [x] Store app name in a global const and replace all instances with it
 - [ ] Consolidate recipe card designs and reusability
-- [ ] Check and centralise all site validations, text limits, image limits etc. Store these on the server and share across the site
 - [ ] Shopping list is very complex. A refactor is needed keeping all state at the root and reducing complexity where possible. Components should be abstracted where possible and optimistic updates should also be added. This needs to be done manually and not with AI.
 
 ## Minor updates

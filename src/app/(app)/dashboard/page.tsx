@@ -1,7 +1,8 @@
+import { APP_NAME } from "@/app/constants";
 import DashboardClient from "./_components/dashboard-client";
 
 export const metadata = {
-  title: "Dashboard | Kitchen Sync",
+  title: `Dashboard | ${APP_NAME}`,
 };
 
 export default function DashboardPage() {
