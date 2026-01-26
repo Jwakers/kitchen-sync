@@ -83,6 +83,22 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
       return;
     }
 
+    // Check if recipeForEdit is loaded before entering edit mode
+    if (recipeForEdit === undefined) {
+      toast.info("Loading recipe data...", {
+        description: "Please wait while we prepare the form for editing.",
+      });
+      return;
+    }
+
+    if (!recipeForEdit) {
+      toast.error("Unable to load recipe data", {
+        description: "Please refresh the page and try again.",
+      });
+      return;
+    }
+
+    // Only enter edit mode after successfully populating form with recipeForEdit data
     if (recipe && recipeForEdit) {
       form.reset({
         // Use recipeForEdit which has all fields with storage IDs (not URLs)
@@ -100,8 +116,8 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
           image: step.image ? String(step.image) : undefined, // Convert Id to string
         })),
       });
+      setIsEditMode(true);
     }
-    setIsEditMode(true);
   };
 
   const handleSave = async (data: RecipeEditFormData) => {
@@ -187,6 +203,7 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
               onToggleEditMode={handleToggleEditMode}
               onDelete={handleDelete}
               canEdit={canEdit}
+              isRecipeForEditLoaded={recipeForEdit !== undefined}
             />
 
             {isEditMode && <EditableRecipeMeta recipe={recipe} form={form} />}
@@ -231,12 +248,14 @@ function RecipeControls({
   onDelete,
   recipe,
   canEdit,
+  isRecipeForEditLoaded,
 }: {
   isEditMode: boolean;
   recipe: NonNullable<Recipe>;
   onToggleEditMode: () => void;
   onDelete: (recipe: NonNullable<Recipe>) => void;
   canEdit: boolean;
+  isRecipeForEditLoaded: boolean;
 }) {
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const { canShare, share, copyToClipboard } = useShare();
@@ -324,9 +343,14 @@ function RecipeControls({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem variant="default" onClick={onToggleEditMode}>
+                <DropdownMenuItem
+                  variant="default"
+                  onClick={onToggleEditMode}
+                  disabled={!isRecipeForEditLoaded}
+                >
                   <Edit className="h-4 w-4 mr-2" />
                   Edit Recipe
+                  {!isRecipeForEditLoaded && " (Loading...)"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   variant="destructive"
