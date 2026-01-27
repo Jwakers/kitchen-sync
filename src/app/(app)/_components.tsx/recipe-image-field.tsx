@@ -30,7 +30,7 @@ export function RecipeImageField({ field, upload }: RecipeImageFieldProps) {
   useEffect(() => {
     const currentFile = field.value instanceof File ? field.value : null;
     if (currentFile && upload.selectedFile !== currentFile) {
-      upload.handleFileSelect(currentFile);
+      void upload.handleFileSelect(currentFile);
     } else if (!currentFile && upload.selectedFile) {
       upload.clear();
     }

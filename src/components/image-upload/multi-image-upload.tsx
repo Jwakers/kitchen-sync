@@ -4,6 +4,10 @@ import { validateImageFile } from "@/app/constants";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { IMAGE_LIMITS, RECIPE_LIMITS } from "convex/lib/constants";
+import {
+  isHeicFile,
+  processImageFile,
+} from "@/lib/utils/heic-conversion";
 import { Camera, ImageIcon, Upload, X } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -31,48 +35,6 @@ interface MultiImageUploadProps {
 const DEFAULT_MAX_IMAGES = RECIPE_LIMITS.MAX_PHOTO_IMAGES;
 
 /**
- * Converts HEIC/HEIF files to JPEG for browser compatibility
- */
-async function convertHeicToJpeg(file: File): Promise<File> {
-  try {
-    // Dynamic import to handle CommonJS module
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const heic2anyModule = await import("heic2any");
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const heic2any = heic2anyModule.default || heic2anyModule;
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    const convertedBlob = await heic2any({
-      blob: file,
-      toType: "image/jpeg",
-      quality: 0.9,
-    });
-
-    // heic2any can return an array, take the first item
-    const blob = Array.isArray(convertedBlob)
-      ? convertedBlob[0]
-      : convertedBlob;
-
-    // Create a new File object with JPEG mime type
-    const jpegFile = new File(
-      [blob],
-      file.name.replace(/\.(heic|heif)$/i, ".jpg"),
-      {
-        type: "image/jpeg",
-        lastModified: file.lastModified,
-      },
-    );
-
-    return jpegFile;
-  } catch (error) {
-    console.error("Error converting HEIC file:", error);
-    throw new Error(
-      "Failed to convert HEIC image. Please try a different format.",
-    );
-  }
-}
-
-/**
  * Multi-image upload component with drag & drop and camera support
  * Allows users to select multiple recipe page images
  */
@@ -96,18 +58,12 @@ export function MultiImageUpload({
 
       for (const file of fileArray) {
         try {
-          // Check if file is HEIC/HEIF and convert to JPEG
+          // Process HEIC/HEIF files first (converts to JPEG if needed)
           let processedFile = file;
-          const isHeic =
-            file.type === "image/heic" ||
-            file.type === "image/heif" ||
-            file.name.toLowerCase().endsWith(".heic") ||
-            file.name.toLowerCase().endsWith(".heif");
-
-          if (isHeic) {
-            // Use toast.promise to show loading state during conversion
-            const conversionPromise = convertHeicToJpeg(file);
-
+          if (isHeicFile(file)) {
+            const conversionPromise = processImageFile(file);
+            
+            // Use toast.promise to show animated loading/success/error states
             toast.promise(conversionPromise, {
               loading: `Converting ${file.name}...`,
               success: "HEIC image converted to JPEG",
@@ -123,6 +79,8 @@ export function MultiImageUpload({
               // Error already handled by toast.promise, skip this file
               continue;
             }
+          } else {
+            processedFile = file;
           }
 
           // Validate file (after conversion if needed)
@@ -135,11 +93,11 @@ export function MultiImageUpload({
           // Create preview
           const previewUrl = URL.createObjectURL(processedFile);
           previewUrlsRef.current.add(previewUrl); // Track for cleanup
-          const id = crypto.randomUUID();
+          const id = `${Date.now()}-${Math.random()}`;
           newImages.push({ id, file: processedFile, previewUrl });
-        } catch (error) {
-          console.error("Error processing image:", error);
-          toast.error("Failed to process image. Please try again.");
+        } catch {
+          // Error already handled (either conversion or processing)
+          // Skip this file and continue with next
           continue;
         }
       }
@@ -150,7 +108,7 @@ export function MultiImageUpload({
         onImagesChange?.(updatedImages);
       }
     },
-    [images, maxImages, onImagesChange],
+    [images, onImagesChange],
   );
 
   const removeImage = useCallback(

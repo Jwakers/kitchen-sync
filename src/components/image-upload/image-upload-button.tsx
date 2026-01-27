@@ -48,10 +48,13 @@ export function ImageUploadButton({
 }: ImageUploadButtonProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && upload.handleFileSelect(file)) {
-      onFileSelect?.(file);
+    if (file) {
+      const success = await upload.handleFileSelect(file);
+      if (success) {
+        onFileSelect?.(file);
+      }
     }
     // Reset input so same file can be selected again
     if (inputRef.current) {
@@ -103,7 +106,7 @@ export function ImageUploadButton({
         ref={inputRef}
         id={inputId}
         type="file"
-        accept="image/*"
+        accept="image/*,.heic,.heif"
         onChange={handleFileChange}
         disabled={disabled || upload.isUploading}
         className="hidden"

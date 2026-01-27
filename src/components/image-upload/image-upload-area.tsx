@@ -48,10 +48,13 @@ export function ImageUploadArea({
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && upload.handleFileSelect(file)) {
-      onFileSelect?.(file);
+    if (file) {
+      const success = await upload.handleFileSelect(file);
+      if (success) {
+        onFileSelect?.(file);
+      }
     }
     // Reset input so same file can be selected again
     if (inputRef.current) {
@@ -71,15 +74,18 @@ export function ImageUploadArea({
     setIsDragging(false);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
 
     if (disabled || upload.isUploading) return;
 
     const file = e.dataTransfer.files?.[0];
-    if (file && upload.handleFileSelect(file)) {
-      onFileSelect?.(file);
+    if (file) {
+      const success = await upload.handleFileSelect(file);
+      if (success) {
+        onFileSelect?.(file);
+      }
     }
   };
 
@@ -131,7 +137,7 @@ export function ImageUploadArea({
         ref={inputRef}
         id={inputId}
         type="file"
-        accept="image/*"
+        accept="image/*,.heic,.heif"
         onChange={handleFileChange}
         disabled={disabled || upload.isUploading}
         className="sr-only"

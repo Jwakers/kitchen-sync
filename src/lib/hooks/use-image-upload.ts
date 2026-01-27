@@ -6,6 +6,10 @@ import { Id } from "convex/_generated/dataModel";
 import { useMutation } from "convex/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import {
+  isHeicFile,
+  processImageFile,
+} from "@/lib/utils/heic-conversion";
 
 export interface UseImageUploadOptions {
   /** Callback when upload completes successfully */
@@ -28,7 +32,7 @@ export interface UseImageUploadReturn {
   /** Upload the selected file to Convex storage */
   upload: () => Promise<Id<"_storage"> | null>;
   /** Handle file selection (validates and creates preview) */
-  handleFileSelect: (file: File | null) => boolean;
+  handleFileSelect: (file: File | null) => Promise<boolean>;
   /** Clear selected file and preview */
   clear: () => void;
   /** Set the preview URL directly (for existing images) */
@@ -85,13 +89,38 @@ export function useImageUpload(
   );
 
   const handleFileSelect = useCallback(
-    (file: File | null): boolean => {
+    async (file: File | null): Promise<boolean> => {
       if (!file) {
         return false;
       }
 
-      // Validate file
-      const validation = validateImageFile(file);
+      // Process HEIC/HEIF files first
+      let processedFile = file;
+      if (isHeicFile(file)) {
+        try {
+          const conversionPromise = processImageFile(file);
+          
+          // Always show toast for HEIC conversion (critical user feedback)
+          // even if showToasts is false (which only suppresses upload toasts)
+          toast.promise(conversionPromise, {
+            loading: `Converting ${file.name}...`,
+            success: "HEIC image converted to JPEG",
+            error: (error) =>
+              error instanceof Error
+                ? error.message
+                : "Failed to convert HEIC image. Please try a different format.",
+          });
+
+          processedFile = await conversionPromise;
+        } catch (error) {
+          // Error already handled by toast.promise
+          console.error("HEIC conversion failed:", error);
+          return false;
+        }
+      }
+
+      // Validate file (after conversion if needed)
+      const validation = validateImageFile(processedFile);
       if (!validation.valid) {
         if (showToasts) {
           toast.error(validation.error || "Invalid file", {
@@ -102,8 +131,8 @@ export function useImageUpload(
       }
 
       // Create preview URL
-      const url = URL.createObjectURL(file);
-      setSelectedFile(file);
+      const url = URL.createObjectURL(processedFile);
+      setSelectedFile(processedFile);
       setPreviewUrl(url);
 
       return true;

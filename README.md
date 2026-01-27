@@ -8,6 +8,7 @@
 - [x] Refactor to use [Vercel AI SDK](https://ai-sdk.dev/docs/introduction).
 - [ ] Identify features that will increase my app usage
   - [ ] Photograph a recipe book and import.
+  - [ ] Remove/expand free plan limits during beta
   - [ ] Dictate a recipe.
   - [ ] Set up notifications and decide what to notify users on and when to notify
         them. Add settings so users can control what they get notified about. Add to agents.md that when new relevant features get added, a notification should be considered for it too.
@@ -87,6 +88,7 @@
 - [ ] Add notes to recipes. This should be a new table (with a by_recipe_id index) so notes can be used for wider use cases down the line. Notes are not comments, they are private to the user and that should be made clear in the UI
 - [ ] Invites sent to users should open their app, not the browser. This may be possible with protocol handlers but it is not well supported at time of writing. Else a PWA app wrapper will need to be used.
 - [ ] Set up multi tenant in vercel/next and serve the app a subdomain app.kitchen-sync-app.com and the site through the main domain
+- [ ] AI helper. I need to use vectors of all the user data so the AI can pick a meal plan for you. Save a meal plan for the week. Create shopping lists etc. Its a big feature but will be a helpful one, especially if it can look at previous weeks meal plans and adjust accordingly to keep things varied.
 
 ---
 
