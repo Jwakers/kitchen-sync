@@ -44,7 +44,6 @@ export function ChangeImageModal({
       toast.success("Image updated successfully");
       handleClose();
     },
-    showToasts: false, // We'll handle toasts manually
   });
 
   // Set existing image as preview when modal opens

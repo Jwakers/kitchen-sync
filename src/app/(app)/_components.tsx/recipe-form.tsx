@@ -65,9 +65,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
   );
 
   // Image upload hook (for preview only - upload happens on submit)
-  const imageUpload = useImageUpload({
-    showToasts: false, // We'll handle toasts in onSubmit
-  });
+  const imageUpload = useImageUpload();
   const deleteRecipeMutation = useMutation(api.recipes.deleteRecipe);
 
   const form = useForm<RecipeCreateFormData>({

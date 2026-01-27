@@ -26,7 +26,6 @@ export function MethodStepImageUpload({
     onUploadComplete: (storageId) => {
       form.setValue(`method.${stepIndex}.image`, storageId);
     },
-    showToasts: true,
   });
 
   // Get current form value for this step (storage ID)

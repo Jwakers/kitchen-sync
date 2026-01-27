@@ -18,8 +18,6 @@ export interface UseImageUploadOptions {
   onUploadError?: (error: Error) => void;
   /** Timeout in milliseconds (default: 30000) */
   timeout?: number;
-  /** Whether to show toast notifications (default: true) */
-  showToasts?: boolean;
 }
 
 export interface UseImageUploadReturn {
@@ -31,8 +29,8 @@ export interface UseImageUploadReturn {
   isUploading: boolean;
   /** Upload the selected file to Convex storage */
   upload: () => Promise<Id<"_storage"> | null>;
-  /** Handle file selection (validates and creates preview) */
-  handleFileSelect: (file: File | null) => Promise<boolean>;
+  /** Handle file selection (validates and creates preview). Returns the processed file (converted from HEIC if needed) or null on failure */
+  handleFileSelect: (file: File | null) => Promise<File | null>;
   /** Clear selected file and preview */
   clear: () => void;
   /** Set the preview URL directly (for existing images) */
@@ -50,7 +48,6 @@ export function useImageUpload(
     onUploadComplete,
     onUploadError,
     timeout = 30000,
-    showToasts = true,
   } = options;
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -89,9 +86,9 @@ export function useImageUpload(
   );
 
   const handleFileSelect = useCallback(
-    async (file: File | null): Promise<boolean> => {
+    async (file: File | null): Promise<File | null> => {
       if (!file) {
-        return false;
+        return null;
       }
 
       // Process HEIC/HEIF files first
@@ -100,8 +97,6 @@ export function useImageUpload(
         try {
           const conversionPromise = processImageFile(file);
           
-          // Always show toast for HEIC conversion (critical user feedback)
-          // even if showToasts is false (which only suppresses upload toasts)
           toast.promise(conversionPromise, {
             loading: `Converting ${file.name}...`,
             success: "HEIC image converted to JPEG",
@@ -115,19 +110,17 @@ export function useImageUpload(
         } catch (error) {
           // Error already handled by toast.promise
           console.error("HEIC conversion failed:", error);
-          return false;
+          return null;
         }
       }
 
       // Validate file (after conversion if needed)
       const validation = validateImageFile(processedFile);
       if (!validation.valid) {
-        if (showToasts) {
-          toast.error(validation.error || "Invalid file", {
-            description: validation.error,
-          });
-        }
-        return false;
+        toast.error(validation.error || "Invalid file", {
+          description: validation.error,
+        });
+        return null;
       }
 
       // Create preview URL
@@ -135,16 +128,14 @@ export function useImageUpload(
       setSelectedFile(processedFile);
       setPreviewUrl(url);
 
-      return true;
+      return processedFile;
     },
-    [setPreviewUrl, showToasts]
+    [setPreviewUrl]
   );
 
   const upload = useCallback(async (): Promise<Id<"_storage"> | null> => {
     if (!selectedFile) {
-      if (showToasts) {
-        toast.error("Please select an image");
-      }
+      toast.error("Please select an image");
       return null;
     }
 
@@ -170,9 +161,7 @@ export function useImageUpload(
 
       const { storageId } = await result.json();
 
-      if (showToasts) {
-        toast.success("Image uploaded successfully");
-      }
+      toast.success("Image uploaded successfully");
 
       onUploadComplete?.(storageId);
 
@@ -181,11 +170,9 @@ export function useImageUpload(
       const err = error instanceof Error ? error : new Error("Upload failed");
       console.error("Image upload error:", err);
 
-      if (showToasts) {
-        toast.error("Failed to upload image", {
-          description: "Please try again",
-        });
-      }
+      toast.error("Failed to upload image", {
+        description: "Please try again",
+      });
 
       onUploadError?.(err);
       return null;
@@ -196,7 +183,6 @@ export function useImageUpload(
     selectedFile,
     generateUploadUrl,
     timeout,
-    showToasts,
     onUploadComplete,
     onUploadError,
   ]);

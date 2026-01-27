@@ -27,12 +27,11 @@ export async function convertHeicToJpeg(
 ): Promise<File> {
   try {
     // Dynamic import to handle CommonJS module
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+
     const heic2anyModule = await import("heic2any");
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+
     const heic2any = heic2anyModule.default || heic2anyModule;
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const convertedBlob = await heic2any({
       blob: file,
       toType: "image/jpeg",
@@ -57,7 +56,9 @@ export async function convertHeicToJpeg(
     return jpegFile;
   } catch (error) {
     console.error("Error converting HEIC file:", error);
-    throw new Error("Failed to convert HEIC image. Please try a different format.");
+    throw new Error(
+      "Failed to convert HEIC image. Please try a different format.",
+    );
   }
 }
 
@@ -75,9 +76,11 @@ export async function processImageFile(
 ): Promise<File> {
   if (isHeicFile(file)) {
     onConversionStart?.(file.name);
-    const converted = await convertHeicToJpeg(file);
-    onConversionComplete?.(file.name);
-    return converted;
+    try {
+      return await convertHeicToJpeg(file);
+    } finally {
+      onConversionComplete?.(file.name);
+    }
   }
   return file;
 }

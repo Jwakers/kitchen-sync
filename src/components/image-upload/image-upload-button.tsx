@@ -51,9 +51,9 @@ export function ImageUploadButton({
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const success = await upload.handleFileSelect(file);
-      if (success) {
-        onFileSelect?.(file);
+      const processedFile = await upload.handleFileSelect(file);
+      if (processedFile) {
+        onFileSelect?.(processedFile);
       }
     }
     // Reset input so same file can be selected again
