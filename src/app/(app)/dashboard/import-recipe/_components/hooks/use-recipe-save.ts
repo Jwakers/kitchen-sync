@@ -45,18 +45,34 @@ export function useRecipeSave() {
 
     const ac = new AbortController();
     const t = setTimeout(() => ac.abort(), 30_000);
-    const uploadResult = await fetch(postUrl, {
-      method: "POST",
-      headers: { "Content-Type": result.contentType },
-      body: blob,
-      signal: ac.signal,
-    }).finally(() => clearTimeout(t));
+    let uploadResult: Response;
+    try {
+      uploadResult = await fetch(postUrl, {
+        method: "POST",
+        headers: { "Content-Type": result.contentType },
+        body: blob,
+        signal: ac.signal,
+      });
+    } finally {
+      clearTimeout(t);
+    }
 
-    const { storageId } = await uploadResult.json();
+    if (!uploadResult.ok) {
+      throw new Error(
+        `Failed to upload image: ${uploadResult.status} ${uploadResult.statusText}`,
+      );
+    }
+
+    const uploadData = await uploadResult.json();
+    const storageId = uploadData?.storageId;
+
+    if (!storageId || typeof storageId !== "string") {
+      throw new Error("Invalid response: missing or invalid storageId");
+    }
 
     await updateRecipeImage({
       recipeId,
-      storageId,
+      storageId: storageId as Id<"_storage">,
     });
   };
 

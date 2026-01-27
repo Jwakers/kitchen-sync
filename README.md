@@ -6,12 +6,12 @@
 
 - [x] Complete technical debt remediation in one sprint.
 - [x] Refactor to use [Vercel AI SDK](https://ai-sdk.dev/docs/introduction).
-- [ ] Work out what will make me use the app more. What feature is it missing for me right now?
+- [ ] Identify features that will increase my app usage
   - [ ] Photograph a recipe book and import.
   - [ ] Dictate a recipe.
   - [ ] Set up notifications and decide what to notify users on and when to notify
         them. Add settings so users can control what they get notified about. Add to agents.md that when new relevant features get added, a notification should be considered for it too.
-  - [ ] Update the home page with very clear messaging on all these features.
+  - [ ] Update the home page with clear messaging on these features.
 - [ ] Try the post on Reddit and IH again and see if we can get any active users.
 - [ ] The app is supposed to make meal planning and weekly shops easier. Does it do that? If not yet, what are the next steps?
 

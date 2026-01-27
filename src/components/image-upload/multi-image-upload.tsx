@@ -40,7 +40,7 @@ async function convertHeicToJpeg(file: File): Promise<File> {
     const heic2anyModule = await import("heic2any");
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const heic2any = heic2anyModule.default || heic2anyModule;
-    
+
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const convertedBlob = await heic2any({
       blob: file,
@@ -49,18 +49,26 @@ async function convertHeicToJpeg(file: File): Promise<File> {
     });
 
     // heic2any can return an array, take the first item
-    const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+    const blob = Array.isArray(convertedBlob)
+      ? convertedBlob[0]
+      : convertedBlob;
 
     // Create a new File object with JPEG mime type
-    const jpegFile = new File([blob], file.name.replace(/\.(heic|heif)$/i, ".jpg"), {
-      type: "image/jpeg",
-      lastModified: file.lastModified,
-    });
+    const jpegFile = new File(
+      [blob],
+      file.name.replace(/\.(heic|heif)$/i, ".jpg"),
+      {
+        type: "image/jpeg",
+        lastModified: file.lastModified,
+      },
+    );
 
     return jpegFile;
   } catch (error) {
     console.error("Error converting HEIC file:", error);
-    throw new Error("Failed to convert HEIC image. Please try a different format.");
+    throw new Error(
+      "Failed to convert HEIC image. Please try a different format.",
+    );
   }
 }
 
@@ -78,37 +86,34 @@ export function MultiImageUpload({
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  // Track preview URLs in a ref for cleanup on unmount
+  const previewUrlsRef = useRef<Set<string>>(new Set());
 
   const addImages = useCallback(
     async (files: FileList | File[]) => {
       const fileArray = Array.from(files);
       const newImages: ImagePreview[] = [];
 
-      // Check total count
-      const remainingSlots = maxImages - images.length;
-      if (fileArray.length > remainingSlots) {
-        toast.error(`You can only add ${remainingSlots} more image${remainingSlots === 1 ? "" : "s"}`);
-        return;
-      }
-
       for (const file of fileArray) {
         try {
           // Check if file is HEIC/HEIF and convert to JPEG
           let processedFile = file;
-          const isHeic = file.type === "image/heic" || file.type === "image/heif" || 
-                        file.name.toLowerCase().endsWith(".heic") || 
-                        file.name.toLowerCase().endsWith(".heif");
+          const isHeic =
+            file.type === "image/heic" ||
+            file.type === "image/heif" ||
+            file.name.toLowerCase().endsWith(".heic") ||
+            file.name.toLowerCase().endsWith(".heif");
 
           if (isHeic) {
             // Use toast.promise to show loading state during conversion
             const conversionPromise = convertHeicToJpeg(file);
-            
+
             toast.promise(conversionPromise, {
               loading: `Converting ${file.name}...`,
               success: "HEIC image converted to JPEG",
-              error: (error) => 
-                error instanceof Error 
-                  ? error.message 
+              error: (error) =>
+                error instanceof Error
+                  ? error.message
                   : "Failed to convert HEIC image. Please try a different format.",
             });
 
@@ -129,7 +134,8 @@ export function MultiImageUpload({
 
           // Create preview
           const previewUrl = URL.createObjectURL(processedFile);
-          const id = `${Date.now()}-${Math.random()}`;
+          previewUrlsRef.current.add(previewUrl); // Track for cleanup
+          const id = crypto.randomUUID();
           newImages.push({ id, file: processedFile, previewUrl });
         } catch (error) {
           console.error("Error processing image:", error);
@@ -152,6 +158,7 @@ export function MultiImageUpload({
       const imageToRemove = images.find((img) => img.id === id);
       if (imageToRemove) {
         URL.revokeObjectURL(imageToRemove.previewUrl);
+        previewUrlsRef.current.delete(imageToRemove.previewUrl); // Remove from tracking
       }
 
       const updatedImages = images.filter((img) => img.id !== id);
@@ -162,7 +169,10 @@ export function MultiImageUpload({
   );
 
   const clearAll = useCallback(() => {
-    images.forEach((img) => URL.revokeObjectURL(img.previewUrl));
+    images.forEach((img) => {
+      URL.revokeObjectURL(img.previewUrl);
+      previewUrlsRef.current.delete(img.previewUrl); // Remove from tracking
+    });
     setImages([]);
     onImagesChange?.([]);
   }, [images, onImagesChange]);
@@ -205,12 +215,16 @@ export function MultiImageUpload({
     }
   };
 
-  // Clean up preview URLs on unmount
+  // Clean up all preview URLs on unmount only
   useEffect(() => {
+    const previewUrls = previewUrlsRef.current; // Copy ref value for cleanup
     return () => {
-      images.forEach((img) => URL.revokeObjectURL(img.previewUrl));
+      previewUrls.forEach((previewUrl) => {
+        URL.revokeObjectURL(previewUrl);
+      });
+      previewUrls.clear();
     };
-  }, [images]);
+  }, []); // Empty dependency array - only cleanup on unmount
 
   const canAddMore = images.length < maxImages;
 
@@ -255,7 +269,9 @@ export function MultiImageUpload({
           <div className="flex flex-col items-center justify-center gap-4">
             <div className="flex items-center gap-2">
               <ImageIcon className="h-8 w-8 text-muted-foreground" />
-              {showCamera && <Camera className="h-8 w-8 text-muted-foreground" />}
+              {showCamera && (
+                <Camera className="h-8 w-8 text-muted-foreground" />
+              )}
             </div>
             <div className="text-center">
               <p className="text-sm font-medium">

@@ -1,2 +1,2 @@
 - When writing class names with dynamic classes, do not use string literals only, make use of the cn function from src/lib/utils.ts
-- If there are already clearly defined schemas, like for recipes, these should be reused where ever possible rather than rewriting them for each new function that needs one.
+- If there are already clearly defined schemas, like for recipes, these should be reused wherever possible rather than rewriting them for each new function that needs one.

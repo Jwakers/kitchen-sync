@@ -84,13 +84,6 @@ export function ImportRecipeClient() {
     }
   }, [searchParams]);
 
-  // Sync parsed recipe from hooks to local state for edit mode
-  useEffect(() => {
-    if (parsedRecipe) {
-      activeImport.setParsedRecipe(parsedRecipe);
-    }
-  }, [parsedRecipe]);
-
   const handleImport = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url || !urlImport.isValidUrl(url)) return;
@@ -575,6 +568,8 @@ export function ImportRecipeClient() {
   );
 }
 
+type LoadingStage = "idle" | "fetching" | "categorising" | "complete";
+
 // Loading Step Component
 function LoadingStep({
   stage,
@@ -582,12 +577,12 @@ function LoadingStep({
   title,
   description,
 }: {
-  stage: "idle" | "fetching" | "categorising" | "complete";
-  currentStage: "idle" | "fetching" | "categorising" | "complete";
+  stage: LoadingStage;
+  currentStage: LoadingStage;
   title: string;
   description: string;
 }) {
-  const stages: Array<"idle" | "fetching" | "categorising" | "complete"> = [
+  const stages: LoadingStage[] = [
     "idle",
     "fetching",
     "categorising",

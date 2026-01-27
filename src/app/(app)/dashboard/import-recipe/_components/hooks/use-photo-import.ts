@@ -17,7 +17,10 @@ export function usePhotoImport() {
 
   const handlePhotoRecipeParsed = async (images: ImagePreview[]) => {
     if (images.length === 0) {
+      // Clear all state to show clean empty state
       setError("Please select at least one image");
+      setParsedRecipe(null);
+      setLoadingStage("idle");
       return;
     }
 
