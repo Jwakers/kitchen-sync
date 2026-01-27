@@ -1,9 +1,6 @@
 "use server";
 
-import { TEXT_LIMITS } from "convex/lib/constants";
 import {
-  IngredientSchema,
-  MethodStepSchema,
   type ParsedRecipeForDB,
   type ParsedRecipeFromText,
   type StructuredIngredient,
@@ -13,31 +10,44 @@ import {
   validateUnit,
 } from "@/lib/utils/recipe-validation";
 import { validateUrlForSSRF } from "@/lib/utils/secure-fetch";
+import { openai } from "@ai-sdk/openai";
+import { generateText, NoObjectGeneratedError, Output } from "ai";
 import * as cheerio from "cheerio";
 import {
   PREPARATION_OPTIONS,
   RECIPE_CATEGORIES,
+  TEXT_LIMITS,
   UNITS,
 } from "convex/lib/constants";
-import OpenAI from "openai";
 import { z } from "zod";
-// Note: We now generate JSON schemas from Zod schemas to avoid drift
-// The shared-recipe-schema.ts file is kept for backward compatibility
-// but JSON schemas are generated from Zod schemas below
 
 // ============================================================================
-// Shared OpenAI Client
+// Shared Model Configuration
 // ============================================================================
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// API key is automatically read from process.env.OPENAI_API_KEY
+const model = openai("gpt-4o-mini");
 
 // ============================================================================
 // Shared Schema Definitions
 // ============================================================================
 
 // Zod schemas for validation (single source of truth)
+// Note: Using nullable() instead of optional() for OpenAI strict mode compatibility
+// OpenAI strict mode requires all properties to be in the required array
+const IngredientSchemaForAI = z.object({
+  name: z.string(),
+  amount: z.number().nullable(),
+  unit: z.string().nullable(),
+  preparation: z.string().nullable(),
+});
+
+// Method step schema for AI (description is nullable for OpenAI strict mode)
+const MethodStepSchemaForAI = z.object({
+  title: z.string().describe("Short descriptive title (3-5 words)"),
+  description: z.string().nullable().describe("Complete instruction text"),
+});
+
 const TextRecipeSchema = z.object({
   success: z.boolean(),
   errorMessage: z.string(),
@@ -47,8 +57,8 @@ const TextRecipeSchema = z.object({
   cookTime: z.number(),
   serves: z.number(),
   category: z.enum(RECIPE_CATEGORIES),
-  ingredients: z.array(IngredientSchema),
-  method: z.array(MethodStepSchema),
+  ingredients: z.array(IngredientSchemaForAI),
+  method: z.array(MethodStepSchemaForAI),
   nutrition: z.object({
     calories: z.number(),
     protein: z.number(),
@@ -64,37 +74,11 @@ const HtmlRecipeSchema = z.object({
   cookTime: z.number(),
   serves: z.number(),
   category: z.enum(RECIPE_CATEGORIES),
-  ingredients: z.array(IngredientSchema),
-  method: z.array(MethodStepSchema),
+  ingredients: z.array(IngredientSchemaForAI),
+  method: z.array(MethodStepSchemaForAI),
   imageUrl: z.string(),
   author: z.string(),
 });
-
-// Generate JSON schemas from Zod schemas to avoid drift
-// Using Zod v4's native JSON schema generation
-// This ensures the JSON schema used for OpenAI matches the Zod validation schema
-const htmlRecipeJsonSchema = z.toJSONSchema(HtmlRecipeSchema);
-const HTML_RECIPE_PARSING_SCHEMA = {
-  ...htmlRecipeJsonSchema,
-  additionalProperties: false, // Required for OpenAI strict mode
-} as {
-  type: "object";
-  properties: Record<string, unknown>;
-  required: string[];
-  additionalProperties: false;
-};
-
-// Generate JSON schema for text recipe parsing from Zod schema
-const textRecipeJsonSchema = z.toJSONSchema(TextRecipeSchema);
-const TEXT_RECIPE_PARSING_SCHEMA_GENERATED = {
-  ...textRecipeJsonSchema,
-  additionalProperties: false, // Required for OpenAI strict mode
-} as {
-  type: "object";
-  properties: Record<string, unknown>;
-  required: string[];
-  additionalProperties: false;
-};
 
 // ============================================================================
 // Shared Helper Functions
@@ -121,20 +105,40 @@ function generatePreparationsString(): string {
 
 /**
  * Cleans and validates ingredients from AI response
+ * Converts null values to undefined for optional fields
  */
 function cleanIngredients(
   ingredients: Array<{
     name: string;
-    amount?: number;
-    unit?: string;
-    preparation?: string;
-  }>
+    amount?: number | null;
+    unit?: string | null;
+    preparation?: string | null;
+  }>,
 ): StructuredIngredient[] {
   return ingredients.map((ing) => ({
     name: ing.name,
-    amount: ing.amount,
-    unit: validateUnit(ing.unit),
-    preparation: validatePreparation(ing.preparation),
+    amount: ing.amount ?? undefined,
+    unit: validateUnit(ing.unit ?? undefined),
+    preparation: validatePreparation(ing.preparation ?? undefined),
+  }));
+}
+
+/**
+ * Cleans method steps from AI response
+ * Converts null descriptions to undefined for optional fields
+ */
+function cleanMethodSteps(
+  method: Array<{
+    title: string;
+    description?: string | null;
+  }>,
+): Array<{
+  title: string;
+  description?: string;
+}> {
+  return method.map((step) => ({
+    title: step.title,
+    ...(step.description != null && { description: step.description }),
   }));
 }
 
@@ -143,7 +147,7 @@ function cleanIngredients(
  */
 function safeExtractString<T extends Record<string, unknown>>(
   data: T,
-  key: keyof T
+  key: keyof T,
 ): string | undefined {
   const value = data[key];
   return typeof value === "string" && value.length > 0 ? value : undefined;
@@ -151,7 +155,7 @@ function safeExtractString<T extends Record<string, unknown>>(
 
 function safeExtractNumber<T extends Record<string, unknown>>(
   data: T,
-  key: keyof T
+  key: keyof T,
 ): number | undefined {
   const value = data[key];
   return typeof value === "number" ? value : undefined;
@@ -161,7 +165,7 @@ function safeExtractArray<T extends Record<string, unknown>, U>(
   data: T,
   key: keyof T,
   validator: (item: unknown) => item is U,
-  mapper: (item: U) => unknown
+  mapper: (item: U) => unknown,
 ): unknown[] | undefined {
   const value = data[key];
   if (!Array.isArray(value)) {
@@ -174,7 +178,7 @@ function safeExtractArray<T extends Record<string, unknown>, U>(
 
 function safeExtractObject<T extends Record<string, unknown>>(
   data: T,
-  key: keyof T
+  key: keyof T,
 ): Record<string, unknown> | undefined {
   const value = data[key];
   return value && typeof value === "object" && !Array.isArray(value)
@@ -195,7 +199,7 @@ function buildBaseRecipePrompt(
     includeNutrition?: boolean;
     includeImageUrl?: boolean;
     includeAuthor?: boolean;
-  } = {}
+  } = {},
 ): string {
   const {
     includeValidation = false,
@@ -358,7 +362,7 @@ You MUST return valid JSON with ALL fields present.`;
  * This allows users to edit and complete the recipe manually
  */
 function extractPartialRecipeData(
-  jsonData: unknown
+  jsonData: unknown,
 ): Partial<ParsedRecipeFromText> | null {
   try {
     if (!jsonData || typeof jsonData !== "object") {
@@ -405,14 +409,14 @@ function extractPartialRecipeData(
             ? ing.amount
             : undefined,
         unit: validateUnit(
-          "unit" in ing && typeof ing.unit === "string" ? ing.unit : undefined
+          "unit" in ing && typeof ing.unit === "string" ? ing.unit : undefined,
         ),
         preparation: validatePreparation(
           "preparation" in ing && typeof ing.preparation === "string"
             ? ing.preparation
-            : undefined
+            : undefined,
         ),
-      })
+      }),
     );
 
     if (ingredients) {
@@ -434,7 +438,7 @@ function extractPartialRecipeData(
           "description" in step && typeof step.description === "string"
             ? step.description
             : undefined,
-      })
+      }),
     );
 
     if (method) {
@@ -528,37 +532,25 @@ NOT valid recipes:
   const fullPrompt = systemPrompt + validationInstructions;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: fullPrompt },
-        { role: "user", content: `Parse this recipe:\n\n${text}` },
-      ],
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "recipe_parser",
-          strict: true,
-          schema: TEXT_RECIPE_PARSING_SCHEMA_GENERATED,
-        },
-      },
+    const result = await generateText({
+      model,
+      system: fullPrompt,
+      prompt: `Parse this recipe:\n\n${text}`,
+      output: Output.object({
+        schema: TextRecipeSchema,
+        name: "recipe_parser",
+      }),
       temperature: 0.2,
     });
 
-    const content = response.choices[0].message.content;
-    if (!content) {
-      throw new Error("No response from OpenAI");
-    }
-
-    // Parse JSON (structured outputs ensures valid JSON)
-    const jsonData = JSON.parse(content);
-    const validationResult = TextRecipeSchema.safeParse(jsonData);
+    // AI SDK validates the output against the schema, but we keep Zod validation as a safety check
+    const validationResult = TextRecipeSchema.safeParse(result.output);
 
     if (!validationResult.success) {
       console.error("Zod validation failed:", validationResult.error);
 
       // Try to extract whatever partial data we can for edit mode
-      const partialData = extractPartialRecipeData(jsonData);
+      const partialData = extractPartialRecipeData(result.output);
       if (partialData) {
         return {
           success: false,
@@ -598,7 +590,7 @@ NOT valid recipes:
       });
 
       // Try to use partial data for edit mode if we have some data
-      const partialData = extractPartialRecipeData(jsonData);
+      const partialData = extractPartialRecipeData(result.output);
       if (
         partialData &&
         (partialData.ingredients?.length || partialData.method?.length)
@@ -620,6 +612,7 @@ NOT valid recipes:
 
     // Clean up and validate units and preparations
     const cleanedIngredients = cleanIngredients(validatedData.ingredients);
+    const cleanedMethod = cleanMethodSteps(validatedData.method);
 
     return {
       success: true,
@@ -631,12 +624,41 @@ NOT valid recipes:
         serves: validatedData.serves,
         category: validatedData.category,
         ingredients: cleanedIngredients,
-        method: validatedData.method,
+        method: cleanedMethod,
         nutrition: validatedData.nutrition,
       },
     };
   } catch (error) {
     console.error("Error parsing text with AI:", error);
+
+    // Handle AI SDK specific errors
+    if (NoObjectGeneratedError.isInstance(error)) {
+      // Try to extract partial data if available from error text
+      let partialData: Partial<ParsedRecipeFromText> | null = null;
+      if (error.text && typeof error.text === "string") {
+        try {
+          const parsedText = JSON.parse(error.text);
+          partialData = extractPartialRecipeData(parsedText);
+        } catch {
+          // JSON parsing failed, no partial data available
+        }
+      }
+
+      if (partialData) {
+        return {
+          success: false,
+          error:
+            "The AI couldn't generate a complete recipe. Please complete the missing fields in edit mode.",
+          partialRecipe: partialData,
+        };
+      }
+      return {
+        success: false,
+        error:
+          "The AI couldn't parse the recipe. Please try again with more detailed information.",
+      };
+    }
+
     return {
       success: false,
       error: "Something went wrong. Please try again.",
@@ -730,7 +752,7 @@ function extractImageFromMeta($: cheerio.CheerioAPI): string | undefined {
  */
 async function parseHtmlWithAI(
   pageText: string,
-  imageUrl?: string
+  imageUrl?: string,
 ): Promise<ParsedRecipeForDB | null> {
   const systemPrompt = buildBaseRecipePrompt({
     includeImageUrl: true,
@@ -738,34 +760,19 @@ async function parseHtmlWithAI(
   });
 
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        {
-          role: "user",
-          content: `Extract the recipe from this webpage text:\n\n${pageText}`,
-        },
-      ],
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "html_recipe_parser",
-          strict: true,
-          schema: HTML_RECIPE_PARSING_SCHEMA,
-        },
-      },
+    const result = await generateText({
+      model,
+      system: systemPrompt,
+      prompt: `Extract the recipe from this webpage text:\n\n${pageText}`,
+      output: Output.object({
+        schema: HtmlRecipeSchema,
+        name: "html_recipe_parser",
+      }),
       temperature: 0.1,
     });
 
-    const content = response.choices[0].message.content;
-    if (!content) {
-      throw new Error("No response from OpenAI");
-    }
-
-    // Parse JSON (structured outputs ensures valid JSON)
-    const jsonData = JSON.parse(content);
-    const validationResult = HtmlRecipeSchema.safeParse(jsonData);
+    // AI SDK validates the output against the schema, but we keep Zod validation as a safety check
+    const validationResult = HtmlRecipeSchema.safeParse(result.output);
 
     if (!validationResult.success) {
       console.error("Schema validation failed:", validationResult.error);
@@ -776,6 +783,7 @@ async function parseHtmlWithAI(
 
     // Clean up and validate units and preparations
     const cleanedIngredients = cleanIngredients(validatedData.ingredients);
+    const cleanedMethod = cleanMethodSteps(validatedData.method);
 
     const recipe: ParsedRecipeForDB = {
       title: validatedData.title,
@@ -785,7 +793,7 @@ async function parseHtmlWithAI(
       serves: validatedData.serves,
       category: validatedData.category,
       ingredients: cleanedIngredients,
-      method: validatedData.method,
+      method: cleanedMethod,
       // Prefer image extracted from meta tags over AI-extracted (more reliable)
       imageUrl: imageUrl || validatedData.imageUrl || undefined,
       originalAuthor: validatedData.author || undefined,
@@ -795,6 +803,15 @@ async function parseHtmlWithAI(
     return recipe;
   } catch (error) {
     console.error("Error parsing HTML with AI:", error);
+
+    // Handle AI SDK specific errors
+    if (NoObjectGeneratedError.isInstance(error)) {
+      console.error(
+        "Failed to generate structured recipe object:",
+        error.cause,
+      );
+    }
+
     return null;
   }
 }
@@ -803,7 +820,7 @@ async function parseHtmlWithAI(
  * Parses recipe from a URL when schema.org parsing fails
  */
 export async function parseRecipeFromSiteWithAI(
-  url: string
+  url: string,
 ): Promise<ParsedRecipeForDB | null> {
   if (!url) {
     console.error("No URL provided to parseRecipeFromSiteWithAI");
@@ -815,14 +832,18 @@ export async function parseRecipeFromSiteWithAI(
     const validation = await validateUrlForSSRF(url);
     if (!validation.valid) {
       console.error(
-        `SSRF Protection: URL validation failed - ${validation.reason}`
+        `SSRF Protection: URL validation failed - ${validation.reason}`,
       );
       return null;
     }
 
     // 2️⃣ Fetch page HTML with manual redirect handling for SSRF protection
     const MAX_REDIRECTS = 5;
-    let currentUrl = validation.url!;
+    if (!validation.url) {
+      console.error("SSRF Protection: URL missing after validation");
+      return null;
+    }
+    let currentUrl = validation.url;
     let response: Response | null = null;
     let redirectCount = 0;
 
@@ -831,7 +852,7 @@ export async function parseRecipeFromSiteWithAI(
       const currentValidation = await validateUrlForSSRF(currentUrl.toString());
       if (!currentValidation.valid) {
         console.error(
-          `SSRF Protection: Redirect target validation failed - ${currentValidation.reason}`
+          `SSRF Protection: Redirect target validation failed - ${currentValidation.reason}`,
         );
         return null;
       }
@@ -861,7 +882,7 @@ export async function parseRecipeFromSiteWithAI(
         } catch (error) {
           console.error(
             `Invalid redirect location: ${location}`,
-            error instanceof Error ? error.message : "Unknown error"
+            error instanceof Error ? error.message : "Unknown error",
           );
           return null;
         }
@@ -878,7 +899,7 @@ export async function parseRecipeFromSiteWithAI(
 
     if (!response || !response.ok) {
       console.error(
-        `Failed to fetch URL: ${response?.status || "unknown"} ${response?.statusText || "unknown"}`
+        `Failed to fetch URL: ${response?.status || "unknown"} ${response?.statusText || "unknown"}`,
       );
       return null;
     }
