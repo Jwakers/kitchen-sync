@@ -9,7 +9,9 @@
 - [ ] Work out what will make me use the app more. What feature is it missing for me right now?
   - [ ] Photograph a recipe book and import.
   - [ ] Dictate a recipe.
-- [ ] Do the above.
+  - [ ] Set up notifications and decide what to notify users on and when to notify
+        them. Add settings so users can control what they get notified about. Add to agents.md that when new relevant features get added, a notification should be considered for it too.
+  - [ ] Update the home page with very clear messaging on all these features.
 - [ ] Try the post on Reddit and IH again and see if we can get any active users.
 - [ ] The app is supposed to make meal planning and weekly shops easier. Does it do that? If not yet, what are the next steps?
 
@@ -39,6 +41,8 @@
 - [ ] Ingredients can be duplicated if used in multiple sections of a recipe, like this one for example: <https://www.greatbritishchefs.com/recipes/salmon-kilaw-recipe>
       Ingredients should be deduped as part of the parsing process OR ingredients should be sectioned (as in for the sauce, for the garnish) that was they can stay as duplicates
 - [ ] Its is possible for the parser to output technically correct but odd ingredient mappings like 0.5 Whole Lime. This can be seen when extracting this recipe: <https://www.greatbritishchefs.com/recipes/salmon-kilaw-recipe>
+- [ ] Overflow issue on shopping page (IOS)
+- [ ] navigation bar on mobile in unbalanced. Plus button is off center.
 
 ## Tech debt
 
@@ -48,7 +52,7 @@
 - [x] Create limits and restrictions rules like image uploads in one place and share across the app. Single source of truth
 - [x] Consolidate all image upload UI and functionality
 - [x] Store app name in a global const and replace all instances with it
-- [ s] Shopping list is very complex. A refactor is needed keeping all state at the root and reducing complexity where possible. Components should be abstracted where possible and optimistic updates should also be added. This needs to be done manually and not with AI.
+- [ ] Shopping list is very complex. A refactor is needed keeping all state at the root and reducing complexity where possible. Components should be abstracted where possible and optimistic updates should also be added. This needs to be done manually and not with AI.
 
 ## Minor updates
 

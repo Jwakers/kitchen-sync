@@ -13,13 +13,14 @@ import { validateUrlForSSRF } from "@/lib/utils/secure-fetch";
 import { openai } from "@ai-sdk/openai";
 import { generateText, NoObjectGeneratedError, Output } from "ai";
 import * as cheerio from "cheerio";
+import { RECIPE_CATEGORIES, TEXT_LIMITS } from "convex/lib/constants";
 import {
-  PREPARATION_OPTIONS,
-  RECIPE_CATEGORIES,
-  TEXT_LIMITS,
-  UNITS,
-} from "convex/lib/constants";
-import { z } from "zod";
+  cleanIngredients,
+  cleanMethodSteps,
+  generatePreparationsString,
+  generateUnitsString,
+} from "./recipe-parsing-helpers";
+import { HtmlRecipeSchema, TextRecipeSchema } from "./recipe-schemas";
 
 // ============================================================================
 // Shared Model Configuration
@@ -29,118 +30,9 @@ import { z } from "zod";
 const model = openai("gpt-4o-mini");
 
 // ============================================================================
-// Shared Schema Definitions
+// Shared Helper Functions (imported from shared module)
 // ============================================================================
-
-// Zod schemas for validation (single source of truth)
-// Note: Using nullable() instead of optional() for OpenAI strict mode compatibility
-// OpenAI strict mode requires all properties to be in the required array
-const IngredientSchemaForAI = z.object({
-  name: z.string(),
-  amount: z.number().nullable(),
-  unit: z.string().nullable(),
-  preparation: z.string().nullable(),
-});
-
-// Method step schema for AI (description is nullable for OpenAI strict mode)
-const MethodStepSchemaForAI = z.object({
-  title: z.string().describe("Short descriptive title (3-5 words)"),
-  description: z.string().nullable().describe("Complete instruction text"),
-});
-
-const TextRecipeSchema = z.object({
-  success: z.boolean(),
-  errorMessage: z.string(),
-  title: z.string(),
-  description: z.string(),
-  prepTime: z.number(),
-  cookTime: z.number(),
-  serves: z.number(),
-  category: z.enum(RECIPE_CATEGORIES),
-  ingredients: z.array(IngredientSchemaForAI),
-  method: z.array(MethodStepSchemaForAI),
-  nutrition: z.object({
-    calories: z.number(),
-    protein: z.number(),
-    fat: z.number(),
-    carbohydrates: z.number(),
-  }),
-});
-
-const HtmlRecipeSchema = z.object({
-  title: z.string(),
-  description: z.string(),
-  prepTime: z.number(),
-  cookTime: z.number(),
-  serves: z.number(),
-  category: z.enum(RECIPE_CATEGORIES),
-  ingredients: z.array(IngredientSchemaForAI),
-  method: z.array(MethodStepSchemaForAI),
-  imageUrl: z.string(),
-  author: z.string(),
-});
-
-// ============================================================================
-// Shared Helper Functions
-// ============================================================================
-
-/**
- * Generates units string from constants for AI prompts
- */
-function generateUnitsString(): string {
-  return `Available units (CHOOSE FROM THESE ONLY): 
-  Volume: ${UNITS.volume.join(", ")}
-  Weight: ${UNITS.weight.join(", ")}
-  Count: ${UNITS.count.join(", ")}
-  Items: ${UNITS.items.join(", ")}`;
-}
-
-/**
- * Generates preparations string from constants for AI prompts
- */
-function generatePreparationsString(): string {
-  return `Available preparations (CHOOSE FROM THESE ONLY - if no exact match, omit preparation): 
-  ${PREPARATION_OPTIONS.join(", ")}`;
-}
-
-/**
- * Cleans and validates ingredients from AI response
- * Converts null values to undefined for optional fields
- */
-function cleanIngredients(
-  ingredients: Array<{
-    name: string;
-    amount?: number | null;
-    unit?: string | null;
-    preparation?: string | null;
-  }>,
-): StructuredIngredient[] {
-  return ingredients.map((ing) => ({
-    name: ing.name,
-    amount: ing.amount ?? undefined,
-    unit: validateUnit(ing.unit ?? undefined),
-    preparation: validatePreparation(ing.preparation ?? undefined),
-  }));
-}
-
-/**
- * Cleans method steps from AI response
- * Converts null descriptions to undefined for optional fields
- */
-function cleanMethodSteps(
-  method: Array<{
-    title: string;
-    description?: string | null;
-  }>,
-): Array<{
-  title: string;
-  description?: string;
-}> {
-  return method.map((step) => ({
-    title: step.title,
-    ...(step.description != null && { description: step.description }),
-  }));
-}
+// Helper functions are imported from recipe-parsing-helpers.ts
 
 /**
  * Helper functions for safe data extraction from partial responses

@@ -24,7 +24,7 @@ export const getRecipe = query({
     const { canAccess, isOwner } = await canAccessRecipe(
       ctx,
       user._id,
-      args.recipeId
+      args.recipeId,
     );
     if (!canAccess) return null;
 
@@ -41,7 +41,7 @@ export const getRecipe = query({
           return { ...step, imageUrl: stepImageUrl };
         }
         return { ...step, imageUrl: undefined };
-      })
+      }),
     );
 
     // Get owner name if not the current user
@@ -74,7 +74,7 @@ export const getRecipeForEdit = query({
     const { canAccess, isOwner } = await canAccessRecipe(
       ctx,
       user._id,
-      args.recipeId
+      args.recipeId,
     );
     if (!canAccess || !isOwner) return null; // Only owner can edit
 
@@ -85,7 +85,7 @@ export const getRecipeForEdit = query({
       description: recipe.description || "",
       prepTime: recipe.prepTime ?? 0,
       cookTime: recipe.cookTime ?? undefined,
-      serves: recipe.serves ?? 0,
+      serves: recipe.serves ?? 1,
       category: recipe.category,
       ingredients: recipe.ingredients || [],
       method: recipe.method || [],
@@ -112,7 +112,7 @@ export const getAllUserRecipes = query({
       recipes.map(async (recipe) => ({
         ...recipe,
         image: recipe.image ? await ctx.storage.getUrl(recipe.image) : null,
-      }))
+      })),
     );
   },
 });
@@ -133,7 +133,7 @@ export const getRecentActivity = query({
     const recentRecipes = await ctx.db
       .query("recipes")
       .withIndex("by_user_updatedAt", (q) =>
-        q.eq("userId", user._id).gte("updatedAt", sevenDaysAgo)
+        q.eq("userId", user._id).gte("updatedAt", sevenDaysAgo),
       )
       .order("desc")
       .take(5);
@@ -144,7 +144,7 @@ export const getRecentActivity = query({
         recipes.map(async (recipe) => ({
           ...recipe,
           image: recipe.image ? await ctx.storage.getUrl(recipe.image) : null,
-        }))
+        })),
       );
     };
 
@@ -183,7 +183,7 @@ export const createEmptyRecipe = mutation({
       title: "",
       prepTime: 0,
       cookTime: undefined,
-      serves: 0,
+      serves: 1, // Must be at least 1 to match frontend schema validation
       category: "main",
       updatedAt: Date.now(),
     });
@@ -206,14 +206,14 @@ export const createRecipe = mutation({
         amount: v.optional(v.number()),
         unit: v.optional(unitsUnion),
         preparation: v.optional(preparationUnion),
-      })
+      }),
     ),
     method: v.array(
       v.object({
         title: v.string(),
         description: v.optional(v.string()),
         image: v.optional(v.id("_storage")),
-      })
+      }),
     ),
     nutrition: v.optional(
       v.object({
@@ -221,7 +221,7 @@ export const createRecipe = mutation({
         protein: v.optional(v.number()),
         fat: v.optional(v.number()),
         carbohydrates: v.optional(v.number()),
-      })
+      }),
     ),
     originalUrl: v.optional(v.string()),
     originalAuthor: v.optional(v.string()),
@@ -253,7 +253,7 @@ export const createRecipe = mutation({
     if (ingredients?.length) {
       const allIngredients = await ctx.db.query("ingredients").collect();
       const ingredientMap = new Map(
-        allIngredients.map((ing) => [ing.name.trim().toLowerCase(), ing._id])
+        allIngredients.map((ing) => [ing.name.trim().toLowerCase(), ing._id]),
       );
 
       ingredients = ingredients.map((ing) => {
@@ -323,8 +323,8 @@ export const updateRecipe = mutation({
           amount: v.optional(v.number()),
           unit: v.optional(unitsUnion),
           preparation: v.optional(preparationUnion),
-        })
-      )
+        }),
+      ),
     ),
     method: v.optional(
       v.array(
@@ -332,8 +332,8 @@ export const updateRecipe = mutation({
           title: v.string(),
           description: v.optional(v.string()),
           image: v.optional(v.id("_storage")),
-        })
-      )
+        }),
+      ),
     ),
   },
   handler: async (ctx, args) => {
@@ -352,7 +352,7 @@ export const updateRecipe = mutation({
     if (args.ingredients?.length) {
       const allIngredients = await ctx.db.query("ingredients").collect();
       const ingredientMap = new Map(
-        allIngredients.map((ing) => [ing.name.trim().toLowerCase(), ing._id])
+        allIngredients.map((ing) => [ing.name.trim().toLowerCase(), ing._id]),
       );
 
       ingredients = await Promise.all(
@@ -364,23 +364,23 @@ export const updateRecipe = mutation({
             ingredientId,
             amount: ing.amount ?? 0,
           };
-        })
+        }),
       );
     }
 
     // Clean up orphaned method step images when method is updated
     if (args.method && recipe.method) {
       const oldImageIds = new Set(
-        recipe.method.map((step) => step.image).filter((img) => !!img)
+        recipe.method.map((step) => step.image).filter((img) => !!img),
       );
 
       const newImageIds = new Set(
-        args.method.map((step) => step.image).filter((img) => !!img)
+        args.method.map((step) => step.image).filter((img) => !!img),
       );
 
       // Delete images that are no longer referenced
       const imagesToDelete = [...oldImageIds].filter(
-        (id) => id && !newImageIds.has(id)
+        (id) => id && !newImageIds.has(id),
       );
 
       for (const imageId of imagesToDelete) {
@@ -525,7 +525,7 @@ export const deleteRecipe = mutation({
     }
     if (recipe.userId !== user._id) {
       throw new ConvexError(
-        "Unauthorised - only the recipe owner can delete it"
+        "Unauthorised - only the recipe owner can delete it",
       );
     }
 
