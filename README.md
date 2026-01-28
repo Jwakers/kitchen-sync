@@ -10,7 +10,7 @@
   - [x] Photograph a recipe book and import.
   - [ ] Remove/expand free plan limits during beta
   - [x] Take reddit users feedback and turn it into actionable feedback points
-  - [ ] Import type should be a part of each recipe. This should be added to the schema.
+  - [x] Import type should be a part of each recipe. This should be added to the schema.
   - [ ] Recipe mode. Screen stays on, full screen, next and previous arrows etc
   - [ ] Dictate a recipe.
   - [ ] Set up notifications and decide what to notify users on and when to notify

@@ -3,17 +3,22 @@ import { v } from "convex/values";
 import {
   PREPARATION_OPTIONS,
   RECIPE_CATEGORIES,
+  RECIPE_CREATION_SOURCES,
   SUBSCRIPTION_TIERS,
   UNITS_FLAT,
 } from "./lib/constants";
 
 const categoriesUnion = v.union(...RECIPE_CATEGORIES.map(v.literal));
+const creationSourceUnion = v.union(
+  ...RECIPE_CREATION_SOURCES.map(v.literal),
+);
 const preparationUnion = v.union(...PREPARATION_OPTIONS.map(v.literal));
 const unitsUnion = v.union(...UNITS_FLAT.map(v.literal));
 const subscriptionTiersUnion = v.union(...SUBSCRIPTION_TIERS.map(v.literal));
 
 export {
   categoriesUnion,
+  creationSourceUnion,
   preparationUnion,
   subscriptionTiersUnion,
   unitsUnion,
@@ -65,6 +70,8 @@ export default defineSchema({
       )
     ),
     updatedAt: v.number(),
+    // How the recipe was created (for publishing rights / attribution)
+    creationSource: v.optional(creationSourceUnion),
     // Attribution & Source Information
     originalUrl: v.optional(v.string()), // URL where recipe was imported from
     originalAuthor: v.optional(v.string()), // Original recipe author/creator

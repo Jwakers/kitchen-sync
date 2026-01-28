@@ -15,6 +15,14 @@ export const RECIPE_CATEGORIES = [
   "dinner",
 ] as const;
 
+// How the recipe was created (for publishing rights / attribution)
+export const RECIPE_CREATION_SOURCES = [
+  "manual",
+  "imported_website",
+  "imported_text",
+  "imported_photograph",
+] as const;
+
 // Preparation Options
 export const PREPARATION_OPTIONS = [
   // Cutting styles
