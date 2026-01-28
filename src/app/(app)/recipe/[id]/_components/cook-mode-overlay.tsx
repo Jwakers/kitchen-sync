@@ -52,10 +52,17 @@ export function CookModeOverlay({ recipe, onClose }: CookModeOverlayProps) {
   useEffect(() => {
     if (typeof navigator === "undefined" || !("wakeLock" in navigator)) return;
     let sentinel: WakeLockSentinel | null = null;
+    let cancelled = false;
+
     const requestLock = async () => {
       try {
         if (document.visibilityState === "visible") {
-          sentinel = await navigator.wakeLock.request("screen");
+          const lock = await navigator.wakeLock.request("screen");
+          if (cancelled) {
+            await lock.release();
+            return;
+          }
+          sentinel = lock;
         }
       } catch {
         /* ignore */
@@ -72,6 +79,7 @@ export function CookModeOverlay({ recipe, onClose }: CookModeOverlayProps) {
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
+      cancelled = true;
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       releaseLock();
     };
