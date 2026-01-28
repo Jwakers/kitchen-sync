@@ -16,7 +16,7 @@
         them. Add settings so users can control what they get notified about. Add to agents.md that when new relevant features get added, a notification should be considered for it too.
   - [ ] Update the home page with clear messaging on these features.
 - [ ] Try the post on Reddit and IH again and see if we can get any active users.
-- [ ] Try out indie app circle too: https://www.indieappcircle.com/
+- [ ] Try out [Indie App Circle](https://www.indieappcircle.com/) too
 - [ ] The app is supposed to make meal planning and weekly shops easier. Does it do that? If not yet, what are the next steps?
 
 ### User feedback – Import experience (post-import UX)

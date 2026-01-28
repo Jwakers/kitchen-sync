@@ -1,11 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { DialogClose } from "@radix-ui/react-dialog";
 import { ChevronLeft, ChevronRight, Heart, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import type { Recipe } from "./recipe-client";
 
 interface CookModeOverlayProps {
@@ -22,26 +23,23 @@ type IngredientItem = {
 
 export function CookModeOverlay({ recipe, onClose }: CookModeOverlayProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [mounted, setMounted] = useState(false);
 
   const method = recipe.method ?? [];
-  const totalSteps = 1 + method.length + 1; // mise + method steps + complete
+  const methodSteps = method.length;
+  const totalSteps = 1 + methodSteps + 1; // mise + method steps + complete
   const isMiseEnPlace = currentStep === 0;
-  const isCompleteSlide = currentStep === totalSteps - 1 && totalSteps > 1;
+  const isCompleteSlide = currentStep === methodSteps + 1;
   const isMethodStep = !isMiseEnPlace && !isCompleteSlide;
+  const methodIndex = isMethodStep ? currentStep - 1 : 0;
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === totalSteps - 1;
   const stepLabel = isMiseEnPlace
     ? "Mise en Place"
     : isCompleteSlide
       ? "All done"
-      : `Step ${currentStep} of ${method.length}`;
+      : `Step ${methodIndex + 1} of ${methodSteps}`;
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Prevent background scroll while overlay is open
+  // Prevent background scroll while overlay is open (Dialog handles focus trap + Escape)
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -79,115 +77,123 @@ export function CookModeOverlay({ recipe, onClose }: CookModeOverlayProps) {
     };
   }, []);
 
-  const progressPercent = totalSteps > 0 ? (currentStep / totalSteps) * 100 : 0;
+  const progressPercent = isMiseEnPlace
+    ? 0
+    : isCompleteSlide
+      ? 100
+      : methodSteps > 0
+        ? ((methodIndex + 1) / methodSteps) * 100
+        : 0;
 
-  const overlay = (
-    <div
-      className="fixed inset-0 z-[100] h-dvh max-h-dvh bg-card"
-      aria-label="Cooking mode"
-      role="dialog"
-      aria-modal="true"
-    >
-      <div className="size-full flex flex-col">
-        <Button
-          variant="outline"
-          size="icon"
-          className="rounded-full fixed top-4 right-4 z-10"
-          onClick={onClose}
-          aria-label="Close cooking mode"
-        >
-          <X className="h-5 w-5" />
-        </Button>
-
-        {/* Content - scrollable, flex-1 min-h-0 so footer stays visible */}
-        <div
-          className="flex-1 overflow-y-auto"
-          role="region"
-          aria-current="step"
-          aria-label={
-            isMiseEnPlace
-              ? "Mise en Place"
-              : isCompleteSlide
-                ? "Recipe complete"
-                : stepLabel
-          }
-        >
-          {isMethodStep ? (
-            <div className="bg-card p-6 md:p-8">
-              {/* Step indicator + recipe title (design: STEP 2 OF 7, then recipe name) */}
-              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Step {currentStep} of {totalSteps}
-              </p>
-              <p className="mt-0.5 text-lg text-foreground">{recipe.title}</p>
-
-              {/* Progress bar */}
-              <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full bg-primary transition-[width] duration-300 ease-out"
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </div>
-            </div>
-          ) : null}
-          <div
-            key={currentStep}
-            className="animate-in fade-in-0 slide-in-from-bottom-4 duration-300"
-          >
-            {isMiseEnPlace ? (
-              <MiseEnPlaceSlide
-                ingredients={recipe.ingredients ?? []}
-                recipeImage={recipe.image}
-              />
-            ) : isCompleteSlide ? (
-              <CompleteSlide
-                recipeTitle={recipe.title}
-                recipeImage={recipe.image}
-              />
-            ) : (
-              <MethodStepSlide
-                step={method[currentStep - 1]}
-                stepNumber={currentStep}
-              />
-            )}
-          </div>
-        </div>
-
-        {/* Footer - always visible, large nav */}
-        <footer className="sticky bottom-0 flex items-center justify-between gap-4 border-t border-border bg-card/80 px-4 py-4 backdrop-blur-sm">
-          <Button
-            variant="outline"
-            size="lg"
-            disabled={isFirstStep}
-            onClick={() => setCurrentStep((s) => Math.max(0, s - 1))}
-            aria-label="Previous step"
-          >
-            <ChevronLeft className="h-6 w-6" />
-            Previous
-          </Button>
-          {isCompleteSlide ? (
-            <Button size="lg" onClick={onClose} aria-label="Close cooking mode">
-              Close
-            </Button>
-          ) : (
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent
+        showCloseButton={false}
+        className="h-dvh max-h-dvh w-full max-w-full translate-x-[-50%] translate-y-[-50%] gap-0 border-0 rounded-none bg-card p-0 shadow-lg focus:outline-none"
+        aria-describedby={undefined}
+      >
+        <DialogTitle className="sr-only">
+          Cooking mode: {recipe.title} — {stepLabel}
+        </DialogTitle>
+        <div className="flex size-full flex-col">
+          <DialogClose asChild>
             <Button
-              size="lg"
-              disabled={isLastStep}
-              onClick={() =>
-                setCurrentStep((s) => Math.min(totalSteps - 1, s + 1))
-              }
-              aria-label="Next step"
+              variant="outline"
+              size="icon"
+              className="rounded-full fixed top-4 right-4 z-10"
+              aria-label="Close cooking mode"
             >
-              Next
-              <ChevronRight className="h-6 w-6" />
+              <X className="h-5 w-5" />
             </Button>
-          )}
-        </footer>
-      </div>
-    </div>
-  );
+          </DialogClose>
 
-  if (!mounted || typeof document === "undefined") return null;
-  return createPortal(overlay, document.body);
+          {/* Content - scrollable, flex-1 min-h-0 so footer stays visible */}
+          <div
+            className="flex-1 overflow-y-auto"
+            role="region"
+            aria-current="step"
+            aria-label={
+              isMiseEnPlace
+                ? "Mise en Place"
+                : isCompleteSlide
+                  ? "Recipe complete"
+                  : stepLabel
+            }
+          >
+            {isMethodStep ? (
+              <div className="bg-card p-6 md:p-8">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Step {methodIndex + 1} of {methodSteps}
+                </p>
+                <p className="mt-0.5 text-lg text-foreground">{recipe.title}</p>
+                <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full bg-primary transition-[width] duration-300 ease-out"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+              </div>
+            ) : null}
+            <div
+              key={currentStep}
+              className="animate-in fade-in-0 slide-in-from-bottom-4 duration-300"
+            >
+              {isMiseEnPlace ? (
+                <MiseEnPlaceSlide
+                  ingredients={recipe.ingredients ?? []}
+                  recipeImage={recipe.image}
+                />
+              ) : isCompleteSlide ? (
+                <CompleteSlide
+                  recipeTitle={recipe.title}
+                  recipeImage={recipe.image}
+                />
+              ) : (
+                <MethodStepSlide
+                  step={method[methodIndex]}
+                  stepNumber={methodIndex + 1}
+                />
+              )}
+            </div>
+          </div>
+
+          <footer className="sticky bottom-0 flex items-center justify-between gap-4 border-t border-border bg-card/80 px-4 py-4 backdrop-blur-sm">
+            <Button
+              variant="outline"
+              size="lg"
+              disabled={isFirstStep}
+              onClick={() => setCurrentStep((s) => Math.max(0, s - 1))}
+              aria-label="Previous step"
+            >
+              <ChevronLeft className="h-6 w-6" />
+              Previous
+            </Button>
+            {isCompleteSlide ? (
+              <Button
+                size="lg"
+                onClick={onClose}
+                aria-label="Close cooking mode"
+              >
+                Close
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                disabled={isLastStep}
+                onClick={() =>
+                  setCurrentStep((s) => Math.min(totalSteps - 1, s + 1))
+                }
+                aria-label="Next step"
+              >
+                Next
+                <ChevronRight className="h-6 w-6" />
+              </Button>
+            )}
+          </footer>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 function MiseEnPlaceSlide({
@@ -199,7 +205,7 @@ function MiseEnPlaceSlide({
 }) {
   return (
     <section
-      className="grid min-h-0 flex-1 grid-cols-1 md:grid-cols-[2fr_3fr] gap-0 overflow-hidden bg-card shadow-lg"
+      className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden"
       aria-labelledby="mise-heading"
     >
       {/* Left: visual panel with image + overlay text */}
@@ -247,7 +253,7 @@ function MiseEnPlaceSlide({
                 key={`${index}-${ing.name}-${ing.amount}-${ing.unit}`}
                 className="flex flex-wrap items-baseline gap-x-1.5 rounded-lg bg-muted px-4 py-3 text-base"
               >
-                {ing.amount != null && (
+                {!!ing.amount && (
                   <span className="font-semibold text-foreground">
                     {ing.amount}
                   </span>
@@ -283,7 +289,7 @@ function CompleteSlide({
 }) {
   return (
     <section
-      className="grid h-full flex-1 grid-cols-1 md:grid-cols-[2fr_3fr] gap-0"
+      className="grid h-full flex-1 grid-cols-1"
       aria-labelledby="complete-heading"
     >
       {/* Left: content panel - heart, message, Cook Again */}
@@ -311,7 +317,8 @@ function CompleteSlide({
           <Image
             src={recipeImage}
             alt=""
-            fill
+            width={1000}
+            height={1000}
             className="object-cover"
             unoptimized
             sizes="(max-width: 768px) 100vw, 60vw"

@@ -2,3 +2,4 @@
 - If there are already clearly defined schemas, like for recipes, these should be reused wherever possible rather than rewriting them for each new function that needs one.
 - In tailwind where the width and the height classes are the same eg `w-4 h-4` this can and should use the size utility e.g. `size-4`
 - The button component should not be heavily modified. If a variant does not exist for it, leave a comment and a new one can be added in.
+- Use existing UI primitives where possible, for example src/components/ui/dialog.tsx
