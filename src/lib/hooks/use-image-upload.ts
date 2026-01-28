@@ -1,6 +1,7 @@
 "use client";
 
 import { validateImageFile } from "@/app/constants";
+import { isHeicFile, processImageFile } from "@/lib/utils/heic-conversion";
 import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
 import { useMutation } from "convex/react";
@@ -14,8 +15,6 @@ export interface UseImageUploadOptions {
   onUploadError?: (error: Error) => void;
   /** Timeout in milliseconds (default: 30000) */
   timeout?: number;
-  /** Whether to show toast notifications (default: true) */
-  showToasts?: boolean;
 }
 
 export interface UseImageUploadReturn {
@@ -27,8 +26,8 @@ export interface UseImageUploadReturn {
   isUploading: boolean;
   /** Upload the selected file to Convex storage */
   upload: () => Promise<Id<"_storage"> | null>;
-  /** Handle file selection (validates and creates preview) */
-  handleFileSelect: (file: File | null) => boolean;
+  /** Handle file selection (validates and creates preview). Returns the processed file (converted from HEIC if needed) or null on failure */
+  handleFileSelect: (file: File | null) => Promise<File | null>;
   /** Clear selected file and preview */
   clear: () => void;
   /** Set the preview URL directly (for existing images) */
@@ -40,20 +39,15 @@ export interface UseImageUploadReturn {
  * Handles validation, preview, and upload to Convex storage
  */
 export function useImageUpload(
-  options: UseImageUploadOptions = {}
+  options: UseImageUploadOptions = {},
 ): UseImageUploadReturn {
-  const {
-    onUploadComplete,
-    onUploadError,
-    timeout = 30000,
-    showToasts = true,
-  } = options;
+  const { onUploadComplete, onUploadError, timeout = 30000 } = options;
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrlState] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const previewUrlRef = useRef<string | null>(null);
-
+  const selectionTokenRef = useRef(0);
   const generateUploadUrl = useMutation(api.recipes.generateUploadUrl);
 
   // Clean up preview URLs
@@ -81,41 +75,65 @@ export function useImageUpload(
       previewUrlRef.current = url;
       setPreviewUrlState(url);
     },
-    [revokePreviewUrl]
+    [revokePreviewUrl],
   );
 
   const handleFileSelect = useCallback(
-    (file: File | null): boolean => {
+    async (file: File | null): Promise<File | null> => {
       if (!file) {
-        return false;
+        return null;
       }
 
-      // Validate file
-      const validation = validateImageFile(file);
-      if (!validation.valid) {
-        if (showToasts) {
-          toast.error(validation.error || "Invalid file", {
-            description: validation.error,
+      const selectionToken = ++selectionTokenRef.current;
+
+      // Process HEIC/HEIF files first
+      let processedFile = file;
+      if (isHeicFile(file)) {
+        try {
+          const conversionPromise = processImageFile(file);
+
+          toast.promise(conversionPromise, {
+            loading: `Converting ${file.name}...`,
+            success: "HEIC image converted to JPEG",
+            error: (error) =>
+              error instanceof Error
+                ? error.message
+                : "Failed to convert HEIC image. Please try a different format.",
           });
+
+          processedFile = await conversionPromise;
+          if (selectionToken !== selectionTokenRef.current) {
+            return null;
+          }
+        } catch (error) {
+          // Error already handled by toast.promise
+          console.error("HEIC conversion failed:", error);
+          return null;
         }
-        return false;
+      }
+
+      // Validate file (after conversion if needed)
+      const validation = validateImageFile(processedFile);
+      if (!validation.valid) {
+        toast.error(validation.error || "Invalid file", {
+          description: validation.error,
+        });
+        return null;
       }
 
       // Create preview URL
-      const url = URL.createObjectURL(file);
-      setSelectedFile(file);
+      const url = URL.createObjectURL(processedFile);
+      setSelectedFile(processedFile);
       setPreviewUrl(url);
 
-      return true;
+      return processedFile;
     },
-    [setPreviewUrl, showToasts]
+    [setPreviewUrl],
   );
 
   const upload = useCallback(async (): Promise<Id<"_storage"> | null> => {
     if (!selectedFile) {
-      if (showToasts) {
-        toast.error("Please select an image");
-      }
+      toast.error("Please select an image");
       return null;
     }
 
@@ -141,9 +159,7 @@ export function useImageUpload(
 
       const { storageId } = await result.json();
 
-      if (showToasts) {
-        toast.success("Image uploaded successfully");
-      }
+      toast.success("Image uploaded successfully");
 
       onUploadComplete?.(storageId);
 
@@ -152,11 +168,9 @@ export function useImageUpload(
       const err = error instanceof Error ? error : new Error("Upload failed");
       console.error("Image upload error:", err);
 
-      if (showToasts) {
-        toast.error("Failed to upload image", {
-          description: "Please try again",
-        });
-      }
+      toast.error("Failed to upload image", {
+        description: "Please try again",
+      });
 
       onUploadError?.(err);
       return null;
@@ -167,7 +181,6 @@ export function useImageUpload(
     selectedFile,
     generateUploadUrl,
     timeout,
-    showToasts,
     onUploadComplete,
     onUploadError,
   ]);

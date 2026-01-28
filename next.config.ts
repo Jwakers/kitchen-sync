@@ -17,6 +17,11 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "15mb", // Allow up to 15MB for image uploads (3 images with base64 encoding overhead)
+    },
+  },
 };
 
 export default withSerwist(nextConfig);

@@ -82,10 +82,19 @@ export function validateImageFile(file: File): {
   error?: string;
 } {
   // Check file type against allowed types
-  if (!IMAGE_LIMITS.ALLOWED_TYPES.includes(file.type as (typeof IMAGE_LIMITS.ALLOWED_TYPES)[number])) {
+  // Also check file extension for HEIC/HEIF since MIME type might not be set correctly
+  const fileExtension = file.name.toLowerCase().split(".").pop();
+  const isHeicByExtension = fileExtension === "heic" || fileExtension === "heif";
+  const isHeicByType = file.type === "image/heic" || file.type === "image/heif";
+  
+  if (
+    !IMAGE_LIMITS.ALLOWED_TYPES.includes(file.type as (typeof IMAGE_LIMITS.ALLOWED_TYPES)[number]) &&
+    !isHeicByExtension &&
+    !isHeicByType
+  ) {
     return {
       valid: false,
-      error: `Please select a valid image file. Allowed types: ${IMAGE_LIMITS.ALLOWED_TYPES.join(", ")}`,
+      error: `Please select a valid image file. Allowed types: ${IMAGE_LIMITS.ALLOWED_TYPES.join(", ")}, HEIC`,
     };
   }
 

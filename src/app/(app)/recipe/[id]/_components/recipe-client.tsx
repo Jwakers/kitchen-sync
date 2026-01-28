@@ -69,7 +69,7 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
       description: "",
       prepTime: 0,
       cookTime: undefined,
-      serves: 0,
+      serves: 1, // Must be at least 1 to match schema validation
       category: "main",
       ingredients: [],
       method: [],
@@ -106,7 +106,7 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
         description: recipeForEdit.description || "",
         prepTime: recipeForEdit.prepTime ?? 0,
         cookTime: recipeForEdit.cookTime ?? undefined,
-        serves: recipeForEdit.serves ?? 0,
+        serves: recipeForEdit.serves ?? 1, // Default to 1 to match schema validation (min: 1)
         category: recipeForEdit.category,
         ingredients: recipeForEdit.ingredients || [],
         // Convert storage ID to string for form

@@ -3,12 +3,8 @@
 import { IngredientsList } from "@/app/(app)/_components.tsx/ingredients-list";
 import { MethodList } from "@/app/(app)/_components.tsx/method-list";
 import { Nutrition } from "@/app/(app)/_components.tsx/nutrition";
-import { fetchImageServerSide } from "@/app/(app)/actions/fetch-image";
-import {
-  parseRecipeFromSiteWithAI,
-  parseTextToRecipe,
-} from "@/app/(app)/actions/parse-recipe";
 import { ROUTES } from "@/app/constants";
+import { MultiImageUpload, type ImagePreview } from "@/components/image-upload";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,16 +16,11 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import {
-  recipeImportSchema,
-  type RecipeImportFormData,
-} from "@/lib/schemas/recipe";
+import { type RecipeImportFormData } from "@/lib/schemas/recipe";
 import { type ParsedRecipeForDB } from "@/lib/types/recipe-parser";
-import { api } from "convex/_generated/api";
-import { Id } from "convex/_generated/dataModel";
-import { useMutation } from "convex/react";
 import {
   ArrowLeft,
+  Camera,
   CheckCircle2,
   ChefHat,
   Clock,
@@ -40,172 +31,111 @@ import {
   Users,
 } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import z from "zod";
 import { EditImportedRecipe } from "./edit-imported-recipe";
+import { usePhotoImport } from "./hooks/use-photo-import";
+import { useRecipeSave } from "./hooks/use-recipe-save";
+import { useTextImport } from "./hooks/use-text-import";
+import { useUrlImport } from "./hooks/use-url-import";
 import { TextToRecipeParser } from "./text-to-recipe-parser";
 
-type LoadingStage = "idle" | "fetching" | "categorising" | "complete";
-type ImportSource = "url" | "text";
+type ImportSource = "url" | "text" | "photo";
 
 export function ImportRecipeClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [url, setUrl] = useState("");
-  const [loadingStage, setLoadingStage] = useState<LoadingStage>("idle");
-  const [error, setError] = useState<string | null>(null);
-  const [parsedRecipe, setParsedRecipe] = useState<ParsedRecipeForDB | null>(
-    null
-  );
-  const [isSaved, setIsSaved] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [savedRecipeId, setSavedRecipeId] = useState<Id<"recipes"> | null>(
-    null
-  );
   const [isEditMode, setIsEditMode] = useState(false);
   const [showTextParser, setShowTextParser] = useState(false);
+  const [showPhotoParser, setShowPhotoParser] = useState(false);
+  const [photoImages, setPhotoImages] = useState<ImagePreview[]>([]);
   const [importSource, setImportSource] = useState<ImportSource>("url");
 
-  const createRecipeMutation = useMutation(api.recipes.createRecipe);
-  const generateUploadUrl = useMutation(api.recipes.generateUploadUrl);
-  const updateRecipeImage = useMutation(
-    api.recipes.updateRecipeImageAndDeleteOld
-  );
+  // Use custom hooks for different import methods
+  const urlImport = useUrlImport();
+  const textImport = useTextImport();
+  const photoImport = usePhotoImport();
+  const recipeSave = useRecipeSave();
 
-  const handleImport = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!url || !isValidUrl(url)) return;
-
-    setImportSource("url");
-    setError(null);
-    setParsedRecipe(null);
-
-    try {
-      // Stage 1: Fetch and parse recipe with AI
-      setLoadingStage("fetching");
-      const parsed = await parseRecipeFromSiteWithAI(url);
-
-      if (!parsed) {
-        throw new Error(
-          "Failed to extract recipe. The page may not contain a recipe, or it may be behind a paywall."
-        );
-      }
-
-      // Stage 2: Finalize
-      setLoadingStage("categorising");
-      setParsedRecipe(parsed);
-      setLoadingStage("complete");
-    } catch (err) {
-      console.error(err);
-      setError(err instanceof Error ? err.message : "An error occurred");
-      setLoadingStage("idle");
+  // Determine which import state to use based on source
+  const getActiveImportState = () => {
+    switch (importSource) {
+      case "text":
+        return textImport;
+      case "photo":
+        return photoImport;
+      default:
+        return urlImport;
     }
   };
 
-  const isValidUrl = (urlString: string) => {
-    try {
-      new URL(urlString);
-      return true;
-    } catch {
-      return false;
+  const activeImport = getActiveImportState();
+  const parsedRecipe = activeImport.parsedRecipe;
+  const loadingStage = activeImport.loadingStage;
+  const error = activeImport.error;
+
+  // Check for photo mode from query parameter
+  useEffect(() => {
+    const mode = searchParams.get("mode");
+    if (mode === "photo") {
+      setShowPhotoParser(true);
+      setImportSource("photo");
     }
+  }, [searchParams]);
+
+  const handleImport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!url || !urlImport.isValidUrl(url)) return;
+
+    setImportSource("url");
+    await urlImport.handleImport(url);
   };
 
   const clearAll = () => {
     setUrl("");
-    setParsedRecipe(null);
-    setLoadingStage("idle");
-    setError(null);
-    setIsSaved(false);
+    urlImport.reset();
+    textImport.reset();
+    photoImport.reset();
+    recipeSave.reset();
     setIsEditMode(false);
     setShowTextParser(false);
+    setShowPhotoParser(false);
+    setPhotoImages([]);
+  };
+
+  const handlePhotoRecipeParsed = async (images: ImagePreview[]) => {
+    if (images.length === 0) {
+      photoImport.reset();
+      return;
+    }
+
+    setImportSource("photo");
+    const result = await photoImport.handlePhotoRecipeParsed(images);
+
+    if (result?.isPartial) {
+      setShowPhotoParser(false);
+      setIsEditMode(true);
+    } else if (result?.success) {
+      setShowPhotoParser(false);
+    }
   };
 
   const handleTextRecipeParsed = async (text: string) => {
     setImportSource("text");
-    setLoadingStage("fetching");
-    setError(null);
+    const result = await textImport.handleTextRecipeParsed(text);
 
-    // Simulate stage progression for better UX
-    const timeout = setTimeout(() => {
-      setLoadingStage("categorising");
-    }, 2000);
-
-    const result = await parseTextToRecipe(text);
-
-    clearTimeout(timeout);
-
-    if (!result.success) {
-      // If we have partial data, use it and enter edit mode
-      if (result.partialRecipe) {
-        const partialConverted: ParsedRecipeForDB = {
-          title: result.partialRecipe.title ?? "Untitled Recipe",
-          description: result.partialRecipe.description ?? "",
-          prepTime: result.partialRecipe.prepTime ?? 0,
-          cookTime: result.partialRecipe.cookTime ?? 0,
-          serves: result.partialRecipe.serves ?? 4,
-          category: result.partialRecipe.category ?? "main",
-          ingredients: result.partialRecipe.ingredients ?? [],
-          method: result.partialRecipe.method ?? [],
-          nutrition: result.partialRecipe.nutrition,
-          imageUrl: undefined,
-          originalUrl: undefined,
-          originalAuthor: undefined,
-          importedAt: Date.now(),
-          originalPublishedDate: undefined,
-          rating: undefined,
-        };
-
-        setParsedRecipe(partialConverted);
-        setLoadingStage("complete");
-        setShowTextParser(false);
-        setIsEditMode(true);
-
-        toast.error("Recipe incomplete", {
-          description:
-            result.error || "Please complete the missing fields in edit mode",
-        });
-      } else {
-        setLoadingStage("idle");
-        setError(result.error || "Failed to create recipe from text");
-        throw new Error(result.error ?? "Text parsing failed");
-      }
-      return;
+    if (result?.isPartial) {
+      setShowTextParser(false);
+      setIsEditMode(true);
+    } else if (result?.success) {
+      setShowTextParser(false);
     }
-
-    if (!result.recipe) {
-      setLoadingStage("idle");
-      setError("Failed to create recipe from text");
-      throw new Error("Failed to create recipe from text");
-    }
-
-    // Convert ParsedRecipeFromText to ParsedRecipeForDB format
-    const convertedRecipe: ParsedRecipeForDB = {
-      title: result.recipe.title,
-      description: result.recipe.description,
-      prepTime: result.recipe.prepTime,
-      cookTime: result.recipe.cookTime,
-      serves: result.recipe.serves,
-      category: result.recipe.category,
-      ingredients: result.recipe.ingredients,
-      method: result.recipe.method,
-      nutrition: result.recipe.nutrition,
-      imageUrl: undefined, // No image from text parsing
-      originalUrl: undefined,
-      originalAuthor: undefined,
-      importedAt: Date.now(),
-      originalPublishedDate: undefined,
-      rating: undefined,
-    };
-    setParsedRecipe(convertedRecipe);
-    setLoadingStage("complete");
-    setShowTextParser(false);
   };
 
   // Warn user before leaving if recipe is not saved
   useEffect(() => {
-    const hasUnsavedRecipe = parsedRecipe && !isSaved;
+    const hasUnsavedRecipe = parsedRecipe && !recipeSave.isSaved;
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedRecipe) {
@@ -221,156 +151,46 @@ export function ImportRecipeClient() {
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [parsedRecipe, isSaved]);
+  }, [parsedRecipe, recipeSave.isSaved]);
 
   // Redirect to recipe page after successful save
   useEffect(() => {
-    if (isSaved && savedRecipeId) {
+    if (recipeSave.isSaved && recipeSave.savedRecipeId) {
       // Small delay to allow user to see success state
       const timeout = setTimeout(() => {
-        router.push(`${ROUTES.RECIPE}/${savedRecipeId}`);
+        router.push(`${ROUTES.RECIPE}/${recipeSave.savedRecipeId}`);
       }, 1500);
 
       return () => clearTimeout(timeout);
     }
-  }, [isSaved, savedRecipeId, router]);
-
-  const validateAndSaveRecipe = async (
-    recipeData: ParsedRecipeForDB | RecipeImportFormData
-  ) => {
-    try {
-      setIsSaving(true);
-
-      // Validate the recipe before saving
-      const validationResult = recipeImportSchema.safeParse(recipeData);
-
-      if (!validationResult.success) {
-        // Validation failed, enter edit mode
-
-        const errors = z.flattenError(validationResult.error).fieldErrors;
-        const errorMessages = Object.entries(errors)
-          .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(", ") : messages || "Invalid"}`)
-          .join("; ");
-
-        toast.error("Recipe validation failed", {
-          description: "Please correct the errors in edit mode",
-        });
-
-        console.error("Validation errors:", errorMessages);
-        setIsEditMode(true);
-        setIsSaving(false);
-        return;
-      }
-
-      // Validation passed, proceed with saving
-      const validatedRecipe = validationResult.data;
-
-      // Nutrition values are already parsed as integers (grams) from the AI parser
-      const nutrition = validatedRecipe.nutrition;
-
-      const {
-        recipeId,
-        validationErrors,
-        error: mutationError,
-      } = await createRecipeMutation({
-        title: validatedRecipe.title,
-        description: validatedRecipe.description,
-        prepTime: validatedRecipe.prepTime,
-        cookTime: validatedRecipe.cookTime,
-        serves: validatedRecipe.serves,
-        category: validatedRecipe.category,
-        ingredients: validatedRecipe.ingredients,
-        method: validatedRecipe.method,
-        nutrition,
-        originalUrl: parsedRecipe?.originalUrl,
-        originalAuthor: parsedRecipe?.originalAuthor,
-        originalPublishedDate: parsedRecipe?.originalPublishedDate,
-      });
-
-      if (mutationError) {
-        toast.error(mutationError);
-        return;
-      }
-      if (!recipeId) {
-        toast.error("Failed to save recipe");
-        return;
-      }
-
-      if (validatedRecipe.imageUrl) {
-        const promise = handleImageUpload(recipeId, validatedRecipe.imageUrl);
-        toast.promise(promise, {
-          loading: "Uploading image...",
-          success: "Image uploaded successfully",
-          error: "Failed to upload image",
-        });
-      }
-
-      if (validationErrors?.length) {
-        toast.warning("Some fields are incomplete", {
-          description:
-            "Your recipe has been saved but may require some manual editing to complete it",
-        });
-      }
-
-      setSavedRecipeId(recipeId);
-      setIsSaved(true);
-    } catch (error) {
-      console.error(error);
-      setError(error instanceof Error ? error.message : "An error occurred");
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  }, [recipeSave.isSaved, recipeSave.savedRecipeId, router]);
 
   const handleSave = async () => {
-    if (!parsedRecipe || isSaving || isSaved) return;
-    await validateAndSaveRecipe(parsedRecipe);
+    if (!parsedRecipe || recipeSave.isSaving || recipeSave.isSaved) return;
+    const result = await recipeSave.validateAndSaveRecipe(
+      parsedRecipe,
+      parsedRecipe,
+    );
+    if (result.shouldEdit) {
+      setIsEditMode(true);
+    }
   };
 
   const handleEditSave = async (editedRecipe: RecipeImportFormData) => {
-    if (isSaving || isSaved) return;
-    await validateAndSaveRecipe(editedRecipe);
-  };
-
-  const handleImageUpload = async (
-    recipeId: Id<"recipes">,
-    imageUrl: string
-  ) => {
-    // Fetch image server-side to bypass CORS
-    const result = await fetchImageServerSide(imageUrl);
-
-    if (!result.success || !result.data || !result.contentType) {
-      throw new Error(result.error || "Failed to fetch image");
+    if (recipeSave.isSaving || recipeSave.isSaved) return;
+    const result = await recipeSave.validateAndSaveRecipe(
+      editedRecipe,
+      parsedRecipe,
+    );
+    if (result.shouldEdit) {
+      setIsEditMode(true);
     }
-
-    // Convert data URL to blob
-    const response = await fetch(result.data);
-    const blob = await response.blob();
-
-    // Upload to Convex
-    const postUrl = await generateUploadUrl();
-
-    const ac = new AbortController();
-    const t = setTimeout(() => ac.abort(), 30_000);
-    const uploadResult = await fetch(postUrl, {
-      method: "POST",
-      headers: { "Content-Type": result.contentType },
-      body: blob,
-      signal: ac.signal,
-    }).finally(() => clearTimeout(t));
-
-    const { storageId } = await uploadResult.json();
-
-    await updateRecipeImage({
-      recipeId,
-      storageId,
-    });
   };
 
   const isLoading = loadingStage !== "idle" && loadingStage !== "complete";
 
   // Edit Mode
-  if (isEditMode && parsedRecipe && !isSaved) {
+  if (isEditMode && parsedRecipe && !recipeSave.isSaved) {
     return (
       <div className="bg-background">
         <div className="container mx-auto px-4 py-6 max-w-4xl">
@@ -378,7 +198,7 @@ export function ImportRecipeClient() {
             recipe={parsedRecipe}
             onCancel={() => setIsEditMode(false)}
             onSave={handleEditSave}
-            isSaving={isSaving}
+            isSaving={recipeSave.isSaving}
           />
         </div>
       </div>
@@ -386,7 +206,7 @@ export function ImportRecipeClient() {
   }
 
   // Success State - Show briefly before redirect
-  if (isSaved && savedRecipeId) {
+  if (recipeSave.isSaved && recipeSave.savedRecipeId) {
     return (
       <div className="bg-background flex items-center justify-center p-6">
         <Card className="max-w-2xl w-full p-12 text-center">
@@ -420,9 +240,9 @@ export function ImportRecipeClient() {
             size="icon"
             className="h-10 w-10"
             onClick={(e) => {
-              if (parsedRecipe && !isSaved) {
+              if (parsedRecipe && !recipeSave.isSaved) {
                 const confirmed = window.confirm(
-                  "You have an unsaved recipe. Are you sure you want to leave?"
+                  "You have an unsaved recipe. Are you sure you want to leave?",
                 );
                 if (!confirmed) {
                   e.preventDefault();
@@ -446,7 +266,7 @@ export function ImportRecipeClient() {
         </div>
 
         {/* Main Card - URL Import */}
-        {!isLoading && !parsedRecipe && !showTextParser && (
+        {!isLoading && !parsedRecipe && !showTextParser && !showPhotoParser && (
           <>
             <Card className="p-6 md:p-8 mb-6">
               <div className="flex items-center gap-3 mb-6">
@@ -490,7 +310,7 @@ export function ImportRecipeClient() {
                   <Button
                     type="submit"
                     className="flex-1"
-                    disabled={!url || !isValidUrl(url) || isLoading}
+                    disabled={!url || !urlImport.isValidUrl(url) || isLoading}
                   >
                     {isLoading ? (
                       <>
@@ -596,6 +416,82 @@ export function ImportRecipeClient() {
           </div>
         )}
 
+        {/* Photo Parser Component */}
+        {showPhotoParser && !isLoading && !parsedRecipe && (
+          <div className="space-y-4 mb-6">
+            <Card className="p-6 md:p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-accent/10 rounded-lg">
+                  <Camera className="h-6 w-6 text-accent-foreground" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold">Photograph Recipe</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Take photos or upload images of recipe pages
+                  </p>
+                </div>
+              </div>
+
+              {/* Tips for best results */}
+              <Alert className="mb-6">
+                <Sparkles className="h-4 w-4" />
+                <AlertTitle>Tips for best results</AlertTitle>
+                <AlertDescription>
+                  <ul className="list-disc list-inside space-y-1 text-sm mt-2">
+                    <li>Ensure good lighting - avoid shadows and glare</li>
+                    <li>Keep the camera steady to avoid blurry images</li>
+                    <li>Make sure all text is clearly visible and in focus</li>
+                    <li>Capture the entire recipe page in the frame</li>
+                    <li>Take photos straight-on rather than at an angle</li>
+                  </ul>
+                </AlertDescription>
+              </Alert>
+
+              <MultiImageUpload
+                maxImages={3}
+                onImagesChange={setPhotoImages}
+                showCamera={true}
+              />
+
+              <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                <Button
+                  onClick={() => handlePhotoRecipeParsed(photoImages)}
+                  className="flex-1"
+                  disabled={photoImages.length === 0 || isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Parsing...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      Parse Recipe
+                    </>
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={clearAll}
+                  disabled={isLoading}
+                >
+                  Clear
+                </Button>
+              </div>
+
+              {error && (
+                <div className="mt-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                  <p className="text-sm text-destructive font-medium">
+                    {error}
+                  </p>
+                </div>
+              )}
+            </Card>
+          </div>
+        )}
+
         {/* Loading Progress */}
         {isLoading && (
           <Card className="p-6 mb-6">
@@ -606,12 +502,16 @@ export function ImportRecipeClient() {
                 title={
                   importSource === "url"
                     ? "Gathering ingredients"
-                    : "Reading your recipe"
+                    : importSource === "photo"
+                      ? "Reading recipe images"
+                      : "Reading your recipe"
                 }
                 description={
                   importSource === "url"
                     ? "Fetching all the tasty details..."
-                    : "Making sense of everything..."
+                    : importSource === "photo"
+                      ? "Reading recipe from images..."
+                      : "Making sense of everything..."
                 }
               />
               <LoadingStep
@@ -621,7 +521,9 @@ export function ImportRecipeClient() {
                 description={
                   importSource === "url"
                     ? "Sorting ingredients, steps, and all the good stuff..."
-                    : "Arranging ingredients, adding some polish, and working out the details..."
+                    : importSource === "photo"
+                      ? "Extracting ingredients and instructions from images..."
+                      : "Arranging ingredients, adding some polish, and working out the details..."
                 }
               />
             </div>
@@ -630,16 +532,16 @@ export function ImportRecipeClient() {
 
         {/* Recipe Preview */}
         {parsedRecipe && loadingStage === "complete" && (
-          <RecipePreview recipe={parsedRecipe} isSaved={isSaved} />
+          <RecipePreview recipe={parsedRecipe} isSaved={recipeSave.isSaved} />
         )}
 
         {/* Save Buttons */}
-        {parsedRecipe && loadingStage === "complete" && !isSaved && (
+        {parsedRecipe && loadingStage === "complete" && !recipeSave.isSaved && (
           <div className="sticky bottom-nav flex gap-3 mt-4">
             <Button
               variant="outline"
               size="lg"
-              disabled={isLoading || isSaving || isSaved}
+              disabled={isLoading || recipeSave.isSaving || recipeSave.isSaved}
               onClick={() => setIsEditMode(true)}
             >
               Edit Recipe
@@ -647,10 +549,10 @@ export function ImportRecipeClient() {
             <Button
               className="flex-1"
               size="lg"
-              disabled={isLoading || isSaving || isSaved}
+              disabled={isLoading || recipeSave.isSaving || recipeSave.isSaved}
               onClick={handleSave}
             >
-              {isSaving ? (
+              {recipeSave.isSaving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Saving...
@@ -665,6 +567,8 @@ export function ImportRecipeClient() {
     </div>
   );
 }
+
+type LoadingStage = "idle" | "fetching" | "categorising" | "complete";
 
 // Loading Step Component
 function LoadingStep({

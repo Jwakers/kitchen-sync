@@ -186,6 +186,8 @@ export const IMAGE_LIMITS = {
     "image/png",
     "image/webp",
     "image/gif",
+    "image/heic",
+    "image/heif",
   ] as const,
 } as const;
 
@@ -207,4 +209,18 @@ export const TEXT_LIMITS = {
 export const RECIPE_LIMITS = {
   /** Pagination limit for recipe listings */
   PAGINATION_LIMIT: 20,
+  /** Maximum number of images for photo recipe import */
+  MAX_PHOTO_IMAGES: 3,
+} as const;
+
+/**
+ * Image compression settings
+ */
+export const IMAGE_COMPRESSION = {
+  /** File size threshold (bytes) above which images should be compressed */
+  COMPRESSION_THRESHOLD_BYTES: 2 * 1024 * 1024, // 2MB
+  /** Maximum width for compressed images (pixels) */
+  MAX_WIDTH: 2000,
+  /** JPEG quality for compression (0-1) */
+  QUALITY: 0.8,
 } as const;
