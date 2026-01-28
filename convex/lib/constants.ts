@@ -160,10 +160,11 @@ type PlanLimits = {
 
 /** Plan limits by subscription tier. Use -1 to represent unlimited. */
 export const PLANS: Record<SubscriptionTier, PlanLimits> = {
+   // Beta: increased free tier limits. Original values: maxRecipes 15, maxHouseholds 1, maxActiveShoppingLists 3
    free_user: {
-     maxRecipes: 15,
-     maxHouseholds: 1,
-     maxActiveShoppingLists: 3,
+     maxRecipes: 100,
+     maxHouseholds: 5,
+     maxActiveShoppingLists: 10,
    },
    pro_user: {
      maxRecipes: -1, // unlimited
