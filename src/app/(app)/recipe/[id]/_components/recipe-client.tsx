@@ -21,6 +21,7 @@ import { Id } from "convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
 import { FunctionReturnType } from "convex/server";
 import {
+  ChefHat,
   Copy,
   Edit,
   Link2,
@@ -34,6 +35,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { CookModeOverlay } from "./cook-mode-overlay";
 import { DeleteRecipeDialog } from "./delete-recipe-dialog";
 import { EditableRecipeMeta } from "./editable-recipe-meta";
 import { IngredientsSection } from "./ingredients-section";
@@ -55,6 +57,7 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
   const router = useRouter();
 
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isCookModeOpen, setIsCookModeOpen] = useState(false);
   const [recipeToDelete, setRecipeToDelete] = useState<Recipe | null>(null);
 
   const recipe = useQuery(api.recipes.getRecipe, { recipeId });
@@ -202,6 +205,7 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
               recipe={recipe}
               onToggleEditMode={handleToggleEditMode}
               onDelete={handleDelete}
+              onStartCooking={() => setIsCookModeOpen(true)}
               canEdit={canEdit}
               isRecipeForEditLoaded={recipeForEdit !== undefined}
             />
@@ -237,6 +241,14 @@ export function RecipeClient({ recipeId }: RecipeClientProps) {
           onClose={() => setRecipeToDelete(null)}
           onConfirm={confirmDelete}
         />
+
+        {/* Cook mode overlay - portal to body for true full screen */}
+        {isCookModeOpen && (
+          <CookModeOverlay
+            recipe={recipe}
+            onClose={() => setIsCookModeOpen(false)}
+          />
+        )}
       </div>
     </div>
   );
@@ -247,6 +259,7 @@ function RecipeControls({
   onToggleEditMode,
   onDelete,
   recipe,
+  onStartCooking,
   canEdit,
   isRecipeForEditLoaded,
 }: {
@@ -254,6 +267,7 @@ function RecipeControls({
   recipe: NonNullable<Recipe>;
   onToggleEditMode: () => void;
   onDelete: (recipe: NonNullable<Recipe>) => void;
+  onStartCooking: () => void;
   canEdit: boolean;
   isRecipeForEditLoaded: boolean;
 }) {
@@ -299,6 +313,17 @@ function RecipeControls({
         </>
       ) : (
         <>
+          {recipe.method && recipe.method.length > 0 && (
+            <Button
+              type="button"
+              size="lg"
+              className="gap-2"
+              onClick={onStartCooking}
+            >
+              <ChefHat className="h-4 w-4" aria-hidden />
+              Start Cooking
+            </Button>
+          )}
           {canEdit && (
             <>
               <DropdownMenu>
