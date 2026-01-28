@@ -7,8 +7,11 @@
 - [x] Complete technical debt remediation in one sprint.
 - [x] Refactor to use [Vercel AI SDK](https://ai-sdk.dev/docs/introduction).
 - [ ] Identify features that will increase my app usage
-  - [ ] Photograph a recipe book and import.
+  - [x] Photograph a recipe book and import.
   - [ ] Remove/expand free plan limits during beta
+  - [x] Take reddit users feedback and turn it into actionable feedback points
+  - [ ] Import type should be a part of each recipe. This should be added to the schema.
+  - [ ] Recipe mode. Screen stays on, full screen, next and previous arrows etc
   - [ ] Dictate a recipe.
   - [ ] Set up notifications and decide what to notify users on and when to notify
         them. Add settings so users can control what they get notified about. Add to agents.md that when new relevant features get added, a notification should be considered for it too.
@@ -16,29 +19,22 @@
 - [ ] Try the post on Reddit and IH again and see if we can get any active users.
 - [ ] The app is supposed to make meal planning and weekly shops easier. Does it do that? If not yet, what are the next steps?
 
+### User feedback – Import experience (post-import UX)
+
+Feedback: Import feels reliable and the edit page is clear, but the biggest opportunity is what happens _after_ import. Users want to feel confident hitting Save without having to guess what to check. The moment after import should feel rewarding, not neutral.
+
+- [ ] **Post-import guidance**: Add guidance on the import confirmation/edit screen that highlights which fields usually matter most to review (e.g. servings, total time, category). Help users know what to check so they feel confident moving on.
+- [ ] **Post-import emotional payoff**: Improve the moment right after import so it reinforces that the user has saved time and added something valuable (e.g. light celebration, clear “you’ve captured this” or “ready to cook later” messaging). The experience should match the excitement of capturing a recipe they’re keen to cook.
+- [ ] **Reduce friction to Save**: Optimise the flow so users can feel comfortable hitting Save quickly—through the above guidance and payoff, so it’s less about re-checking everything and more about feeling ready.
+
 ### Social, SEO and AEO
 
 - Confirm branding identity, logo and name etc
 - Set up a blogging system for the site (sanity or similar CMS)
 - Set up social channels: TikTok and X
 
-## Usage notes and feedback
-
-- [x] Fix horizontal scrolling on recipe page
-- [x] Scroll overflow on the recipes page on iPhone
-- [x] Able to scroll left and right on recipe page
-- [x] Edit mode controls should be sticky
-- [x] When editing recipes, add controls should be sticky
-- [x] Chiffonade is not a preparation option
-- [x] When there is no image for a recipe a button to upload one would be helpful rather than having to go into edit mode
-- [x] Need to add a how to use the app page
-- [x] The app needs a contact form for support and feature requests
-- [x] Unable to add zero amount ingredients like olive oil, salt and pepper
-- [x] Original recipe attribution should be in the recipe somewhere
-
 ## 🐛 Bug Tracking
 
-- [x] Overflow on the sign in page on ios
 - [ ] Ingredients can be duplicated if used in multiple sections of a recipe, like this one for example: <https://www.greatbritishchefs.com/recipes/salmon-kilaw-recipe>
       Ingredients should be deduped as part of the parsing process OR ingredients should be sectioned (as in for the sauce, for the garnish) that was they can stay as duplicates
 - [ ] Its is possible for the parser to output technically correct but odd ingredient mappings like 0.5 Whole Lime. This can be seen when extracting this recipe: <https://www.greatbritishchefs.com/recipes/salmon-kilaw-recipe>
@@ -47,12 +43,7 @@
 
 ## Tech debt
 
-- [x] Consolidate how ingredients, method and nutrition data is rendered
-- [x] Consolidate form schemas
-- [x] Consolidate the two AI recipe parse functions
-- [x] Create limits and restrictions rules like image uploads in one place and share across the app. Single source of truth
-- [x] Consolidate all image upload UI and functionality
-- [x] Store app name in a global const and replace all instances with it
+- [ ] Image upload needs some work. Need to decouple logic from the FE with hooks and create reusable components for upload.
 - [ ] Shopping list is very complex. A refactor is needed keeping all state at the root and reducing complexity where possible. Components should be abstracted where possible and optimistic updates should also be added. This needs to be done manually and not with AI.
 
 ## Minor updates
@@ -68,7 +59,6 @@
 - [ ] Update app icons.
 - [ ] Add OpenGraph meta information to all pages.
 - [ ] Separate 404 for home (site) and app. They need different redirects and copy
-- [x] Update sticky bottom calc accounting for navbar; currently: `bottom-[calc(64px+env(safe-area-inset-bottom))]`
 - [ ] On saving a recipe from teh create recipe form the users should be guided to it and the form drawer should close
 - [ ] Pages that have been made server side just for meta data and then export a client component for all logic can now include that logic directly and shift any metadata or server information to the layout file of the page (see invitations page).
 - [ ] Should be able to trigger the add recipe navigation from anywhere. Time to add it to its own page or wrap the app in context to provide a method to open it.

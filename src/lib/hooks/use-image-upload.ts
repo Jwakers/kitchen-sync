@@ -1,15 +1,12 @@
 "use client";
 
 import { validateImageFile } from "@/app/constants";
+import { isHeicFile, processImageFile } from "@/lib/utils/heic-conversion";
 import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
 import { useMutation } from "convex/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import {
-  isHeicFile,
-  processImageFile,
-} from "@/lib/utils/heic-conversion";
 
 export interface UseImageUploadOptions {
   /** Callback when upload completes successfully */
@@ -42,19 +39,15 @@ export interface UseImageUploadReturn {
  * Handles validation, preview, and upload to Convex storage
  */
 export function useImageUpload(
-  options: UseImageUploadOptions = {}
+  options: UseImageUploadOptions = {},
 ): UseImageUploadReturn {
-  const {
-    onUploadComplete,
-    onUploadError,
-    timeout = 30000,
-  } = options;
+  const { onUploadComplete, onUploadError, timeout = 30000 } = options;
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrlState] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const previewUrlRef = useRef<string | null>(null);
-
+  const selectionTokenRef = useRef(0);
   const generateUploadUrl = useMutation(api.recipes.generateUploadUrl);
 
   // Clean up preview URLs
@@ -82,7 +75,7 @@ export function useImageUpload(
       previewUrlRef.current = url;
       setPreviewUrlState(url);
     },
-    [revokePreviewUrl]
+    [revokePreviewUrl],
   );
 
   const handleFileSelect = useCallback(
@@ -91,12 +84,14 @@ export function useImageUpload(
         return null;
       }
 
+      const selectionToken = ++selectionTokenRef.current;
+
       // Process HEIC/HEIF files first
       let processedFile = file;
       if (isHeicFile(file)) {
         try {
           const conversionPromise = processImageFile(file);
-          
+
           toast.promise(conversionPromise, {
             loading: `Converting ${file.name}...`,
             success: "HEIC image converted to JPEG",
@@ -107,6 +102,9 @@ export function useImageUpload(
           });
 
           processedFile = await conversionPromise;
+          if (selectionToken !== selectionTokenRef.current) {
+            return null;
+          }
         } catch (error) {
           // Error already handled by toast.promise
           console.error("HEIC conversion failed:", error);
@@ -130,7 +128,7 @@ export function useImageUpload(
 
       return processedFile;
     },
-    [setPreviewUrl]
+    [setPreviewUrl],
   );
 
   const upload = useCallback(async (): Promise<Id<"_storage"> | null> => {
