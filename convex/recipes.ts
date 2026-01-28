@@ -2,7 +2,12 @@ import { ConvexError, v } from "convex/values";
 import { Doc } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
 import { canAccessRecipe } from "./households";
-import { categoriesUnion, preparationUnion, unitsUnion } from "./schema";
+import {
+  categoriesUnion,
+  creationSourceUnion,
+  preparationUnion,
+  unitsUnion,
+} from "./schema";
 import {
   getCurrentUser,
   getCurrentUserOrThrow,
@@ -185,6 +190,7 @@ export const createEmptyRecipe = mutation({
       cookTime: undefined,
       serves: 1, // Must be at least 1 to match frontend schema validation
       category: "main",
+      creationSource: "manual",
       updatedAt: Date.now(),
     });
 
@@ -194,6 +200,7 @@ export const createEmptyRecipe = mutation({
 
 export const createRecipe = mutation({
   args: {
+    creationSource: creationSourceUnion,
     title: v.string(),
     description: v.optional(v.string()),
     prepTime: v.number(),
@@ -286,6 +293,7 @@ export const createRecipe = mutation({
       category: args.category,
       ingredients,
       method: args.method,
+      creationSource: args.creationSource,
       nutrition: args.nutrition,
       originalUrl: args.originalUrl,
       originalAuthor: args.originalAuthor,

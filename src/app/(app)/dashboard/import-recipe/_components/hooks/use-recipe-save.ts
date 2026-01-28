@@ -1,6 +1,7 @@
 import { fetchImageServerSide } from "@/app/(app)/actions/fetch-image";
 import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
+import { RECIPE_CREATION_SOURCES } from "convex/lib/constants";
 import { useMutation } from "convex/react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -10,6 +11,8 @@ import {
   type RecipeImportFormData,
 } from "@/lib/schemas/recipe";
 import { type ParsedRecipeForDB } from "@/lib/types/recipe-parser";
+
+export type RecipeCreationSource = (typeof RECIPE_CREATION_SOURCES)[number];
 
 export function useRecipeSave() {
   const [isSaved, setIsSaved] = useState(false);
@@ -78,7 +81,8 @@ export function useRecipeSave() {
 
   const validateAndSaveRecipe = async (
     recipeData: ParsedRecipeForDB | RecipeImportFormData,
-    parsedRecipe?: ParsedRecipeForDB | null,
+    parsedRecipe: ParsedRecipeForDB | null | undefined,
+    creationSource: RecipeCreationSource,
   ) => {
     try {
       setIsSaving(true);
@@ -117,6 +121,7 @@ export function useRecipeSave() {
         validationErrors,
         error: mutationError,
       } = await createRecipeMutation({
+        creationSource,
         title: validatedRecipe.title,
         description: validatedRecipe.description,
         prepTime: validatedRecipe.prepTime,

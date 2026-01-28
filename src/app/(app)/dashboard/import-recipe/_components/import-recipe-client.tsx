@@ -35,12 +35,28 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { EditImportedRecipe } from "./edit-imported-recipe";
 import { usePhotoImport } from "./hooks/use-photo-import";
-import { useRecipeSave } from "./hooks/use-recipe-save";
+import {
+  type RecipeCreationSource,
+  useRecipeSave,
+} from "./hooks/use-recipe-save";
 import { useTextImport } from "./hooks/use-text-import";
 import { useUrlImport } from "./hooks/use-url-import";
 import { TextToRecipeParser } from "./text-to-recipe-parser";
 
 type ImportSource = "url" | "text" | "photo";
+
+function importSourceToCreationSource(
+  source: ImportSource,
+): RecipeCreationSource {
+  switch (source) {
+    case "url":
+      return "imported_website";
+    case "text":
+      return "imported_text";
+    case "photo":
+      return "imported_photograph";
+  }
+}
 
 export function ImportRecipeClient() {
   const router = useRouter();
@@ -170,6 +186,7 @@ export function ImportRecipeClient() {
     const result = await recipeSave.validateAndSaveRecipe(
       parsedRecipe,
       parsedRecipe,
+      importSourceToCreationSource(importSource),
     );
     if (result.shouldEdit) {
       setIsEditMode(true);
@@ -181,6 +198,7 @@ export function ImportRecipeClient() {
     const result = await recipeSave.validateAndSaveRecipe(
       editedRecipe,
       parsedRecipe,
+      importSourceToCreationSource(importSource),
     );
     if (result.shouldEdit) {
       setIsEditMode(true);
