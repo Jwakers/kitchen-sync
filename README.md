@@ -8,15 +8,15 @@
 - [x] Refactor to use [Vercel AI SDK](https://ai-sdk.dev/docs/introduction).
 - [ ] Identify features that will increase my app usage
   - [x] Photograph a recipe book and import.
-  - [ ] Remove/expand free plan limits during beta
+  - [x] Remove/expand free plan limits during beta
   - [x] Take reddit users feedback and turn it into actionable feedback points
   - [x] Import type should be a part of each recipe. This should be added to the schema.
-  - [ ] Recipe mode. Screen stays on, full screen, next and previous arrows etc
-  - [ ] Dictate a recipe.
+  - [x] Recipe mode. Screen stays on, full screen, next and previous arrows etc
   - [ ] Set up notifications and decide what to notify users on and when to notify
         them. Add settings so users can control what they get notified about. Add to agents.md that when new relevant features get added, a notification should be considered for it too.
   - [ ] Update the home page with clear messaging on these features.
 - [ ] Try the post on Reddit and IH again and see if we can get any active users.
+- [ ] Try out indie app circle too: https://www.indieappcircle.com/
 - [ ] The app is supposed to make meal planning and weekly shops easier. Does it do that? If not yet, what are the next steps?
 
 ### User feedback – Import experience (post-import UX)
@@ -40,6 +40,7 @@ Feedback: Import feels reliable and the edit page is clear, but the biggest oppo
 - [ ] Its is possible for the parser to output technically correct but odd ingredient mappings like 0.5 Whole Lime. This can be seen when extracting this recipe: <https://www.greatbritishchefs.com/recipes/salmon-kilaw-recipe>
 - [ ] Overflow issue on shopping page (IOS)
 - [ ] navigation bar on mobile in unbalanced. Plus button is off center.
+- [ ] Recipe page loading skeleton overflows
 
 ## Tech debt
 
