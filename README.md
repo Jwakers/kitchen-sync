@@ -12,12 +12,15 @@
   - [x] Take reddit users feedback and turn it into actionable feedback points
   - [x] Import type should be a part of each recipe. This should be added to the schema.
   - [x] Recipe mode. Screen stays on, full screen, next and previous arrows etc
+    - [x] Need safe are inset considered (including close button)
+    - [x] Landscape should be full width dialog. Increase the max width
+  - [ ] Update the home page with clear messaging on these features.
   - [ ] Set up notifications and decide what to notify users on and when to notify
         them. Add settings so users can control what they get notified about. Add to agents.md that when new relevant features get added, a notification should be considered for it too.
-  - [ ] Update the home page with clear messaging on these features.
 - [ ] Try the post on Reddit and IH again and see if we can get any active users.
 - [ ] Try out [Indie App Circle](https://www.indieappcircle.com/) too
 - [ ] The app is supposed to make meal planning and weekly shops easier. Does it do that? If not yet, what are the next steps?
+- [ ] Weekly meal planning features
 
 ### User feedback – Import experience (post-import UX)
 
@@ -49,7 +52,6 @@ Feedback: Import feels reliable and the edit page is clear, but the biggest oppo
 
 ## Minor updates
 
-- [ ] When a recipe is saved from the create recipe form, give the users a link in the toast to the new recipe page
 - [ ] Recipe description needs clamping or moving on mobile
 - [ ] Handle my-recipe pagination (limit to 20 per page)
 - [ ] Add client side compression to before uploading images using browser-image-compression
@@ -57,21 +59,19 @@ Feedback: Import feels reliable and the edit page is clear, but the biggest oppo
 - [ ] On recipe pages add a "Mise en place" section that shows all the preparations steps based on what ingredients have preparation set
 - [ ] Update the UI for selecting units and prep to show categories and share across all forms. Use a categorised table like display
 - [ ] Sign in / Sign up pages should respect dark mode as well as looking a bit more native to the site
-- [ ] Update app icons.
 - [ ] Add OpenGraph meta information to all pages.
 - [ ] Separate 404 for home (site) and app. They need different redirects and copy
-- [ ] On saving a recipe from teh create recipe form the users should be guided to it and the form drawer should close
 - [ ] Pages that have been made server side just for meta data and then export a client component for all logic can now include that logic directly and shift any metadata or server information to the layout file of the page (see invitations page).
 - [ ] Should be able to trigger the add recipe navigation from anywhere. Time to add it to its own page or wrap the app in context to provide a method to open it.
 - [ ] The theme options in the menu are a drop down that opens downwards. This does not look great the options to expand open or the menu should be above not below
-- [ ] Refactor the AI sections to use the vercel AI SDK
+- [x] Refactor the AI sections to use the vercel AI SDK
 - [ ] On the pricing page the free trial is not at all mentioned on the pro plan
 
 ## Major updates
 
 - [ ] Using sharp JS. Set up an endpoint in convex where I can transform images and render them at more appropriate sizes using a custom image loader in next image.
 - [ ] Custom convex endpoint to handle image uploads so I can more readily enforce image upload limits.
-- [ ] Add macros to recipe schema, add a generate macros button that AI does for you. Go back into teh schema scraper and get nutrition data if available
+- [ ] Add macros to recipe schema, add a generate macros button that AI does for you. Go back into the schema scraper and get nutrition data if available
 - [ ] use a KV store or other caching strategy to cache AI parsed recipes to prevent processing more than once.
 - [ ] AI image upscaler for poor quality images (PRO feature)
 - [ ] Stream the AI response for better perceived performance. This may involve two separate calls, one, a human readable response of recipe text, then a final call to coalesce it into structured JSON

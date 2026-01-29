@@ -180,6 +180,11 @@
     padding-top: env(safe-area-inset-top);
   }
 
+  @utility safe-area-inset-x {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
   @utility bottom-nav {
     bottom: calc(var(--nav-height,72px) + 1rem);
   }
