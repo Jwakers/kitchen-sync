@@ -14,7 +14,7 @@
   - [x] Recipe mode. Screen stays on, full screen, next and previous arrows etc
     - [x] Need safe are inset considered (including close button)
     - [x] Landscape should be full width dialog. Increase the max width
-  - [ ] Update the home page with clear messaging on these features.
+  - [x] Update the home page with clear messaging on these features.
   - [ ] Set up notifications and decide what to notify users on and when to notify
         them. Add settings so users can control what they get notified about. Add to agents.md that when new relevant features get added, a notification should be considered for it too.
 - [ ] Try the post on Reddit and IH again and see if we can get any active users.

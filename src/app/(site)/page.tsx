@@ -4,6 +4,7 @@ import { APP_NAME, ROUTES } from "@/app/constants";
 import InstallPrompt from "@/components/installation-prompt";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { SignUpButton } from "@clerk/nextjs";
 import { Authenticated, Unauthenticated } from "convex/react";
 import {
@@ -14,9 +15,8 @@ import {
   Sparkles,
   Users,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
-import { FeatureImagePlaceholder } from "./_components/feature-image-placeholder";
-import { cn } from "@/lib/utils";
 
 export default function Home() {
   return (
@@ -32,7 +32,7 @@ export default function Home() {
             <Badge
               variant="secondary"
               className={cn(
-                "w-fit bg-primary/10 text-primary border-primary/20 text-sm px-4 py-2"
+                "w-fit bg-primary/10 text-primary border-primary/20 text-sm px-4 py-2",
               )}
             >
               <Sparkles className="size-4 mr-2" />
@@ -114,10 +114,12 @@ export default function Home() {
       {/* Beta callout */}
       <section className="container mx-auto px-4 mt-8">
         <div className="rounded-lg border border-primary/20 bg-primary/5 p-6 text-center max-w-2xl mx-auto">
-          <h2 className="font-semibold text-foreground mb-2">We&apos;re in beta</h2>
+          <h2 className="font-semibold text-foreground mb-2">
+            We&apos;re in beta
+          </h2>
           <p className="text-muted-foreground text-sm">
-            Every feature is free while we build. Your feedback shapes what we do
-            next.{" "}
+            Every feature is free while we build. Your feedback shapes what we
+            do next.{" "}
             <Link
               href="/beta"
               className="text-primary hover:text-primary/80 underline underline-offset-2"
@@ -153,13 +155,25 @@ export default function Home() {
                 <Link href={ROUTES.IMPORT_RECIPE}>Import a recipe</Link>
               </Button>
             </div>
-            <FeatureImagePlaceholder title="Import from URL" />
+            <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden border border-border">
+              <Image
+                src="/app-images/import-page.png"
+                alt="Import a recipe from a URL in Kitchen Sync"
+                fill
+                className="object-cover"
+              />
+            </div>
           </div>
 
           {/* 2. Recipe books + create your own — image left */}
           <div className="grid lg:grid-cols-2 gap-12 items-center mb-20">
-            <div className="order-2 lg:order-1">
-              <FeatureImagePlaceholder title="Add recipe / Import from photo" />
+            <div className="order-2 lg:order-1 relative aspect-[16/10] w-full rounded-lg overflow-hidden border border-border">
+              <Image
+                src="/app-images/my-recipes.png"
+                alt="My recipes and add recipe in Kitchen Sync"
+                fill
+                className="object-cover"
+              />
             </div>
             <div className="space-y-4 order-1 lg:order-2">
               <h3 className="text-2xl font-bold">
@@ -186,13 +200,25 @@ export default function Home() {
                 Half the sugar, double the garlic — your way.
               </p>
             </div>
-            <FeatureImagePlaceholder title="Recipe edit view" />
+            <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden border border-border">
+              <Image
+                src="/app-images/recipe-page.png"
+                alt="Edit a recipe to make it your own in Kitchen Sync"
+                fill
+                className="object-cover"
+              />
+            </div>
           </div>
 
           {/* 4. Household sharing — image left */}
           <div className="grid lg:grid-cols-2 gap-12 items-center mb-20">
-            <div className="order-2 lg:order-1">
-              <FeatureImagePlaceholder title="Household / shared recipes" />
+            <div className="order-2 lg:order-1 relative aspect-[16/10] w-full rounded-lg overflow-hidden border border-border">
+              <Image
+                src="/app-images/household-recipes.png"
+                alt="Share recipes with your household in Kitchen Sync"
+                fill
+                className="object-cover"
+              />
             </div>
             <div className="space-y-4 order-1 lg:order-2">
               <div className="flex items-center gap-2">
@@ -211,45 +237,50 @@ export default function Home() {
             </div>
           </div>
 
-          {/* 5. Weekly shopping list — image right */}
-          <div className="grid lg:grid-cols-2 gap-12 items-center mb-20">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
+          {/* 5 & 6. Shopping list + Chalkboard — two columns, no images */}
+          <div className="grid lg:grid-cols-2 gap-6 md:gap-12 items-stretch">
+            <div className="relative p-6 pt-14 rounded-lg border border-border bg-card overflow-visible">
+              <div
+                className={cn(
+                  "absolute top-4 right-4 size-12 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center",
+                )}
+              >
                 <ShoppingCart className="size-6 text-primary" />
-                <h3 className="text-2xl font-bold">
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-2xl font-bold pr-10">
                   Forgotten ingredients and chaotic shops?
                 </h3>
+                <p className="text-muted-foreground">
+                  Generate a list from your planned recipes for the week. Check
+                  off as you go and stop doubling back for that one thing.
+                </p>
+                <Button asChild variant="outline" size="sm">
+                  <Link href={ROUTES.SHOPPING_LIST}>Shopping list</Link>
+                </Button>
               </div>
-              <p className="text-muted-foreground">
-                Generate a list from your planned recipes for the week. Check
-                off as you go and stop doubling back for that one thing.
-              </p>
-              <Button asChild variant="outline" size="sm">
-                <Link href={ROUTES.SHOPPING_LIST}>Shopping list</Link>
-              </Button>
             </div>
-            <FeatureImagePlaceholder title="Shopping list" />
-          </div>
-
-          {/* 6. Chalkboard — image left */}
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1">
-              <FeatureImagePlaceholder title="Chalkboard" />
-            </div>
-            <div className="space-y-4 order-1 lg:order-2">
-              <div className="flex items-center gap-2">
+            <div className="relative p-6 pt-14 rounded-lg border border-border bg-card overflow-visible">
+              <div
+                className={cn(
+                  "absolute top-4 right-4 size-12 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center",
+                )}
+              >
                 <ClipboardList className="size-6 text-primary" />
-                <h3 className="text-2xl font-bold">
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-2xl font-bold pr-10">
                   Always forgetting pantry staples by Friday?
                 </h3>
+                <p className="text-muted-foreground">
+                  A shared chalkboard for &quot;need by end of week&quot; —
+                  milk, olive oil, tin foil. So the basics don&apos;t get
+                  missed.
+                </p>
+                <Button asChild variant="outline" size="sm">
+                  <Link href={ROUTES.CHALKBOARD}>Chalkboard</Link>
+                </Button>
               </div>
-              <p className="text-muted-foreground">
-                A shared chalkboard for &quot;need by end of week&quot; — milk,
-                olive oil, tin foil. So the basics don&apos;t get missed.
-              </p>
-              <Button asChild variant="outline" size="sm">
-                <Link href={ROUTES.CHALKBOARD}>Chalkboard</Link>
-              </Button>
             </div>
           </div>
         </div>
@@ -262,8 +293,8 @@ export default function Home() {
             Less admin. Less stress. More time for the fun parts of cooking.
           </h2>
           <p className="text-muted-foreground">
-            {APP_NAME} helps you get your recipes, your week, and your
-            household in sync — so you can focus on what you actually enjoy.
+            {APP_NAME} helps you get your recipes, your week, and your household
+            in sync — so you can focus on what you actually enjoy.
           </p>
         </div>
       </section>
