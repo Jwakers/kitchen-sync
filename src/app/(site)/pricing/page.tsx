@@ -45,8 +45,8 @@ export default function PricingPage() {
               Simple, Transparent Pricing
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              We&apos;re currently in beta. Only our free plan is available now,
-              with more plans rolling out soon.
+              We&apos;re currently in beta. Everyone gets access to all features,
+              including premium — no plan limits while we build.
             </p>
           </div>
 
@@ -77,19 +77,14 @@ export default function PricingPage() {
                 </h3>
                 <div className="space-y-3 text-muted-foreground">
                   <p>
-                    {APP_NAME} is currently in beta, and only our free plan is
-                    available at this time. Your feedback during this period is
-                    invaluable as we continue to improve and refine the
-                    platform.
-                  </p>
-                  <p>
-                    We&apos;re actively developing additional plans and features
-                    that will be rolled out soon. Beta users will get access to
-                    new features as they arrive.
+                    {APP_NAME} is currently in beta. During this time, everyone
+                    gets access to all features, including premium — there are
+                    no plan limits. Your feedback is invaluable as we improve and
+                    refine the platform.
                   </p>
                   <p className="font-medium text-foreground">
-                    Join now as a beta user and be the first to experience new
-                    features!
+                    Join now and use everything we offer. We&apos;ll share updates
+                    when plans change in the future.
                   </p>
                 </div>
               </CardContent>

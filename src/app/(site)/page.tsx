@@ -1,64 +1,60 @@
 "use client";
 
-import { APP_NAME } from "@/app/constants";
+import { APP_NAME, ROUTES } from "@/app/constants";
 import InstallPrompt from "@/components/installation-prompt";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { SignUpButton } from "@clerk/nextjs";
 import { Authenticated, Unauthenticated } from "convex/react";
 import {
   ArrowRight,
   CheckCircle,
-  ChefHat,
   ClipboardList,
   ShoppingCart,
   Sparkles,
   Users,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
-import { ROUTES } from "../constants";
 
 export default function Home() {
   return (
     <div className="flex flex-col">
-      {/* Hero Section - Centered Design */}
+      {/* Hero Section */}
       <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
-        {/* Background Elements */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5"></div>
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl opacity-30"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/10 rounded-full blur-3xl opacity-30"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl opacity-30" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/10 rounded-full blur-3xl opacity-30" />
 
-        {/* Content */}
         <div className="relative z-10 container mx-auto px-4 text-center max-w-4xl">
           <div className="space-y-8 py-4">
-            {/* Badge */}
             <Badge
               variant="secondary"
-              className="w-fit bg-primary/10 text-primary border-primary/20 text-sm px-4 py-2"
+              className={cn(
+                "w-fit bg-primary/10 text-primary border-primary/20 text-sm px-4 py-2",
+              )}
             >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Now in Beta - Free to use
+              <Sparkles className="size-4 mr-2" />
+              Now in Beta — Free to use
             </Badge>
 
-            {/* Main Headline */}
             <div className="space-y-6">
               <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-                MEAL PLANNING
+                LESS PLANNING.
                 <br />
                 <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                  MADE SIMPLE
+                  MORE COOKING.
                 </span>
               </h1>
 
               <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                Focus on exciting meals and cooking, not dreading the weekly
-                shop. {APP_NAME} makes planning trivial so you can enjoy the
-                fun parts.
+                Your recipes are scattered. The weekly shop is chaos. {APP_NAME}{" "}
+                brings everything into one place so you can focus on the fun
+                parts of cooking — not the admin.
               </p>
             </div>
 
-            {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Authenticated>
                 <Button
@@ -68,7 +64,7 @@ export default function Home() {
                 >
                   <Link href={ROUTES.DASHBOARD}>
                     Go to Dashboard
-                    <ArrowRight className="ml-2 h-5 w-5" />
+                    <ArrowRight className="ml-2 size-5" />
                   </Link>
                 </Button>
               </Authenticated>
@@ -79,234 +75,231 @@ export default function Home() {
                     className="text-lg px-8 py-4 h-auto shadow-lg hover:shadow-xl transition-all duration-300"
                   >
                     Get Started Free
-                    <ArrowRight className="ml-2 h-5 w-5" />
+                    <ArrowRight className="ml-2 size-5" />
                   </Button>
                 </SignUpButton>
               </Unauthenticated>
+              <a
+                href="#features"
+                className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-2"
+              >
+                See how it works
+              </a>
             </div>
 
-            {/* Trust Indicators */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-muted-foreground pt-8">
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-primary" />
+                <CheckCircle className="size-4 text-primary" />
                 <span>No credit card required</span>
               </div>
-              <div className="hidden sm:block w-1 h-1 bg-muted-foreground/30 rounded-full"></div>
+              <div className="hidden sm:block size-1 bg-muted-foreground/30 rounded-full" />
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-primary" />
+                <CheckCircle className="size-4 text-primary" />
                 <span>Start planning today</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Floating Elements */}
-        <div className="absolute top-20 left-10 w-16 h-16 bg-primary/20 rounded-2xl rotate-12 opacity-60"></div>
-        <div className="absolute top-40 right-20 w-12 h-12 bg-accent/20 rounded-full opacity-60"></div>
-        <div className="absolute bottom-32 left-20 w-20 h-20 bg-primary/15 rounded-3xl -rotate-12 opacity-60"></div>
-        <div className="absolute bottom-20 right-10 w-14 h-14 bg-accent/15 rounded-2xl rotate-45 opacity-60"></div>
+        <div className="absolute top-20 left-10 size-16 bg-primary/20 rounded-2xl rotate-12 opacity-60" />
+        <div className="absolute top-40 right-20 size-12 bg-accent/20 rounded-full opacity-60" />
+        <div className="absolute bottom-32 left-20 size-20 bg-primary/15 rounded-3xl -rotate-12 opacity-60" />
+        <div className="absolute bottom-20 right-10 size-14 bg-accent/15 rounded-2xl rotate-45 opacity-60" />
       </section>
 
       <div className="container mt-4">
         <InstallPrompt />
       </div>
 
-      {/* Core Features Section */}
-      <section className="py-20 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">
-              Everything you need to plan meals
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Four simple tools that work together to make meal planning
-              effortless
-            </p>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-4xl mx-auto">
-            <Card className="text-center p-6 hover:shadow-lg transition-shadow">
-              <div className="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <ChefHat className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="font-semibold text-lg mb-2">Recipe Collection</h3>
-              <p className="text-sm text-muted-foreground">
-                Create, import, and organise your favourite recipes
-              </p>
-            </Card>
-
-            <Card className="text-center p-6 hover:shadow-lg transition-shadow">
-              <div className="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <ShoppingCart className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="font-semibold text-lg mb-2">
-                Smart Shopping Lists
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Generate organised lists from your recipes
-              </p>
-            </Card>
-
-            <Card className="text-center p-6 hover:shadow-lg transition-shadow">
-              <div className="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <ClipboardList className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="font-semibold text-lg mb-2">Kitchen Chalkboard</h3>
-              <p className="text-sm text-muted-foreground">
-                Quick household shopping notes
-              </p>
-            </Card>
-
-            <Card className="text-center p-6 hover:shadow-lg transition-shadow">
-              <div className="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Users className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="font-semibold text-lg mb-2">Family Sync</h3>
-              <p className="text-sm text-muted-foreground">
-                Share recipes and lists with your household
-              </p>
-            </Card>
-          </div>
+      {/* Beta callout */}
+      <section className="container mx-auto px-4 mt-8">
+        <div className="rounded-lg border border-primary/20 bg-primary/5 p-6 text-center max-w-2xl mx-auto">
+          <h2 className="font-semibold text-foreground mb-2">
+            We&apos;re in beta
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            Every feature is free while we build. Your feedback shapes what we
+            do next.{" "}
+            <Link
+              href="/beta"
+              className="text-primary hover:text-primary/80 underline underline-offset-2"
+            >
+              Learn more about the beta
+            </Link>
+          </p>
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section className="py-20 bg-background">
-        <div className="container mx-auto px-4">
+      {/* Features */}
+      <section id="features" className="py-20 bg-muted/30 scroll-mt-20">
+        <div className="container mx-auto px-4 max-w-5xl">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">How it works</h2>
+            <h2 className="text-3xl font-bold mb-4">How we help</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Simple steps to transform your meal planning
+              One place for your recipes, your week, and your household
             </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl mx-auto">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold">
-                1
-              </div>
-              <h3 className="font-semibold mb-2">Add Your Recipes</h3>
-              <p className="text-sm text-muted-foreground">
-                Create recipes manually, import from URLs, or paste recipe text
+
+          {/* 1. Import from websites — image right */}
+          <div className="grid lg:grid-cols-2 gap-12 items-center mb-20">
+            <div className="space-y-4">
+              <h3 className="text-2xl font-bold">
+                Sick of scrolling past a novel to get to the recipe?
+              </h3>
+              <p className="text-muted-foreground">
+                Paste a URL and we pull the recipe into {APP_NAME}. Straight to
+                the point every time — no life stories, no endless scroll. Then
+                save it and tweak it to make it yours.
+              </p>
+              <Button asChild variant="outline" size="sm">
+                <Link href={ROUTES.IMPORT_RECIPE}>Import a recipe</Link>
+              </Button>
+            </div>
+            <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden border border-border">
+              <Image
+                src="/app-images/import-page.png"
+                alt="Import a recipe from a URL in Kitchen Sync"
+                fill
+                className="object-cover"
+              />
+            </div>
+          </div>
+
+          {/* 2. Recipe books + create your own — image left */}
+          <div className="grid lg:grid-cols-2 gap-12 items-center mb-20">
+            <div className="order-2 lg:order-1 relative aspect-[16/10] w-full rounded-lg overflow-hidden border border-border">
+              <Image
+                src="/app-images/my-recipes.png"
+                alt="My recipes and add recipe in Kitchen Sync"
+                fill
+                className="object-cover"
+              />
+            </div>
+            <div className="space-y-4 order-1 lg:order-2">
+              <h3 className="text-2xl font-bold">
+                Favourite recipes in books or in your head?
+              </h3>
+              <p className="text-muted-foreground">
+                Snap a photo from a recipe book or type from scratch. One place
+                for everything you love to cook.
+              </p>
+              <Button asChild variant="outline" size="sm">
+                <Link href={ROUTES.IMPORT_RECIPE}>Add a recipe</Link>
+              </Button>
+            </div>
+          </div>
+
+          {/* 3. Customise every recipe — image right */}
+          <div className="grid lg:grid-cols-2 gap-12 items-center mb-20">
+            <div className="space-y-4">
+              <h3 className="text-2xl font-bold">
+                One-size-fits-all recipes that don&apos;t fit your kitchen?
+              </h3>
+              <p className="text-muted-foreground">
+                Edit ingredients, steps, and notes so every recipe is yours.
+                Half the sugar, double the garlic — your way.
               </p>
             </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold">
-                2
-              </div>
-              <h3 className="font-semibold mb-2">Browse & Organise</h3>
-              <p className="text-sm text-muted-foreground">
-                View your collection, search by category, and find what you need
-              </p>
+            <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden border border-border">
+              <Image
+                src="/app-images/recipe-page.png"
+                alt="Edit a recipe to make it your own in Kitchen Sync"
+                fill
+                className="object-cover"
+              />
             </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold">
-                3
-              </div>
-              <h3 className="font-semibold mb-2">Generate Lists</h3>
-              <p className="text-sm text-muted-foreground">
-                Create smart shopping lists from your selected recipes
-              </p>
+          </div>
+
+          {/* 4. Household sharing — image left */}
+          <div className="grid lg:grid-cols-2 gap-12 items-center mb-20">
+            <div className="order-2 lg:order-1 relative aspect-[16/10] w-full rounded-lg overflow-hidden border border-border">
+              <Image
+                src="/app-images/household-recipes.png"
+                alt="Share recipes with your household in Kitchen Sync"
+                fill
+                className="object-cover"
+              />
             </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold">
-                4
+            <div className="space-y-4 order-1 lg:order-2">
+              <div className="flex items-center gap-2">
+                <Users className="size-6 text-primary" />
+                <h3 className="text-2xl font-bold">
+                  Nobody&apos;s on the same page about meals?
+                </h3>
               </div>
-              <h3 className="font-semibold mb-2">Share & Collaborate</h3>
-              <p className="text-sm text-muted-foreground">
-                Invite household members to share recipes and shopping lists
+              <p className="text-muted-foreground">
+                Share recipes and meal ideas with your household. Plan and cook
+                together so everyone knows what&apos;s for dinner.
               </p>
+              <Button asChild variant="outline" size="sm">
+                <Link href={ROUTES.HOUSEHOLDS}>Households</Link>
+              </Button>
+            </div>
+          </div>
+
+          {/* 5 & 6. Shopping list + Chalkboard — two columns, no images */}
+          <div className="grid lg:grid-cols-2 gap-6 md:gap-12 items-stretch">
+            <div className="relative p-6 pt-14 rounded-lg border border-border bg-card overflow-visible">
+              <div
+                className={cn(
+                  "absolute top-4 right-4 size-12 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center",
+                )}
+              >
+                <ShoppingCart className="size-6 text-primary" />
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-2xl font-bold pr-10">
+                  Forgotten ingredients and chaotic shops?
+                </h3>
+                <p className="text-muted-foreground">
+                  Generate a list from your planned recipes for the week. Check
+                  off as you go and stop doubling back for that one thing.
+                </p>
+                <Button asChild variant="outline" size="sm">
+                  <Link href={ROUTES.SHOPPING_LIST}>Shopping list</Link>
+                </Button>
+              </div>
+            </div>
+            <div className="relative p-6 pt-14 rounded-lg border border-border bg-card overflow-visible">
+              <div
+                className={cn(
+                  "absolute top-4 right-4 size-12 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center",
+                )}
+              >
+                <ClipboardList className="size-6 text-primary" />
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-2xl font-bold pr-10">
+                  Always forgetting pantry staples by Friday?
+                </h3>
+                <p className="text-muted-foreground">
+                  A shared chalkboard for &quot;need by end of week&quot; —
+                  milk, olive oil, tin foil. So the basics don&apos;t get
+                  missed.
+                </p>
+                <Button asChild variant="outline" size="sm">
+                  <Link href={ROUTES.CHALKBOARD}>Chalkboard</Link>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Problem-Solution Section */}
-      <section className="py-20 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
-            {/* Left - Problem */}
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <h2 className="text-3xl lg:text-4xl font-bold">
-                  DREADING THE WEEKLY SHOP?
-                </h2>
-                <p className="text-xl text-muted-foreground">
-                  Meal planning shouldn&apos;t be stressful. Focus on the fun
-                  parts of cooking, not the logistics.
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-destructive rounded-full mt-2"></div>
-                  <p className="text-muted-foreground">
-                    Decision fatigue from endless meal choices
-                  </p>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-destructive rounded-full mt-2"></div>
-                  <p className="text-muted-foreground">
-                    Chaotic shopping trips with forgotten ingredients
-                  </p>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-destructive rounded-full mt-2"></div>
-                  <p className="text-muted-foreground">
-                    Family members not knowing what&apos;s planned
-                  </p>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-destructive rounded-full mt-2"></div>
-                  <p className="text-muted-foreground">
-                    Wasting time on planning instead of cooking
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Right - Solution */}
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <h2 className="text-3xl lg:text-4xl font-bold text-primary">
-                  MAKE PLANNING TRIVIAL
-                </h2>
-                <p className="text-xl text-muted-foreground">
-                  {APP_NAME} makes meal planning fun and interesting, so you
-                  can focus on exciting meals and cooking.
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <CheckCircle className="w-5 h-5 text-primary mt-0.5" />
-                  <p className="text-muted-foreground">
-                    Build your recipe collection effortlessly
-                  </p>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <CheckCircle className="w-5 h-5 text-primary mt-0.5" />
-                  <p className="text-muted-foreground">
-                    Generate organised shopping lists automatically
-                  </p>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <CheckCircle className="w-5 h-5 text-primary mt-0.5" />
-                  <p className="text-muted-foreground">
-                    Share and collaborate with your household
-                  </p>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <CheckCircle className="w-5 h-5 text-primary mt-0.5" />
-                  <p className="text-muted-foreground">
-                    Spend time cooking, not planning
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+      {/* Why this helps */}
+      <section className="py-16 bg-background">
+        <div className="container mx-auto px-4 text-center max-w-2xl">
+          <h2 className="text-2xl font-bold mb-4">
+            Less admin. Less stress. More time for the fun parts of cooking.
+          </h2>
+          <p className="text-muted-foreground">
+            {APP_NAME} helps you get your recipes, your week, and your household
+            in sync — so you can focus on what you actually enjoy.
+          </p>
         </div>
       </section>
 
-      {/* Simple CTA Section */}
+      {/* Final CTA */}
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-2xl mx-auto">
@@ -314,14 +307,14 @@ export default function Home() {
               Ready to make meal planning simple?
             </h2>
             <p className="text-lg text-muted-foreground mb-8">
-              Join families who are already enjoying stress-free meal planning
+              Get started free. No credit card required.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Authenticated>
                 <Button asChild size="lg" className="text-lg px-8">
                   <Link href={ROUTES.DASHBOARD}>
                     Go to Dashboard
-                    <ArrowRight className="ml-2 h-5 w-5" />
+                    <ArrowRight className="ml-2 size-5" />
                   </Link>
                 </Button>
               </Authenticated>
@@ -329,32 +322,11 @@ export default function Home() {
                 <SignUpButton mode="modal">
                   <Button size="lg" className="text-lg px-8">
                     Get Started Free
-                    <ArrowRight className="ml-2 h-5 w-5" />
+                    <ArrowRight className="ml-2 size-5" />
                   </Button>
                 </SignUpButton>
               </Unauthenticated>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* About Section */}
-      <section className="py-20 bg-primary text-primary-foreground">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold mb-6">
-              A bit about {APP_NAME}
-            </h2>
-            <p className="text-lg text-primary-foreground/90 leading-relaxed">
-              {APP_NAME} was born from the frustration of endless
-              &quot;What&apos;s for dinner?&quot; questions and chaotic grocery
-              shopping. We believe meal planning should be simple,
-              collaborative, and stress-free. Our platform brings families
-              together around food, making it easy to plan, shop, and cook meals
-              that everyone will love. We&apos;re a growing platform focused on
-              making meal planning fun and interesting, so you can focus on the
-              exciting parts of cooking.
-            </p>
           </div>
         </div>
       </section>

@@ -97,7 +97,7 @@ export function CookModeOverlay({ recipe, onClose }: CookModeOverlayProps) {
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent
         showCloseButton={false}
-        className="h-dvh max-h-dvh w-full max-w-full translate-x-[-50%] translate-y-[-50%] gap-0 border-0 rounded-none bg-card p-0 shadow-lg focus:outline-none"
+        className="h-dvh max-h-dvh w-full max-w-full md:max-w-full translate-x-[-50%] translate-y-[-50%] gap-0 border-0 rounded-none bg-card p-0 shadow-lg focus:outline-none"
         aria-describedby={undefined}
       >
         <DialogTitle className="sr-only">
@@ -117,7 +117,7 @@ export function CookModeOverlay({ recipe, onClose }: CookModeOverlayProps) {
 
           {/* Content - scrollable, flex-1 min-h-0 so footer stays visible */}
           <div
-            className="flex-1 overflow-y-auto"
+            className="flex-1 overflow-y-auto safe-area-inset"
             role="region"
             aria-current="step"
             aria-label={
@@ -165,7 +165,7 @@ export function CookModeOverlay({ recipe, onClose }: CookModeOverlayProps) {
             </div>
           </div>
 
-          <footer className="sticky bottom-0 flex items-center justify-between gap-4 border-t border-border bg-card/80 px-4 py-4 backdrop-blur-sm">
+          <footer className="sticky bottom-0 safe-area-inset-bottom flex items-center justify-between gap-4 border-t border-border bg-card/80 px-4 py-4 backdrop-blur-sm">
             <Button
               variant="outline"
               size="lg"
