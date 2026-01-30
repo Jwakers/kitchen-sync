@@ -43,7 +43,8 @@ import { toast } from "sonner";
 import { RecipeImageField } from "./recipe-image-field";
 
 type RecipeFormProps = {
-  closeDrawer: () => void;
+  /** When provided (e.g. in drawer), called on close/error. When omitted (standalone page), router is used. */
+  closeDrawer?: () => void;
 };
 
 type FormStep = "basic" | "ingredients" | "method" | "review";
@@ -156,6 +157,39 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
     }));
   }, []);
 
+  const hasFormData = useCallback((values: RecipeCreateFormData) => {
+    return (
+      (values.title?.trim() ?? "") !== "" ||
+      (values.description?.trim() ?? "") !== "" ||
+      values.ingredients.length > 0 ||
+      values.method.length > 0
+    );
+  }, []);
+
+  const saveDraft = useCallback(async () => {
+    if (!recipeId || isSavedRef.current) return;
+    const values = form.getValues();
+    if (!hasFormData(values)) return;
+    try {
+      const methodData = await getMethodData(values);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- image excluded from draft save
+      const { image, ...valuesToUpdate } = values;
+      await updateRecipeMutation({
+        recipeId,
+        ...valuesToUpdate,
+        method: methodData,
+      });
+    } catch (error) {
+      console.error("Failed to save draft on navigation:", error);
+    }
+  }, [
+    form,
+    getMethodData,
+    hasFormData,
+    recipeId,
+    updateRecipeMutation,
+  ]);
+
   const onSubmit = async (values: RecipeCreateFormData) => {
     // Only allow submission when on the review step and not already saved
     if (currentStep !== "review" || isSaved) {
@@ -217,7 +251,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
         }
       }
 
-      closeDrawer();
+      if (closeDrawer) closeDrawer();
       toast.success("Recipe saved successfully");
       // Redirect to recipe page
       router.push(`${ROUTES.RECIPE}/${recipeId}`);
@@ -254,7 +288,8 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
       .then(({ recipeId, error }) => {
         if (error) {
           toast.error(error);
-          closeDrawer();
+          if (closeDrawer) closeDrawer();
+          else router.push(ROUTES.MY_RECIPES);
           return;
         }
         setRecipeId(recipeId);
@@ -264,12 +299,13 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
         toast.error("Unexpected error. Unable to create recipe", {
           description: "Please try again",
         });
-        closeDrawer();
+        if (closeDrawer) closeDrawer();
+        else router.push(ROUTES.MY_RECIPES);
       })
       .finally(() => {
         creatingRecipe.current = false;
       });
-  }, [closeDrawer, createEmptyRecipeMutation, recipeId]);
+  }, [closeDrawer, createEmptyRecipeMutation, recipeId, router]);
 
   useEffect(() => {
     // Update the recipe at each step (but not on review step - user should manually save)
@@ -280,8 +316,7 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
 
     const updateRecipe = async () => {
       const formValues = form.getValues();
-
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- image excluded from step auto-update
       const { image, ...valuesToUpdate } = formValues;
       const methodData = await getMethodData(formValues);
 
@@ -303,12 +338,14 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
     isSaved,
   ]);
 
-  // Clean up empty/unsaved recipe on unmount
+  // On unmount: save draft if form has data (so user can return), else delete empty recipe
   useEffect(() => {
     return () => {
-      // If recipe was created but never saved, delete it
-      // Use ref to get the latest saved state at unmount time
-      if (recipeId && !isSavedRef.current) {
+      if (!recipeId || isSavedRef.current) return;
+      const values = form.getValues();
+      if (hasFormData(values)) {
+        saveDraft();
+      } else {
         deleteRecipeMutation({ recipeId }).catch((error) => {
           console.error("Failed to delete unsaved recipe:", error);
         });
@@ -316,6 +353,19 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recipeId]);
+
+  // Warn on browser close/refresh when form has unsaved data
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isSavedRef.current) return;
+      const values = form.getValues();
+      if (hasFormData(values)) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [form, hasFormData]);
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -869,11 +919,11 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit, onError)}
-        className="h-full flex flex-col overflow-auto overflow-x-hidden"
+        className="relative h-full flex flex-col"
       >
-        {/* Step content */}
-        <div className="flex-1 p-4">
-          <AnimatePresence mode="popLayout" custom={slideDirection}>
+        {/* Step content - mode="wait" avoids jank when steps have different heights (no simultaneous layout) */}
+        <div className="flex-1 p-4 min-h-0">
+          <AnimatePresence mode="wait" custom={slideDirection}>
             <motion.div
               key={currentStep}
               custom={slideDirection}
@@ -882,26 +932,22 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
               exit="exit"
               variants={{
                 initial: (direction: "next" | "prev") => ({
-                  x: direction === "next" ? 300 : -300,
+                  x: direction === "next" ? 80 : -80,
                   opacity: 0,
-                  scale: 0.95,
                 }),
                 animate: {
                   x: 0,
                   opacity: 1,
-                  scale: 1,
                 },
                 exit: (direction: "next" | "prev") => ({
-                  x: direction === "next" ? -300 : 300,
+                  x: direction === "next" ? -80 : 80,
                   opacity: 0,
-                  scale: 0.95,
                 }),
               }}
               transition={{
                 type: "spring",
                 stiffness: 400,
-                damping: 25,
-                mass: 0.6,
+                damping: 30,
               }}
               className="h-full"
             >
@@ -910,7 +956,10 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
           </AnimatePresence>
         </div>
 
-        <div className="sticky bottom-0 from-background/20 to-background bg-linear-to-b backdrop-blur-sm">
+        <div
+          style={{ bottom: `var(--nav-height)` }}
+          className="sticky from-background/20 to-background bg-linear-to-b backdrop-blur-sm"
+        >
           {/* Progress indicator */}
           <div className="px-4 py-3 border-t">
             <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
@@ -947,33 +996,21 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
             </div>
           </div>
 
-          {/* Navigation */}
+          {/* Navigation - Back disabled on first step (no Close option) */}
           <div className="p-4 border-t">
             <div className="flex gap-2">
-              {currentStepIndex > 0 ? (
-                <motion.div className="flex-1" whileTap={{ scale: 0.98 }}>
-                  <Button
-                    type="button"
-                    onClick={prevStep}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    <ArrowLeft className="h-4 w-4 mr-1" />
-                    Back
-                  </Button>
-                </motion.div>
-              ) : (
-                <motion.div className="flex-1" whileTap={{ scale: 0.98 }}>
-                  <Button
-                    type="button"
-                    onClick={closeDrawer}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    Close
-                  </Button>
-                </motion.div>
-              )}
+              <motion.div className="flex-1" whileTap={{ scale: 0.98 }}>
+                <Button
+                  type="button"
+                  onClick={currentStepIndex > 0 ? prevStep : undefined}
+                  variant="outline"
+                  className="w-full"
+                  disabled={currentStepIndex === 0}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-1" />
+                  Back
+                </Button>
+              </motion.div>
 
               {currentStepIndex < steps.length - 1 ? (
                 <motion.div className="flex-1" whileTap={{ scale: 0.98 }}>

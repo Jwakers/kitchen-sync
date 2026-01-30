@@ -18,6 +18,7 @@ export const ROUTES = {
   MY_RECIPES: "/dashboard/my-recipes",
   RECIPE: "/recipe",
   IMPORT_RECIPE: "/dashboard/import-recipe",
+  CREATE_RECIPE: "/dashboard/create-recipe",
   SHOPPING_LIST: "/dashboard/shopping-list",
   HOUSEHOLDS: "/dashboard/households",
   CHALKBOARD: "/dashboard/chalkboard",

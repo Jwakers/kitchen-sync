@@ -15,12 +15,13 @@
     - [x] Need safe are inset considered (including close button)
     - [x] Landscape should be full width dialog. Increase the max width
   - [x] Update the home page with clear messaging on these features.
-  - [ ] Set up notifications and decide what to notify users on and when to notify
-        them. Add settings so users can control what they get notified about. Add to agents.md that when new relevant features get added, a notification should be considered for it too.
+- [x] URGENT: remove create your own recipe from drawer and onto its own page. It is fundamentally broken and does not work on actual devices.
 - [ ] Try the post on Reddit and IH again and see if we can get any active users.
 - [ ] Try out [Indie App Circle](https://www.indieappcircle.com/) too
 - [ ] The app is supposed to make meal planning and weekly shops easier. Does it do that? If not yet, what are the next steps?
 - [ ] Weekly meal planning features
+- [ ] Set up notifications and decide what to notify users on and when to notify
+      them. Add settings so users can control what they get notified about. Add to agents.md that when new relevant features get added, a notification should be considered for it too.
 
 ### User feedback – Import experience (post-import UX)
 

@@ -4,17 +4,17 @@ import { ROUTES } from "@/app/constants";
 import { Button } from "@/components/ui/button";
 import { ChefHat, Clipboard, Home, Plus, ShoppingCart } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { AddRecipeDrawer } from "./add-recipe-drawer";
 
 export function Navbar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.body.style.setProperty(
       "--nav-height",
-      `${navRef.current?.clientHeight}px`
+      `${navRef.current?.clientHeight}px`,
     );
   }, []);
 

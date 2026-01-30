@@ -9,7 +9,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Form } from "@/components/ui/form";
-import useShare from "@/lib/hooks/use-share";
 import {
   recipeEditSchema,
   type RecipeEditFormData,
@@ -22,9 +21,7 @@ import { useMutation, useQuery } from "convex/react";
 import { FunctionReturnType } from "convex/server";
 import {
   ChefHat,
-  Copy,
   Edit,
-  Link2,
   MoreVertical,
   Save,
   Trash2,
@@ -272,21 +269,6 @@ function RecipeControls({
   isRecipeForEditLoaded: boolean;
 }) {
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
-  const { canShare, share, copyToClipboard } = useShare();
-
-  const handleShareLink = async () => {
-    const recipeUrl = `${window.location.origin}/recipe/${recipe._id}`;
-
-    if (canShare) {
-      await share(
-        recipe.title,
-        `Check out this recipe: ${recipe.title}`,
-        recipeUrl,
-      );
-    } else {
-      await copyToClipboard(recipeUrl);
-    }
-  };
 
   return (
     <div
@@ -325,35 +307,16 @@ function RecipeControls({
             </Button>
           )}
           {canEdit && (
-            <>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button type="button" size="lg" variant="outline">
-                    <Users className="h-4 w-4" />
-                    Share
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setIsShareDialogOpen(true)}>
-                    <Users className="h-4 w-4 mr-2" />
-                    Share to Households
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleShareLink}>
-                    {canShare ? (
-                      <>
-                        <Link2 className="h-4 w-4 mr-2" />
-                        Share Link
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-4 w-4 mr-2" />
-                        Copy Link
-                      </>
-                    )}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
+            <Button
+              type="button"
+              size="lg"
+              variant="outline"
+              onClick={() => setIsShareDialogOpen(true)}
+              className="gap-2"
+            >
+              <Users className="size-4" />
+              Share with household
+            </Button>
           )}
           {canEdit && (
             <DropdownMenu>

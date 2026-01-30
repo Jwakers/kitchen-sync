@@ -1,7 +1,6 @@
 "use client";
 
 import { ROUTES } from "@/app/constants";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   Drawer,
@@ -10,10 +9,8 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { ArrowLeft, Camera, Globe, Palette } from "lucide-react";
+import { Camera, Globe, Palette } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { RecipeForm } from "./recipe-form";
 
 type AddRecipeDrawerProps = {
   open: boolean;
@@ -21,47 +18,6 @@ type AddRecipeDrawerProps = {
 };
 
 export function AddRecipeDrawer({ open, onOpenChange }: AddRecipeDrawerProps) {
-  const [showForm, setShowForm] = useState(false);
-
-  const handleCreateOwn = () => {
-    setShowForm(true);
-  };
-
-  const handleBack = () => {
-    setShowForm(false);
-  };
-
-  useEffect(() => {
-    if (open) return;
-    setShowForm(false);
-  }, [open]);
-
-  if (showForm) {
-    return (
-      <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent>
-          <DrawerHeader>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleBack}
-                className="h-8 w-8"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <DrawerTitle>Create Recipe</DrawerTitle>
-            </div>
-            <DrawerDescription>
-              Fill in the details to create your recipe
-            </DrawerDescription>
-          </DrawerHeader>
-          <RecipeForm closeDrawer={() => onOpenChange(false)} />
-        </DrawerContent>
-      </Drawer>
-    );
-  }
-
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent>
@@ -109,10 +65,9 @@ export function AddRecipeDrawer({ open, onOpenChange }: AddRecipeDrawerProps) {
             </Card>
           </Link>
 
-          <button
-            onClick={handleCreateOwn}
-            type="button"
-            className="cursor-pointer"
+          <Link
+            href={ROUTES.CREATE_RECIPE}
+            onClick={() => onOpenChange(false)}
             aria-label="Create Your Own"
           >
             <Card className="p-6 text-left">
@@ -128,7 +83,7 @@ export function AddRecipeDrawer({ open, onOpenChange }: AddRecipeDrawerProps) {
                 </div>
               </div>
             </Card>
-          </button>
+          </Link>
         </div>
       </DrawerContent>
     </Drawer>
