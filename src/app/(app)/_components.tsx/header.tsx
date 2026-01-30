@@ -42,7 +42,7 @@ import {
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { getCannyBoardUrl } from "./canny-identify";
 
 export function Header() {
@@ -56,7 +56,7 @@ export function Header() {
   const baseCannyBoardUrl = process.env.NEXT_PUBLIC_CANNY_BOARD_URL;
   const cannyBoardUrl = baseCannyBoardUrl ? getCannyBoardUrl(pathname) : null;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (headerRef.current) {
       document.body.style.setProperty(
         "--header-height",
@@ -92,15 +92,18 @@ export function Header() {
                 <span className="sr-only">Open navigation menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-80 safe-area-inset">
-              <SheetHeader>
+            <SheetContent
+              side="right"
+              className="w-80 safe-area-inset flex h-full flex-col overflow-hidden"
+            >
+              <SheetHeader className="shrink-0">
                 <SheetTitle>Navigation</SheetTitle>
                 <SheetDescription>
                   Quick access to all app features
                 </SheetDescription>
               </SheetHeader>
-              {/* Main Navigation Links */}
-              <nav className="px-2">
+              {/* Main Navigation Links - scrollable when content overflows */}
+              <nav className="flex-1 min-h-0 overflow-y-auto px-2">
                 <ul className="space-y-2">
                   <li>
                     <Button
@@ -269,7 +272,7 @@ export function Header() {
                   </li>
                 </ul>
               </nav>
-              <SheetFooter>
+              <SheetFooter className="shrink-0">
                 {/* Theme Toggle */}
                 <Separator />
                 <DropdownMenu>

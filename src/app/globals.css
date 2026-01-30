@@ -186,5 +186,5 @@
   }
 
   @utility bottom-nav {
-    bottom: calc(var(--nav-height,72px) + 1rem);
+    bottom: calc(var(--nav-height, 72px) + 1rem);
   }
