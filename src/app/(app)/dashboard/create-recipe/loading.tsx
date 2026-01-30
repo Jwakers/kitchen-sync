@@ -55,7 +55,7 @@ export default function CreateRecipeLoading() {
 
       {/* Step progress skeleton */}
       <div className="sticky bottom-0 border-t bg-background">
-        <div className="px-4 py-3 border-t">
+        <div className="px-4 py-3">
           <div className="flex items-center justify-between text-sm mb-2">
             <Skeleton className="h-4 w-20" />
             <Skeleton className="h-4 w-24" />

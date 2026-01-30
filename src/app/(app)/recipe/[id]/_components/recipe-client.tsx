@@ -307,18 +307,16 @@ function RecipeControls({
             </Button>
           )}
           {canEdit && (
-            <>
-              <Button
-                type="button"
-                size="lg"
-                variant="outline"
-                onClick={() => setIsShareDialogOpen(true)}
-                className="gap-2"
-              >
-                <Users className="size-4" />
-                Share with household
-              </Button>
-            </>
+            <Button
+              type="button"
+              size="lg"
+              variant="outline"
+              onClick={() => setIsShareDialogOpen(true)}
+              className="gap-2"
+            >
+              <Users className="size-4" />
+              Share with household
+            </Button>
           )}
           {canEdit && (
             <DropdownMenu>

@@ -70,7 +70,7 @@ export function AddRecipeDrawer({ open, onOpenChange }: AddRecipeDrawerProps) {
             onClick={() => onOpenChange(false)}
             aria-label="Create Your Own"
           >
-            <Card className="p-6 text-left transition-colors hover:bg-muted/50">
+            <Card className="p-6 text-left">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-primary rounded-lg">
                   <Palette className="h-6 w-6 text-primary-foreground" />
