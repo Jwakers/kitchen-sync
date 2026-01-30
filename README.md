@@ -16,7 +16,6 @@
     - [x] Landscape should be full width dialog. Increase the max width
   - [x] Update the home page with clear messaging on these features.
 - [x] URGENT: remove create your own recipe from drawer and onto its own page. It is fundamentally broken and does not work on actual devices.
-- [ ] Change household recipes to show all users recipes by default rather than sharing. Dont forget to update all copy on the site
 - [ ] Try the post on Reddit and IH again and see if we can get any active users.
 - [ ] Try out [Indie App Circle](https://www.indieappcircle.com/) too
 - [ ] The app is supposed to make meal planning and weekly shops easier. Does it do that? If not yet, what are the next steps?
