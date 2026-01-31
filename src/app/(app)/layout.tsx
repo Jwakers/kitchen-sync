@@ -23,7 +23,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     >
       <CannyIdentify />
       <Header />
-      <main>{children}</main>
+      <main className="w-full min-w-0">{children}</main>
       <Navbar />
       <CannyFeedbackButton />
     </div>

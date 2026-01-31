@@ -9,9 +9,7 @@ import {
 } from "./lib/constants";
 
 const categoriesUnion = v.union(...RECIPE_CATEGORIES.map(v.literal));
-const creationSourceUnion = v.union(
-  ...RECIPE_CREATION_SOURCES.map(v.literal),
-);
+const creationSourceUnion = v.union(...RECIPE_CREATION_SOURCES.map(v.literal));
 const preparationUnion = v.union(...PREPARATION_OPTIONS.map(v.literal));
 const unitsUnion = v.union(...UNITS_FLAT.map(v.literal));
 const subscriptionTiersUnion = v.union(...SUBSCRIPTION_TIERS.map(v.literal));
@@ -177,4 +175,26 @@ export default defineSchema({
     checked: v.boolean(),
     order: v.number(), // Preserve item order
   }).index("by_shopping_list", ["shoppingListId"]),
+
+  mealPlans: defineTable({
+    userId: v.id("users"),
+    householdId: v.optional(v.id("households")),
+    endDate: v.number(), // start of day in ms
+    startDate: v.optional(v.number()), // start of day in ms
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_and_endDate", ["userId", "endDate"])
+    .index("by_household", ["householdId"])
+    .index("by_household_and_endDate", ["householdId", "endDate"]),
+
+  mealPlanEntries: defineTable({
+    mealPlanId: v.id("mealPlans"),
+    date: v.number(), // start of day in ms
+    recipeId: v.id("recipes"),
+    mealLabel: v.optional(v.string()),
+    order: v.optional(v.number()),
+  })
+    .index("by_meal_plan", ["mealPlanId"])
+    .index("by_meal_plan_and_date", ["mealPlanId", "date"]),
 });

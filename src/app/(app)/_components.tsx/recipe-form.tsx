@@ -338,13 +338,18 @@ export function RecipeForm({ closeDrawer }: RecipeFormProps) {
     isSaved,
   ]);
 
-  // On unmount: save draft if form has data (so user can return), else delete empty recipe
+  // On unmount: save draft if form has data (so user can return), else delete empty recipe.
+  // Note: saveDraft() is async and cleanup does not await it—React does not wait for async
+  // cleanup. On rapid SPA navigation the request may be cancelled before it completes.
+  // beforeunload (below) covers browser close/refresh; in-app nav may occasionally lose
+  // the draft. For guaranteed persistence on unmount we’d need e.g. navigator.sendBeacon
+  // to a dedicated API route that calls Convex server-side.
   useEffect(() => {
     return () => {
       if (!recipeId || isSavedRef.current) return;
       const values = form.getValues();
       if (hasFormData(values)) {
-        saveDraft();
+        void saveDraft();
       } else {
         deleteRecipeMutation({ recipeId }).catch((error) => {
           console.error("Failed to delete unsaved recipe:", error);

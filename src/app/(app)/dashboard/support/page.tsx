@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/card";
 import {
   BookOpen,
+  CalendarCheck,
   HelpCircle,
   LifeBuoy,
   Mail,
@@ -157,15 +158,21 @@ export default function SupportPage() {
         <CardContent>
           <div className="grid gap-3 sm:grid-cols-2">
             <Button variant="outline" asChild className="justify-start">
-              <Link href={ROUTES.MY_RECIPES}>
-                <Utensils className="h-4 w-4 mr-2" />
-                My Recipes
+              <Link href={ROUTES.MEAL_PLAN}>
+                <CalendarCheck className="h-4 w-4 mr-2" />
+                Meal planning
               </Link>
             </Button>
             <Button variant="outline" asChild className="justify-start">
               <Link href={ROUTES.SHOPPING_LIST}>
-                <Users className="h-4 w-4 mr-2" />
-                Shopping List
+                <Utensils className="h-4 w-4 mr-2" />
+                Shopping list
+              </Link>
+            </Button>
+            <Button variant="outline" asChild className="justify-start">
+              <Link href={ROUTES.MY_RECIPES}>
+                <Utensils className="h-4 w-4 mr-2" />
+                My Recipes
               </Link>
             </Button>
             <Button variant="outline" asChild className="justify-start">

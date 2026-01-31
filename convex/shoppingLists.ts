@@ -1,11 +1,79 @@
 import { ConvexError, v } from "convex/values";
+import { Doc } from "./_generated/dataModel";
 import { internalMutation, mutation, query } from "./_generated/server";
 import { isHouseholdMember } from "./households";
+import { canAccessMealPlan } from "./mealPlans";
 import {
   getCurrentUser,
   getCurrentUserOrThrow,
   getUserSubscription,
 } from "./users";
+
+// ============================================================================
+// HELPERS (ingredient aggregation for meal plan → shopping list)
+// ============================================================================
+
+function normaliseIngredientKey(ing: {
+  name?: string;
+  unit?: string;
+  preparation?: string;
+}): string {
+  return [
+    (ing?.name ?? "").trim().toLowerCase(),
+    (ing?.unit ?? "").trim().toLowerCase(),
+    (ing?.preparation ?? "").trim().toLowerCase(),
+  ].join("|");
+}
+
+function aggregateIngredientsFromRecipes(
+  recipes: { ingredients?: Doc<"recipes">["ingredients"] }[]
+): { name: string; amount: number | string | null; unit?: string; preparation?: string }[] {
+  const combined = new Map<
+    string,
+    { name: string; unit?: string; preparation?: string; amount: number | string | null }
+  >();
+
+  for (const recipe of recipes) {
+    const ingredients = recipe.ingredients ?? [];
+    for (const ingredient of ingredients) {
+      if (!ingredient?.name) continue;
+      const key = normaliseIngredientKey(ingredient);
+      const existing = combined.get(key);
+      const amountValue =
+        ingredient.amount === undefined
+          ? null
+          : typeof ingredient.amount === "number"
+            ? ingredient.amount
+            : Number(ingredient.amount);
+
+      if (!existing) {
+        combined.set(key, {
+          name: ingredient.name,
+          unit: ingredient.unit,
+          preparation: ingredient.preparation,
+          amount: Number.isFinite(amountValue as number) ? (amountValue as number) : null,
+        });
+        continue;
+      }
+      if (
+        typeof existing.amount === "number" &&
+        typeof amountValue === "number" &&
+        Number.isFinite(amountValue)
+      ) {
+        existing.amount += amountValue;
+      } else if (ingredient.amount !== undefined) {
+        const parts = [existing.amount, ingredient.amount]
+          .filter((v) => v !== null)
+          .map(String);
+        existing.amount = parts.length > 0 ? parts.join(" + ") : null;
+      }
+    }
+  }
+
+  return Array.from(combined.values()).sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+}
 
 // ============================================================================
 // QUERIES
@@ -136,6 +204,80 @@ export const createShoppingList = mutation({
           order: i,
         });
       })
+    );
+
+    return { listId };
+  },
+});
+
+/**
+ * Create a shopping list from a meal plan. User must have access to the plan (owner or shared household).
+ */
+export const createShoppingListFromMealPlan = mutation({
+  args: {
+    mealPlanId: v.id("mealPlans"),
+    chalkboardItemIds: v.array(v.id("chalkboardItems")),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+    const plan = await ctx.db.get(args.mealPlanId);
+    if (!plan) throw new ConvexError("Meal plan not found");
+    const allowed = await canAccessMealPlan(ctx, user._id, plan);
+    if (!allowed) {
+      throw new ConvexError("You do not have access to this meal plan");
+    }
+
+    const entries = await ctx.db
+      .query("mealPlanEntries")
+      .withIndex("by_meal_plan", (q) => q.eq("mealPlanId", args.mealPlanId))
+      .collect();
+
+    const recipeIds = [...new Set(entries.map((e) => e.recipeId))];
+    const recipes = await Promise.all(
+      recipeIds.map((id) => ctx.db.get(id))
+    );
+    const validRecipes = recipes.filter(
+      (r): r is NonNullable<typeof r> => r != null
+    );
+    const items = aggregateIngredientsFromRecipes(validRecipes);
+
+    const subscription = await getUserSubscription(user, ctx);
+    const activeLists = await ctx.db
+      .query("shoppingLists")
+      .withIndex("by_user_and_status", (q) =>
+        q.eq("userId", user._id).eq("status", "active")
+      )
+      .collect();
+    if (
+      subscription.maxActiveShoppingLists !== -1 &&
+      activeLists.length >= subscription.maxActiveShoppingLists
+    ) {
+      throw new ConvexError(
+        `You've reached the limit of ${subscription.maxActiveShoppingLists} active shopping lists. Complete or delete an existing list to create a new one.`
+      );
+    }
+
+    const now = Date.now();
+    const oneWeek = 7 * 24 * 60 * 60 * 1000;
+    const listId = await ctx.db.insert("shoppingLists", {
+      userId: user._id,
+      status: "draft",
+      expiresAt: now + oneWeek,
+      chalkboardItemIds: args.chalkboardItemIds,
+    });
+
+    await Promise.all(
+      items.map((item, i) =>
+        ctx.db.insert("shoppingListItems", {
+          shoppingListId: listId,
+          name: item.name,
+          amount: item.amount,
+          unit: item.unit,
+          preparation: item.preparation,
+          checked: false,
+          order: i,
+        })
+      )
     );
 
     return { listId };

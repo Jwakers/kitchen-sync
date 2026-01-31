@@ -18,6 +18,7 @@ import {
 import {
   ArrowLeft,
   BookOpen,
+  CalendarCheck,
   CheckCircle,
   Clipboard,
   Globe,
@@ -55,10 +56,10 @@ export default function HowToUsePage() {
     },
     {
       step: 4,
-      title: "Create your first shopping list",
+      title: "Plan your week and create a shopping list",
       description:
-        "Generate a shopping list from your recipes to make meal planning and shopping easier.",
-      icon: <ShoppingCart className="h-5 w-5" />,
+        "Create a meal plan with an end date, add meals from your recipes, then generate a shopping list from the plan. You can also create ad-hoc shopping lists from the Shopping list page.",
+      icon: <CalendarCheck className="h-5 w-5" />,
     },
   ];
 
@@ -141,28 +142,71 @@ export default function HowToUsePage() {
       ],
     },
     {
-      title: "Shopping Lists",
-      icon: <ShoppingCart className="h-5 w-5" />,
+      title: "Meal planning",
+      icon: <CalendarCheck className="h-5 w-5" />,
       color:
         "bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400",
       sections: [
         {
-          title: "Creating from Recipes",
+          title: "Creating a meal plan",
           content: [
-            "1. Open any recipe you want to cook",
-            "2. Click 'Add to Shopping List'",
-            "3. All ingredients will be added automatically",
-            "4. Go to 'Shopping List' to view and organise",
-            "5. Check off items as you shop",
+            "1. Go to 'Meal plan' from the bottom nav or dashboard",
+            "2. Tap 'Create this week's plan' if you don't have a plan",
+            "3. Set the end date (default is one week from today)",
+            "4. Tap 'Create plan'",
           ],
         },
         {
-          title: "Manual Shopping Lists",
+          title: "Adding meals to your plan",
           content: [
-            "1. Go to 'Shopping List' from the main menu",
+            "1. On your meal plan page, find the day you want to add a meal to",
+            "2. Tap 'Add meal' for that day",
+            "3. Choose a recipe from your recipes (or household recipes)",
+            "4. Optionally choose a meal label (Breakfast, Lunch, Dinner)",
+            "5. Tap 'Add'",
+          ],
+        },
+        {
+          title: "Generating a shopping list from your plan",
+          content: [
+            "1. On your meal plan page, tap 'Generate shopping list'",
+            "2. Optionally select chalkboard items to include",
+            "3. Tap 'Create shopping list' — you'll be taken to the shopping list",
+            "4. Finalise the list when ready, then check off items as you shop",
+          ],
+        },
+        {
+          title: "Sharing your meal plan with a household",
+          content: [
+            "1. On your meal plan page (as plan owner), tap 'Share with household'",
+            "2. Select a household",
+            "3. Household members can view the plan and generate their own shopping list from it",
+            "4. Tap 'Stop sharing' to remove the link",
+          ],
+        },
+      ],
+    },
+    {
+      title: "Shopping lists",
+      icon: <ShoppingCart className="h-5 w-5" />,
+      color:
+        "bg-amber-100 dark:bg-amber-900 text-amber-600 dark:text-amber-400",
+      sections: [
+        {
+          title: "From your meal plan",
+          content: [
+            "1. On the meal plan page, tap 'Generate shopping list'",
+            "2. Ingredients from all planned recipes are combined into one list",
+            "3. Optionally include chalkboard items, then create the list",
+          ],
+        },
+        {
+          title: "Ad-hoc shopping list (without a meal plan)",
+          content: [
+            "1. Go to 'Shopping list' from the dashboard or support links",
             "2. Select recipes to add to your shopping list",
             "3. Select whether to include personal chalkboard items and/or household chalkboard items",
-            "4. Click 'Create Shopping List'",
+            "4. Tap 'Create Shopping List'",
           ],
         },
       ],

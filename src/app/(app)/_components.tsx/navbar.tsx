@@ -2,7 +2,13 @@
 
 import { ROUTES } from "@/app/constants";
 import { Button } from "@/components/ui/button";
-import { ChefHat, Clipboard, Home, Plus, ShoppingCart } from "lucide-react";
+import {
+  CalendarCheck,
+  ChefHat,
+  Clipboard,
+  Home,
+  Plus,
+} from "lucide-react";
 import Link from "next/link";
 import { useLayoutEffect, useRef, useState } from "react";
 import { AddRecipeDrawer } from "./add-recipe-drawer";
@@ -36,16 +42,16 @@ export function Navbar() {
             </Button>
           </Link>
 
-          {/* Shopping List */}
-          <Link href={ROUTES.SHOPPING_LIST}>
+          {/* Meal planning */}
+          <Link href={ROUTES.MEAL_PLAN}>
             <Button
               variant="ghost"
               className="h-auto w-auto flex flex-col items-center gap-1 px-3 py-2"
-              aria-label="Shopping List"
+              aria-label="Meal planning"
             >
-              <ShoppingCart className="h-5 w-5" />
+              <CalendarCheck className="h-5 w-5" />
               <span className="text-[0.625rem] sm:text-xs">
-                Shopping<span className="hidden sm:inline"> list</span>
+                Meal<span className="hidden sm:inline"> plan</span>
               </span>
             </Button>
           </Link>

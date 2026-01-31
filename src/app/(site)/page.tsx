@@ -9,9 +9,9 @@ import { SignUpButton } from "@clerk/nextjs";
 import { Authenticated, Unauthenticated } from "convex/react";
 import {
   ArrowRight,
+  CalendarCheck,
   CheckCircle,
   ClipboardList,
-  ShoppingCart,
   Sparkles,
   Users,
 } from "lucide-react";
@@ -32,7 +32,7 @@ export default function Home() {
             <Badge
               variant="secondary"
               className={cn(
-                "w-fit bg-primary/10 text-primary border-primary/20 text-sm px-4 py-2",
+                "w-fit bg-primary/10 text-primary border-primary/20 text-sm px-4 py-2"
               )}
             >
               <Sparkles className="size-4 mr-2" />
@@ -112,7 +112,7 @@ export default function Home() {
       </div>
 
       {/* Beta callout */}
-      <section className="container mx-auto px-4 mt-8">
+      <section className="container mx-auto px-4 my-8">
         <div className="rounded-lg border border-primary/20 bg-primary/5 p-6 text-center max-w-2xl mx-auto">
           <h2 className="font-semibold text-foreground mb-2">
             We&apos;re in beta
@@ -237,25 +237,29 @@ export default function Home() {
             </div>
           </div>
 
-          {/* 5 & 6. Shopping list + Chalkboard — two columns, no images */}
+          {/* 5 & 6. Meal planning + Chalkboard — two columns, no images */}
           <div className="grid lg:grid-cols-2 gap-6 md:gap-12 items-stretch">
             <div className="relative p-6 pt-14 rounded-lg border border-border bg-card overflow-visible">
               <div
                 className={cn(
-                  "absolute top-4 right-4 size-12 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center",
+                  "absolute top-4 right-4 size-12 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center"
                 )}
               >
-                <ShoppingCart className="size-6 text-primary" />
+                <CalendarCheck className="size-6 text-primary" />
               </div>
               <div className="space-y-4">
                 <h3 className="text-2xl font-bold pr-10">
-                  Forgotten ingredients and chaotic shops?
+                  Plan your week, then shop in one go
                 </h3>
                 <p className="text-muted-foreground">
-                  Generate a list from your planned recipes for the week. Check
-                  off as you go and stop doubling back for that one thing.
+                  Build a meal plan with an end date, add meals from your
+                  recipes, then generate a shopping list from the plan. Or
+                  create an ad-hoc list from any recipes. Check off as you go.
                 </p>
                 <Button asChild variant="outline" size="sm">
+                  <Link href={ROUTES.MEAL_PLAN}>Meal planning</Link>
+                </Button>
+                <Button asChild variant="ghost" size="sm" className="ml-2">
                   <Link href={ROUTES.SHOPPING_LIST}>Shopping list</Link>
                 </Button>
               </div>
@@ -263,7 +267,7 @@ export default function Home() {
             <div className="relative p-6 pt-14 rounded-lg border border-border bg-card overflow-visible">
               <div
                 className={cn(
-                  "absolute top-4 right-4 size-12 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center",
+                  "absolute top-4 right-4 size-12 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center"
                 )}
               >
                 <ClipboardList className="size-6 text-primary" />
