@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ArrowLeft,
+  CalendarCheck,
   HelpCircle,
   Shield,
   Smartphone,
@@ -66,20 +67,48 @@ export const faqSections = [
     ],
   },
   {
-    title: "Shopping Lists",
-    icon: <Users className="h-5 w-5" />,
+    title: "Meal planning",
+    icon: <CalendarCheck className="h-5 w-5" />,
     color:
       "bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400",
     questions: [
       {
+        question: "What is meal planning?",
+        answer:
+          "Meal planning lets you pick recipes for a week (or any date range) and save them as your plan. You set an end date (default one week ahead), add meals from your recipes to specific days, then generate a shopping list from the plan. You can also share the plan with your household so others can view it and generate their own list.",
+      },
+      {
+        question: "How do I create a meal plan?",
+        answer:
+          "Go to 'Meal plan' in the bottom navigation or dashboard. If you don't have a plan yet, tap 'Create this week's plan'. Set the end date (default is one week from today) and create. Then add meals by day: tap 'Add meal' for a day and choose a recipe. Optionally add a meal label (Breakfast, Lunch, Dinner).",
+      },
+      {
+        question: "How do I generate a shopping list from my meal plan?",
+        answer:
+          "On your meal plan page, tap 'Generate shopping list'. Ingredients from all planned recipes are combined into one list. You can optionally include chalkboard items. You'll be taken to the shopping list to check off items as you shop.",
+      },
+      {
+        question: "Can I share my meal plan with my household?",
+        answer:
+          "Yes. As the plan owner, tap 'Share with household' on the meal plan page and select a household. Members can view the plan and generate their own shopping list from it. Tap 'Stop sharing' to remove the link.",
+      },
+    ],
+  },
+  {
+    title: "Shopping lists",
+    icon: <Users className="h-5 w-5" />,
+    color:
+      "bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400",
+    questions: [
+      {
         question: "How do I create a shopping list from recipes?",
         answer:
-          "Either from the main navigation or the side menu, click the 'Shopping cart' icon. This will open the shopping list page where you can select recipes to add to your shopping list.",
+          "You can create a shopping list in two ways: (1) From your meal plan — tap 'Generate shopping list' on the meal plan page to create a list from your planned meals. (2) Ad-hoc — go to 'Shopping list' from the dashboard or support links. Select recipes manually and create a list. Both lists work the same: you can finalise, check off items, and share or print.",
       },
       {
         question: "How do I share my shopping list with others?",
         answer:
-          "If you're part of a household, your shopping list is automatically shared with other household members. They can add items, check off completed items, and see real-time updates. Once you have finalised a shopping list there are multiple sharing options such as message, print or save to notes. But you can always just use the app to see your shopping list and check off items as you shop.",
+          "Once you have finalised a shopping list there are sharing options such as message, print or save to notes. You can use the app to see your list and check off items as you shop.",
       },
     ],
   },

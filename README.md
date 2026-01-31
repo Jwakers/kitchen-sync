@@ -69,6 +69,7 @@ Feedback: Import feels reliable and the edit page is clear, but the biggest oppo
 - [ ] The theme options in the menu are a drop down that opens downwards. This does not look great the options to expand open or the menu should be above not below
 - [x] Refactor the AI sections to use the vercel AI SDK
 - [ ] On the pricing page the free trial is not at all mentioned on the pro plan
+- [ ] Support pages should be nested under the main site and public
 
 ## Major updates
 

@@ -17,6 +17,7 @@ import { useQuery } from "convex/react";
 import type { FunctionReturnType } from "convex/server";
 import {
   ArrowRight,
+  CalendarCheck,
   ChefHat,
   Clipboard,
   Clock,
@@ -35,6 +36,127 @@ import { usePathname } from "next/navigation";
 type RecentActivity = FunctionReturnType<typeof api.recipes.getRecentActivity>;
 const baseCannyBoardUrl = process.env.NEXT_PUBLIC_CANNY_BOARD_URL;
 
+function startOfDayMs(ms: number): number {
+  const d = new Date(ms);
+  d.setUTCHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+function formatDateShort(ms: number): string {
+  return new Date(ms).toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "short",
+  });
+}
+
+function MealPlanOverviewSection() {
+  const currentPlan = useQuery(api.mealPlans.getCurrentMealPlan);
+
+  if (currentPlan === undefined) {
+    return (
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-3">
+            <Skeleton className="size-12 rounded-lg" />
+            <div className="space-y-2 flex-1">
+              <Skeleton className="h-5 w-48" />
+              <Skeleton className="h-4 w-64" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!currentPlan) {
+    return (
+      <Card className="mb-6 border-primary/20 bg-primary/5">
+        <CardContent className="p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-primary/15 rounded-lg shrink-0">
+                <CalendarCheck className="size-6 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-foreground mb-1">
+                  Plan your week
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Add meals from your recipes and generate a shopping list in
+                  one place.
+                </p>
+              </div>
+            </div>
+            <Button asChild className="shrink-0">
+              <Link href={ROUTES.MEAL_PLAN}>
+                <CalendarCheck className="size-4 mr-2" />
+                Create meal plan
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const displayStart =
+    currentPlan.startDate ??
+    (currentPlan.entries?.length
+      ? Math.min(...currentPlan.entries.map((e) => e.date))
+      : startOfDayMs(Date.now()));
+  const displayEnd = currentPlan.endDate;
+  const mealCount = currentPlan.entries?.length ?? 0;
+  const recipeTitles = (currentPlan.entries ?? [])
+    .map((e) => e.recipe?.title)
+    .filter((t): t is string => Boolean(t));
+
+  return (
+    <Card className="mb-6 border-primary/20 bg-primary/5 overflow-hidden min-w-0">
+      <CardContent className="p-4 sm:p-6 min-w-0 overflow-hidden">
+        <div className="flex flex-col gap-4 min-w-0">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
+            <div className="flex items-start gap-3 min-w-0 flex-1 overflow-hidden">
+              <div className="p-2 bg-primary/15 rounded-lg shrink-0">
+                <CalendarCheck className="size-6 text-primary" />
+              </div>
+              <div className="min-w-0 overflow-hidden">
+                <h2 className="text-lg font-semibold text-foreground mb-0.5 truncate">
+                  This week&apos;s meal plan
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {formatDateShort(displayStart)} –{" "}
+                  {formatDateShort(displayEnd)}
+                  {" · "}
+                  {mealCount} meal{mealCount !== 1 ? "s" : ""} planned
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2 shrink-0">
+              <Button asChild variant="default" size="sm" className="shrink-0">
+                <Link href={ROUTES.MEAL_PLAN}>View plan</Link>
+              </Button>
+            </div>
+          </div>
+          {recipeTitles.length > 0 && (
+            <div className="min-w-0 overflow-hidden rounded-md border border-border/60 bg-background/50">
+              <ul className="divide-y divide-border/60 p-2 sm:p-3 list-none max-h-48 overflow-y-auto">
+                {recipeTitles.map((title, i) => (
+                  <li
+                    key={`${title}-${i}`}
+                    className="py-1.5 px-2 text-sm text-foreground truncate"
+                  >
+                    {title}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function HeroSection() {
   const { user } = useUser();
   const firstName = user?.firstName || "there";
@@ -49,18 +171,23 @@ function HeroSection() {
           Welcome back, {firstName}!
         </h1>
         <p className="text-muted-foreground mb-4">
-          Ready to plan your next meal? Check out your existing recipes or build
-          your shopping list.
+          Check out your meal plan, recipes, or create a shopping list.
         </p>
         <div className="flex flex-wrap gap-3">
           <Button asChild className="shadow-md">
-            <Link href={ROUTES.MY_RECIPES}>View My Recipes</Link>
+            <Link href={ROUTES.MEAL_PLAN}>
+              <CalendarCheck className="h-4 w-4 mr-2" />
+              Meal plan
+            </Link>
           </Button>
           <Button variant="outline" asChild>
             <Link href={ROUTES.SHOPPING_LIST}>
               <ShoppingCart className="h-4 w-4 mr-2" />
-              Shopping List
+              Shopping list
             </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href={ROUTES.MY_RECIPES}>View My Recipes</Link>
           </Button>
         </div>
       </div>
@@ -322,7 +449,25 @@ function FeedbackSection() {
 function BentoGrid() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
-      {/* Chalkboard - Large */}
+      {/* Meal planning */}
+      <FeatureCard
+        title="Meal planning"
+        description="Plan your week with recipes, then generate a shopping list"
+        icon={CalendarCheck}
+        href={ROUTES.MEAL_PLAN}
+        className="md:col-span-1 h-full"
+      />
+
+      {/* Shopping List */}
+      <FeatureCard
+        title="Shopping list"
+        description="Create ad-hoc shopping lists from recipes and the chalkboard"
+        icon={ShoppingCart}
+        href={ROUTES.SHOPPING_LIST}
+        className="md:col-span-1 h-full"
+      />
+
+      {/* Chalkboard */}
       <FeatureCard
         title="Kitchen Chalkboard"
         description="Quick notes for your kitchen, for yourself or your household"
@@ -331,7 +476,7 @@ function BentoGrid() {
         className="md:col-span-1 h-full"
       />
 
-      {/* My Recipes - Medium */}
+      {/* My Recipes */}
       <FeatureCard
         title="My Recipes"
         description="View, manage and create recipes"
@@ -340,16 +485,7 @@ function BentoGrid() {
         className="md:col-span-1 h-full"
       />
 
-      {/* Shopping List - Medium */}
-      <FeatureCard
-        title="Shopping List"
-        description="Create smart shopping lists from saved recipes and the kitchen chalkboard"
-        icon={ShoppingCart}
-        href={ROUTES.SHOPPING_LIST}
-        className="md:col-span-1 h-full"
-      />
-
-      {/* Import Recipe - Small */}
+      {/* Import Recipe */}
       <FeatureCard
         title="Import Recipe"
         description="Save recipes from websites or copy and paste text"
@@ -365,8 +501,9 @@ export default function DashboardClient() {
   const recentActivity = useQuery(api.recipes.getRecentActivity);
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl">
+    <div className="w-full min-w-0 overflow-x-hidden container mx-auto px-4 py-6 max-w-7xl box-border">
       <HeroSection />
+      <MealPlanOverviewSection />
       <HouseholdsSection />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
