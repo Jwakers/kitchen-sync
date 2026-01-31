@@ -18,6 +18,8 @@
 - [x] URGENT: remove create your own recipe from drawer and onto its own page. It is fundamentally broken and does not work on actual devices.
 - [ ] Try the post on Reddit and IH again and see if we can get any active users.
 - [ ] Try out [Indie App Circle](https://www.indieappcircle.com/) too
+- [ ] Try out [User Finder](https://usersfinder.com/)
+- [ ] Change shopping list to meal planning. Add additional features whereby the meal plan is preserved for the week, or until an end date set by the user, easy access to then processing a shopping list. Use AI plan to make this feature better. Meal plan should be a new table.
 - [ ] The app is supposed to make meal planning and weekly shops easier. Does it do that? If not yet, what are the next steps?
 - [ ] Weekly meal planning features
 - [ ] Set up notifications and decide what to notify users on and when to notify
