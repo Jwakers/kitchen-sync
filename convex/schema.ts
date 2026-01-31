@@ -185,7 +185,8 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_user_and_endDate", ["userId", "endDate"])
-    .index("by_household", ["householdId"]),
+    .index("by_household", ["householdId"])
+    .index("by_household_and_endDate", ["householdId", "endDate"]),
 
   mealPlanEntries: defineTable({
     mealPlanId: v.id("mealPlans"),

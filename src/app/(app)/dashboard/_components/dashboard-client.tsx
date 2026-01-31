@@ -46,6 +46,7 @@ function formatDateShort(ms: number): string {
   return new Date(ms).toLocaleDateString(undefined, {
     day: "numeric",
     month: "short",
+    timeZone: "UTC",
   });
 }
 

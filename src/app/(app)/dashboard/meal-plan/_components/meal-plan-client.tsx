@@ -74,12 +74,16 @@ const MEAL_LABELS = ["Breakfast", "Lunch", "Dinner", "Other"] as const;
 
 function startOfDayMs(ms: number): number {
   const d = new Date(ms);
-  d.setUTCHours(0, 0, 0, 0);
+  d.setHours(0, 0, 0, 0);
   return d.getTime();
 }
 
 function formatDateKey(ms: number): string {
-  return new Date(ms).toISOString().slice(0, 10);
+  const d = new Date(ms);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 function formatDateLabel(ms: number): string {
@@ -172,12 +176,15 @@ export default function MealPlanClient() {
   const defaultEndDate = useMemo(() => {
     const in7 = new Date();
     in7.setDate(in7.getDate() + 7);
-    return formatDateKey(in7.getTime());
+    return formatDateKey(startOfDayMs(in7.getTime()));
   }, []);
 
   const handleCreatePlan = async () => {
     const endDateMs = createEndDate
-      ? startOfDayMs(new Date(createEndDate).getTime())
+      ? (() => {
+          const [y, m, d] = createEndDate.split("-").map(Number);
+          return startOfDayMs(new Date(y, m - 1, d).getTime());
+        })()
       : startOfDayMs(Date.now() + 7 * 24 * 60 * 60 * 1000);
     try {
       await createMealPlan({ endDate: endDateMs });

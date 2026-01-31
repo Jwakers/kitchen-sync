@@ -180,9 +180,9 @@ export const getMealPlansForUser = query({
 
     const owned = await ctx.db
       .query("mealPlans")
-      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .withIndex("by_user_and_endDate", (q) => q.eq("userId", user._id))
       .order("desc")
-      .take(20);
+      .collect();
 
     const memberships = await ctx.db
       .query("householdMembers")
@@ -192,9 +192,11 @@ export const getMealPlansForUser = query({
     for (const m of memberships) {
       const plans = await ctx.db
         .query("mealPlans")
-        .withIndex("by_household", (q) => q.eq("householdId", m.householdId))
+        .withIndex("by_household_and_endDate", (q) =>
+          q.eq("householdId", m.householdId)
+        )
         .order("desc")
-        .take(10);
+        .collect();
       shared.push(...plans);
     }
 
@@ -230,6 +232,10 @@ export const createMealPlan = mutation({
     if (endDate < today) {
       throw new ConvexError("End date must be today or in the future");
     }
+    const startDate = args.startDate;
+    if (startDate !== undefined && startDate > endDate) {
+      throw new ConvexError("Start date must be on or before the plan end date");
+    }
 
     const planId = await ctx.db.insert("mealPlans", {
       userId: user._id,
@@ -259,6 +265,14 @@ export const updateMealPlanEndDate = mutation({
     const today = startOfDayMs(Date.now());
     if (args.endDate < today) {
       throw new ConvexError("End date must be today or in the future");
+    }
+    if (
+      plan.startDate !== undefined &&
+      args.endDate < plan.startDate
+    ) {
+      throw new ConvexError(
+        "End date must be on or after the plan start date"
+      );
     }
     await ctx.db.patch(args.mealPlanId, {
       endDate: args.endDate,
@@ -334,6 +348,12 @@ export const addEntry = mutation({
       throw new ConvexError("Only the plan owner can add meals");
     }
     const dateStart = startOfDayMs(args.date);
+    if (
+      plan.startDate !== undefined &&
+      dateStart < plan.startDate
+    ) {
+      throw new ConvexError("Date must be on or after the plan start date");
+    }
     if (dateStart > plan.endDate) {
       throw new ConvexError("Date must be on or before the plan end date");
     }
@@ -384,6 +404,12 @@ export const updateEntry = mutation({
     } = {};
     if (args.date !== undefined) {
       const dateStart = startOfDayMs(args.date);
+      if (
+        plan.startDate !== undefined &&
+        dateStart < plan.startDate
+      ) {
+        throw new ConvexError("Date must be on or after the plan start date");
+      }
       if (dateStart > plan.endDate) {
         throw new ConvexError("Date must be on or before the plan end date");
       }
