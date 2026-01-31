@@ -262,20 +262,21 @@ export const updateMealPlanEndDate = mutation({
     if (plan.userId !== user._id) {
       throw new ConvexError("You can only update your own meal plans");
     }
+    const normalizedEnd = startOfDayMs(args.endDate);
     const today = startOfDayMs(Date.now());
-    if (args.endDate < today) {
+    if (normalizedEnd < today) {
       throw new ConvexError("End date must be today or in the future");
     }
     if (
       plan.startDate !== undefined &&
-      args.endDate < plan.startDate
+      normalizedEnd < plan.startDate
     ) {
       throw new ConvexError(
         "End date must be on or after the plan start date"
       );
     }
     await ctx.db.patch(args.mealPlanId, {
-      endDate: args.endDate,
+      endDate: normalizedEnd,
       updatedAt: Date.now(),
     });
     return { success: true };
@@ -416,6 +417,8 @@ export const updateEntry = mutation({
       updates.date = dateStart;
     }
     if (args.recipeId !== undefined) {
+      const recipeDoc = await ctx.db.get(args.recipeId);
+      if (!recipeDoc) throw new ConvexError("Recipe not found");
       const { canAccess } = await canAccessRecipe(ctx, user._id, args.recipeId);
       if (!canAccess) {
         throw new ConvexError("You do not have access to this recipe");

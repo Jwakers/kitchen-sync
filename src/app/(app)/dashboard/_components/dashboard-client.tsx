@@ -105,7 +105,11 @@ function MealPlanOverviewSection() {
     (currentPlan.entries?.length
       ? Math.min(...currentPlan.entries.map((e) => e.date))
       : startOfDayMs(Date.now()));
-  const displayEnd = currentPlan.endDate;
+  const displayEnd =
+    currentPlan.endDate ??
+    (currentPlan.entries?.length
+      ? Math.max(...currentPlan.entries.map((e) => e.date))
+      : startOfDayMs(Date.now()));
   const mealCount = currentPlan.entries?.length ?? 0;
   const recipeTitles = (currentPlan.entries ?? [])
     .map((e) => e.recipe?.title)
