@@ -32,6 +32,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useMemo } from "react";
 
 type RecentActivity = FunctionReturnType<typeof api.recipes.getRecentActivity>;
 const baseCannyBoardUrl = process.env.NEXT_PUBLIC_CANNY_BOARD_URL;
@@ -52,6 +53,28 @@ function formatDateShort(ms: number): string {
 
 function MealPlanOverviewSection() {
   const currentPlan = useQuery(api.mealPlans.getCurrentMealPlan);
+
+  // Group meals by date - must be called before early returns to follow Rules of Hooks
+  const mealsByDate = useMemo(() => {
+    if (!currentPlan?.entries) return [];
+    const grouped = new Map<number, Array<{ title: string; mealLabel?: string }>>();
+    currentPlan.entries.forEach((entry) => {
+      const dateKey = startOfDayMs(entry.date);
+      if (!grouped.has(dateKey)) {
+        grouped.set(dateKey, []);
+      }
+      if (entry.recipe?.title) {
+        grouped.get(dateKey)!.push({
+          title: entry.recipe.title,
+          mealLabel: entry.mealLabel ?? undefined,
+        });
+      }
+    });
+    // Sort by date
+    return Array.from(grouped.entries())
+      .sort(([a], [b]) => a - b)
+      .map(([date, meals]) => ({ date, meals }));
+  }, [currentPlan?.entries]);
 
   if (currentPlan === undefined) {
     return (
@@ -111,9 +134,6 @@ function MealPlanOverviewSection() {
       ? Math.max(...currentPlan.entries.map((e) => e.date))
       : startOfDayMs(Date.now()));
   const mealCount = currentPlan.entries?.length ?? 0;
-  const recipeTitles = (currentPlan.entries ?? [])
-    .map((e) => e.recipe?.title)
-    .filter((t): t is string => Boolean(t));
 
   return (
     <Card className="mb-6 border-primary/20 bg-primary/5 overflow-hidden min-w-0">
@@ -142,18 +162,32 @@ function MealPlanOverviewSection() {
               </Button>
             </div>
           </div>
-          {recipeTitles.length > 0 && (
+          {mealsByDate.length > 0 && (
             <div className="min-w-0 overflow-hidden rounded-md border border-border/60 bg-background/50">
-              <ul className="divide-y divide-border/60 p-2 sm:p-3 list-none max-h-48 overflow-y-auto">
-                {recipeTitles.map((title, i) => (
-                  <li
-                    key={`${title}-${i}`}
-                    className="py-1.5 px-2 text-sm text-foreground truncate"
-                  >
-                    {title}
-                  </li>
+              <div className="p-2 sm:p-3 max-h-48 overflow-y-auto space-y-3">
+                {mealsByDate.map(({ date, meals }) => (
+                  <div key={date} className="space-y-1">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
+                      {formatDateShort(date)}
+                    </p>
+                    <ul className="list-none space-y-0.5">
+                      {meals.map((meal, i) => (
+                        <li
+                          key={`${date}-${meal.title}-${i}`}
+                          className="py-1.5 px-2 text-sm text-foreground truncate"
+                        >
+                          {meal.mealLabel && (
+                            <span className="text-muted-foreground text-xs mr-2">
+                              {meal.mealLabel}:
+                            </span>
+                          )}
+                          {meal.title}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
         </div>
