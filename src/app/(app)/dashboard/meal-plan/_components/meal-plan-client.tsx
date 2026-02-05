@@ -119,6 +119,7 @@ export default function MealPlanClient() {
   );
 
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [createStartDate, setCreateStartDate] = useState("");
   const [createEndDate, setCreateEndDate] = useState("");
   const [addingForDate, setAddingForDate] = useState<number | null>(null);
   const [selectedChalkboardIds, setSelectedChalkboardIds] = useState<
@@ -173,6 +174,10 @@ export default function MealPlanClient() {
     return days;
   }, [currentPlan, displayRange]);
 
+  const defaultStartDate = useMemo(() => {
+    return formatDateKey(startOfDayMs(Date.now()));
+  }, []);
+
   const defaultEndDate = useMemo(() => {
     const in7 = new Date();
     in7.setDate(in7.getDate() + 7);
@@ -180,15 +185,22 @@ export default function MealPlanClient() {
   }, []);
 
   const handleCreatePlan = async () => {
+    const startDateMs = createStartDate
+      ? (() => {
+        const [y, m, d] = createStartDate.split("-").map(Number);
+        return startOfDayMs(new Date(y, m - 1, d).getTime());
+      })()
+      : startOfDayMs(Date.now());
     const endDateMs = createEndDate
       ? (() => {
-          const [y, m, d] = createEndDate.split("-").map(Number);
-          return startOfDayMs(new Date(y, m - 1, d).getTime());
-        })()
+        const [y, m, d] = createEndDate.split("-").map(Number);
+        return startOfDayMs(new Date(y, m - 1, d).getTime());
+      })()
       : startOfDayMs(Date.now() + 7 * 24 * 60 * 60 * 1000);
     try {
-      await createMealPlan({ endDate: endDateMs });
+      await createMealPlan({ startDate: startDateMs, endDate: endDateMs });
       setShowCreateForm(false);
+      setCreateStartDate("");
       setCreateEndDate("");
       toast.success("Meal plan created");
     } catch (e) {
@@ -346,6 +358,7 @@ export default function MealPlanClient() {
               <Button
                 size="lg"
                 onClick={() => {
+                  setCreateStartDate(defaultStartDate);
                   setCreateEndDate(defaultEndDate);
                   setShowCreateForm(true);
                 }}
@@ -357,14 +370,24 @@ export default function MealPlanClient() {
           </Card>
 
           <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
-            <DialogContent>
+            <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
               <DialogHeader>
-                <DialogTitle>Create meal plan</DialogTitle>
+                <DialogTitle autoFocus>Create meal plan</DialogTitle>
                 <DialogDescription>
-                  Set the end date for your plan (default: one week from today).
+                  Set the start and end dates for your plan (default: today to one week from today).
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
+                <div>
+                  <Label htmlFor="startDate">Start date</Label>
+                  <Input
+                    id="startDate"
+                    type="date"
+                    value={createStartDate || defaultStartDate}
+                    onChange={(e) => setCreateStartDate(e.target.value)}
+                    className="mt-2"
+                  />
+                </div>
                 <div>
                   <Label htmlFor="endDate">End date</Label>
                   <Input
@@ -380,6 +403,7 @@ export default function MealPlanClient() {
                 <Button
                   variant="outline"
                   onClick={() => setShowCreateForm(false)}
+                  autoFocus
                 >
                   Cancel
                 </Button>
@@ -413,15 +437,15 @@ export default function MealPlanClient() {
           </div>
           <div className="flex flex-wrap gap-2 items-center min-w-0 shrink-0">
             <Button
-              variant="outline"
+              variant="default"
               size="sm"
               className="shrink-0"
               onClick={() => setShowGenerateDialog(true)}
               disabled={mealCount === 0}
             >
               <ShoppingCart className="size-4 mr-2 shrink-0" />
-              <span className="hidden sm:inline">Generate shopping list</span>
-              <span className="sm:hidden">Generate list</span>
+              <span className="hidden sm:inline">Create shopping list</span>
+              <span className="sm:hidden">Create list</span>
             </Button>
             {currentPlan.isOwner && (
               <>
@@ -455,7 +479,7 @@ export default function MealPlanClient() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="shrink-0"
+                      className="ml-auto"
                       aria-label="Plan options"
                     >
                       <MoreVertical className="size-4" />
@@ -719,37 +743,74 @@ export default function MealPlanClient() {
                 shopping list from it.
               </DialogDescription>
             </DialogHeader>
-            <div className="py-2">
-              <Label>Household</Label>
-              <Select
-                value={shareHouseholdId}
-                onValueChange={(v) =>
-                  setShareHouseholdId(v as Id<"households">)
-                }
-              >
-                <SelectTrigger className="mt-2">
-                  <SelectValue placeholder="Select household" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(households ?? []).map((h) => (
-                    <SelectItem key={h._id} value={h._id}>
-                      {h.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setShowShareDialog(false)}
-              >
-                Cancel
-              </Button>
-              <Button onClick={handleShare} disabled={!shareHouseholdId}>
-                Share
-              </Button>
-            </DialogFooter>
+            {households && households.length === 1 ? (
+              <div className="py-2">
+                <p className="text-sm text-muted-foreground mb-4">
+                  Share with <strong>{households[0].name}</strong>
+                </p>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowShareDialog(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      if (!currentPlan || !households[0]) return;
+                      try {
+                        await shareMealPlanWithHousehold({
+                          mealPlanId: currentPlan._id,
+                          householdId: households[0]._id,
+                        });
+                        setShowShareDialog(false);
+                        toast.success("Meal plan shared with household");
+                      } catch (e) {
+                        toast.error(
+                          e instanceof Error ? e.message : "Failed to share"
+                        );
+                      }
+                    }}
+                  >
+                    Share
+                  </Button>
+                </DialogFooter>
+              </div>
+            ) : (
+              <>
+                <div className="py-2">
+                  <Label>Household</Label>
+                  <Select
+                    value={shareHouseholdId}
+                    onValueChange={(v) =>
+                      setShareHouseholdId(v as Id<"households">)
+                    }
+                  >
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder="Select household" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(households ?? []).map((h) => (
+                        <SelectItem key={h._id} value={h._id}>
+                          {h.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowShareDialog(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button onClick={handleShare} disabled={!shareHouseholdId}>
+                    Share
+                  </Button>
+                </DialogFooter>
+              </>
+            )}
           </DialogContent>
         </Dialog>
       </div>
@@ -766,43 +827,50 @@ function AddMealRecipeRow({
 }) {
   const [mealLabel, setMealLabel] = useState<string>("");
   return (
-    <div className="flex items-center gap-3 p-2 rounded-lg border hover:bg-muted/50">
-      <div className="relative size-12 rounded overflow-hidden shrink-0">
-        {recipe.image ? (
-          <Image
-            src={recipe.image}
-            alt={recipe.title}
-            fill
-            className="object-cover"
-            unoptimized
-          />
-        ) : (
-          <div className="size-12 bg-muted flex items-center justify-center">
-            <ChefHat className="size-6 text-muted-foreground" />
-          </div>
-        )}
+    <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-2 rounded-lg border hover:bg-muted/50">
+      {/* Row 1: Image and Title */}
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div className="relative size-12 rounded overflow-hidden shrink-0">
+          {recipe.image ? (
+            <Image
+              src={recipe.image}
+              alt={recipe.title}
+              fill
+              className="object-cover"
+              unoptimized
+            />
+          ) : (
+            <div className="size-12 bg-muted flex items-center justify-center">
+              <ChefHat className="size-6 text-muted-foreground" />
+            </div>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-medium truncate">{recipe.title}</p>
+        </div>
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="font-medium truncate">{recipe.title}</p>
+      {/* Row 2: Meal Type Selector and Add Button */}
+      <div className="flex items-center ml-auto gap-2 sm:gap-3 shrink-0">
+        <Select value={mealLabel} onValueChange={setMealLabel}>
+          <SelectTrigger className="w-28 sm:w-28 shrink-0">
+            <SelectValue placeholder="Meal" />
+          </SelectTrigger>
+          <SelectContent>
+            {MEAL_LABELS.map((label) => (
+              <SelectItem key={label} value={label}>
+                {label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button
+          size="sm"
+          onClick={() => onSelect(recipe._id, mealLabel || undefined)}
+          className="shrink-0"
+        >
+          Add
+        </Button>
       </div>
-      <Select value={mealLabel} onValueChange={setMealLabel}>
-        <SelectTrigger className="w-28 shrink-0">
-          <SelectValue placeholder="Meal" />
-        </SelectTrigger>
-        <SelectContent>
-          {MEAL_LABELS.map((label) => (
-            <SelectItem key={label} value={label}>
-              {label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Button
-        size="sm"
-        onClick={() => onSelect(recipe._id, mealLabel || undefined)}
-      >
-        Add
-      </Button>
     </div>
   );
 }

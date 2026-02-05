@@ -25,6 +25,17 @@
 - [ ] Set up notifications and decide what to notify users on and when to notify
       them. Add settings so users can control what they get notified about. Add to agents.md that when new relevant features get added, a notification should be considered for it too.
 
+Meal planning notes
+- [x] need to fix nav alignment
+- [ ] On opening the meal plan page the nav raises up
+- [x] Auto select date field on iOS needs to be disabled
+- [x] If only one household exist, a quick share option should be shown
+- [x] Users should be able to set the start date too. It should default to the immediate following day
+- [x] Mobile meal picker needs work. Move the meal type drop-down to below the recipe name
+- [x] Options ellipsis should be right aligned
+- [x] Generate list should be create shopping list and should be a primary CTA
+- [x] Dashboard section should have dates accompanied with the meals
+
 ### User feedback – Import experience (post-import UX)
 
 Feedback: Import feels reliable and the edit page is clear, but the biggest opportunity is what happens _after_ import. Users want to feel confident hitting Save without having to guess what to check. The moment after import should feel rewarding, not neutral.
@@ -45,8 +56,9 @@ Feedback: Import feels reliable and the edit page is clear, but the biggest oppo
       Ingredients should be deduped as part of the parsing process OR ingredients should be sectioned (as in for the sauce, for the garnish) that was they can stay as duplicates
 - [ ] Its is possible for the parser to output technically correct but odd ingredient mappings like 0.5 Whole Lime. This can be seen when extracting this recipe: <https://www.greatbritishchefs.com/recipes/salmon-kilaw-recipe>
 - [ ] Overflow issue on shopping page (IOS)
-- [ ] navigation bar on mobile in unbalanced. Plus button is off center.
 - [ ] Recipe page loading skeleton overflows
+- [ ] Whene deleting a household an error is surfaced on the client. This is likely due to that household no longer being available. Instead we should redirect or 404
+- [ ] The back to dashboard button on the error page does not seem to work
 
 ## Tech debt
 

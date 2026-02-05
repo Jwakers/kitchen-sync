@@ -30,12 +30,12 @@ export function Navbar() {
         ref={navRef}
         className="sticky bottom-0 safe-area-inset-bottom left-0 right-0 z-50 bg-background border-t border-border"
       >
-        <div className="flex items-center justify-around px-4 py-2">
+        <div className="grid auto-cols-fr grid-flow-col px-4 py-2">
           {/* Home */}
           <Link href={ROUTES.DASHBOARD}>
             <Button
               variant="ghost"
-              className="h-auto w-auto flex flex-col items-center gap-1 px-3 py-2"
+              className="h-auto flex flex-col items-center gap-1 px-3 py-2 w-full"
             >
               <Home className="h-5 w-5" />
               <span className="text-[0.625rem] sm:text-xs">Home</span>
@@ -46,12 +46,13 @@ export function Navbar() {
           <Link href={ROUTES.MEAL_PLAN}>
             <Button
               variant="ghost"
-              className="h-auto w-auto flex flex-col items-center gap-1 px-3 py-2"
+              className="h-auto w-full flex flex-col items-center gap-1 px-3 py-2"
               aria-label="Meal planning"
             >
               <CalendarCheck className="h-5 w-5" />
               <span className="text-[0.625rem] sm:text-xs">
-                Meal<span className="hidden sm:inline"> plan</span>
+                <span className="sm:hidden">Meals</span>
+                <span className="hidden sm:inline">Meal plan</span>
               </span>
             </Button>
           </Link>
@@ -70,7 +71,7 @@ export function Navbar() {
           <Link href={ROUTES.CHALKBOARD}>
             <Button
               variant="ghost"
-              className="h-auto w-auto flex flex-col items-center gap-1 px-3 py-2"
+              className="h-auto w-full flex flex-col items-center gap-1 px-3 py-2"
             >
               <Clipboard className="h-5 w-5" />
               <span className="text-[0.625rem] sm:text-xs">Chalkboard</span>
@@ -81,10 +82,13 @@ export function Navbar() {
           <Link href={ROUTES.MY_RECIPES}>
             <Button
               variant="ghost"
-              className="h-auto w-auto flex flex-col items-center gap-1 px-3 py-2"
+              className="h-auto w-full flex flex-col items-center gap-1 px-3 py-2"
             >
               <ChefHat className="h-5 w-5" />
-              <span className="text-[0.625rem] sm:text-xs">My Recipes</span>
+              <span className="text-[0.625rem] sm:text-xs">
+                <span className="sm:hidden">Recipes</span>
+                <span className="hidden sm:inline">My Recipes</span>
+              </span>
             </Button>
           </Link>
         </div>
