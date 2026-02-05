@@ -44,6 +44,21 @@ Feedback: Import feels reliable and the edit page is clear, but the biggest oppo
 - [ ] **Post-import emotional payoff**: Improve the moment right after import so it reinforces that the user has saved time and added something valuable (e.g. light celebration, clear “you’ve captured this” or “ready to cook later” messaging). The experience should match the excitement of capturing a recipe they’re keen to cook.
 - [ ] **Reduce friction to Save**: Optimise the flow so users can feel comfortable hitting Save quickly—through the above guidance and payoff, so it’s less about re-checking everything and more about feeling ready.
 
+### User feedback – Additional (Feb 2025)
+
+Feedback: Users like the recent image-to-diagram and weekly plan features. Strong interest in food-sharing community and AI enhancements.
+
+**Features / ideas**
+
+- [ ] **Food-sharing community**: Users expressed interest in a community layer; consider for roadmap.
+- [ ] **AI enhancements**: Nutrition analysis, cooking suggestions, personalized recipe recommendations.
+
+**Bugs / improvements**
+
+- [ ] **Web import accuracy**: Import quality varies by site structure; occasionally small errors. Improve parser robustness for edge cases.
+- [ ] **Recipe image quality**: Images sometimes render less clearly than on the source site; review image handling/compression/resolution.
+- [ ] **404 on login**: Intermittent 404 seen when logging in; investigate and fix.
+
 ### Social, SEO and AEO
 
 - Confirm branding identity, logo and name etc
