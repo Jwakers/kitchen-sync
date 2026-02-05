@@ -1,5 +1,21 @@
-- When writing class names with dynamic classes, do not use string literals only, make use of the cn function from src/lib/utils.ts
-- If there are already clearly defined schemas, like for recipes, these should be reused wherever possible rather than rewriting them for each new function that needs one.
-- In tailwind where the width and the height classes are the same eg `w-4 h-4` this can and should use the size utility e.g. `size-4`
-- The button component should not be heavily modified. If a variant does not exist for it, leave a comment and a new one can be added in.
-- Use existing UI primitives where possible, for example src/components/ui/dialog.tsx
+# Agent Rules
+
+Project-specific guidance for AI agents. Apply these rules when working in this codebase.
+
+## Skills & context
+
+- For frontend design work—building web components, pages, or interfaces—read and apply the guidance in `ai/skills/frontend-design/SKILL.md`.
+
+## Styling & Tailwind
+
+- When writing dynamic class names, use the `cn` function from `src/lib/utils.ts` instead of string concatenation.
+- Use the `size-*` utility when width and height are the same (e.g. `size-4` instead of `w-4 h-4`).
+
+## Components & UI
+
+- Prefer existing UI primitives (e.g. `src/components/ui/dialog.tsx`) before creating new ones.
+- Avoid modifying the button component directly. If a variant is missing, leave a comment and a new variant can be added.
+
+## Data & schemas
+
+- Reuse existing schemas (e.g. recipes) where possible instead of defining new ones for each function.
