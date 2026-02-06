@@ -4,6 +4,7 @@ import { IngredientsList } from "@/app/(app)/_components.tsx/ingredients-list";
 import { MethodList } from "@/app/(app)/_components.tsx/method-list";
 import { Nutrition } from "@/app/(app)/_components.tsx/nutrition";
 import { ROUTES } from "@/app/constants";
+import { cn } from "@/lib/utils";
 import { MultiImageUpload, type ImagePreview } from "@/components/image-upload";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -625,7 +626,7 @@ function LoadingStep({
       </div>
       <div>
         <p
-          className={`font-medium ${isActive || isComplete ? "text-foreground" : "text-muted-foreground"}`}
+          className={cn("font-medium", (isActive || isComplete) ? "text-foreground" : "text-muted-foreground")}
         >
           {title}
         </p>

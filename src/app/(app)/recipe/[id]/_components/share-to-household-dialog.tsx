@@ -4,6 +4,7 @@ import { api } from "@/../convex/_generated/api";
 import { Id } from "@/../convex/_generated/dataModel";
 import { ROUTES } from "@/app/constants";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -119,11 +120,10 @@ export function ShareToHouseholdDialog({
                   <Label
                     key={household._id}
                     htmlFor={household._id}
-                    className={`w-full flex items-center space-x-3 p-3 rounded-lg border transition-colors ${
-                      isPending
-                        ? "opacity-50 cursor-not-allowed"
-                        : "cursor-pointer"
-                    }`}
+                    className={cn(
+                      "w-full flex items-center space-x-3 p-3 rounded-lg border transition-colors",
+                      isPending ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                    )}
                   >
                     <Checkbox
                       id={household._id}

@@ -630,7 +630,7 @@ function RecipeSelectionCard({
               </div>
               <Badge
                 variant="secondary"
-                className={`${categoryColor} border-0 shrink-0`}
+                className={cn(categoryColor, "border-0 shrink-0")}
               >
                 {categoryLabel}
               </Badge>

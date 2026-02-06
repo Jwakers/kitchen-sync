@@ -2,6 +2,7 @@
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { TEXT_LIMITS } from "convex/lib/constants";
@@ -59,7 +60,7 @@ export function TextToRecipeParser({
   const isOverLimit = characterCount > TEXT_LIMITS.RECIPE_TEXT_MAX_LENGTH;
 
   return (
-    <Card className={showAsError ? "border-muted-foreground/20" : ""}>
+    <Card className={cn(showAsError && "border-muted-foreground/20")}>
       <CardHeader>
         <div className="flex items-center gap-3">
           <div className="p-3 rounded-lg bg-primary/10">
@@ -146,13 +147,13 @@ Instructions:
               {TEXT_LIMITS.RECIPE_TEXT_MAX_LENGTH.toLocaleString()} characters
             </p>
             <p
-              className={`${
+              className={cn(
                 isOverLimit
                   ? "text-destructive font-medium"
                   : isNearLimit
                     ? "text-muted-foreground font-medium"
                     : "text-muted-foreground"
-              }`}
+              )}
             >
               {characterCount.toLocaleString()} /{" "}
               {TEXT_LIMITS.RECIPE_TEXT_MAX_LENGTH.toLocaleString()}

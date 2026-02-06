@@ -1,5 +1,6 @@
 import { APP_NAME } from "@/app/constants";
 import { ThemeProvider } from "@/components/theme-provider";
+import { cn } from "@/lib/utils";
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata, Viewport } from "next";
 import { Lexend } from "next/font/google";
@@ -299,7 +300,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${lexendSans.variable} antialiased`}>
+      <body className={cn(lexendSans.variable, "antialiased")}>
         <ClerkProvider>
           <ConvexClientProvider>
             <ThemeProvider

@@ -2,6 +2,7 @@
 
 import { validateImageFile } from "@/app/constants";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { IMAGE_LIMITS, RECIPE_LIMITS } from "convex/lib/constants";
 import {
@@ -218,11 +219,13 @@ export function MultiImageUpload({
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`relative border-2 border-dashed rounded-lg p-6 transition-colors ${
+          className={cn(
+            "relative border-2 border-dashed rounded-lg p-6 transition-colors",
             isDragging
               ? "border-primary bg-primary/10"
-              : "border-muted-foreground/25 hover:border-primary/50"
-          } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+              : "border-muted-foreground/25 hover:border-primary/50",
+            disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+          )}
         >
           <div className="flex flex-col items-center justify-center gap-4">
             <div className="flex items-center gap-2">

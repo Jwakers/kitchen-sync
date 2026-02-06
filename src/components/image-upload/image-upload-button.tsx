@@ -113,9 +113,11 @@ export function ImageUploadButton({
       />
       <Label
         htmlFor={inputId}
-        className={`flex items-center justify-center w-full ${sizeClasses[size]} border-2 border-dashed rounded-lg cursor-pointer hover:bg-accent transition-colors ${
-          disabled || upload.isUploading ? "opacity-50 cursor-not-allowed" : ""
-        }`}
+        className={cn(
+          "flex items-center justify-center w-full border-2 border-dashed rounded-lg cursor-pointer hover:bg-accent transition-colors",
+          sizeClasses[size],
+          (disabled || upload.isUploading) && "opacity-50 cursor-not-allowed"
+        )}
       >
         {upload.isUploading ? (
           <div className="flex items-center gap-2 text-muted-foreground">

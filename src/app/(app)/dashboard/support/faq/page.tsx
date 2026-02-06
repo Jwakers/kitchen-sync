@@ -1,6 +1,7 @@
 "use client";
 
 import { APP_NAME, ROUTES } from "@/app/constants";
+import { cn } from "@/lib/utils";
 import {
   Accordion,
   AccordionContent,
@@ -250,7 +251,7 @@ export default function FAQPage() {
           <Card key={sectionIndex}>
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${section.color}`}>
+                <div className={cn("p-2 rounded-lg", section.color)}>
                   {section.icon}
                 </div>
                 {section.title}
