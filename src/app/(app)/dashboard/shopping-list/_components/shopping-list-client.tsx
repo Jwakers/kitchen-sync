@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import useSubscription from "@/lib/hooks/use-subscription";
-import { titleCase } from "@/lib/utils";
+import { cn, titleCase } from "@/lib/utils";
 import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
@@ -570,9 +570,10 @@ function RecipeSelectionCard({
 
   return (
     <Card
-      className={`group relative overflow-hidden transition-all duration-300 hover:shadow-lg ${
+      className={cn(
+        "group relative overflow-hidden transition-all duration-300 hover:shadow-lg",
         isSelected && "ring-2 ring-primary shadow-xl"
-      }`}
+      )}
     >
       <div className="flex flex-col">
         {/* Main content area - clickable for selection */}
@@ -582,9 +583,10 @@ function RecipeSelectionCard({
         >
           {/* Recipe Image */}
           <div
-            className={`relative size-24 rounded-lg overflow-hidden shrink-0 bg-gradient-to-br from-primary/20 to-primary/5 transition-all duration-300 ${
-              isSelected ? "ring-2 ring-primary/50" : ""
-            }`}
+            className={cn(
+              "relative size-24 rounded-lg overflow-hidden shrink-0 bg-gradient-to-br from-primary/20 to-primary/5 transition-all duration-300",
+              isSelected && "ring-2 ring-primary/50"
+            )}
           >
             {recipe.image && (
               <Image
