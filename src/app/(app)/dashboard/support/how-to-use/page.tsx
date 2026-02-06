@@ -1,6 +1,7 @@
 "use client";
 
 import { APP_NAME, ROUTES } from "@/app/constants";
+import { cn } from "@/lib/utils";
 import {
   Accordion,
   AccordionContent,
@@ -36,8 +37,7 @@ export default function HowToUsePage() {
     {
       step: 1,
       title: "Sign up for an account",
-      description:
-        `Create your ${APP_NAME} account to start organising your recipes and meal planning.`,
+      description: `Create your ${APP_NAME} account to start organising your recipes and meal planning.`,
       icon: <Users className="h-5 w-5" />,
     },
     {
@@ -345,7 +345,7 @@ export default function HowToUsePage() {
           <Card key={guideIndex}>
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${guide.color}`}>
+                <div className={cn("p-2 rounded-lg", guide.color)}>
                   {guide.icon}
                 </div>
                 {guide.title}

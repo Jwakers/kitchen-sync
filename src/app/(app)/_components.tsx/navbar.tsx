@@ -2,13 +2,7 @@
 
 import { ROUTES } from "@/app/constants";
 import { Button } from "@/components/ui/button";
-import {
-  CalendarCheck,
-  ChefHat,
-  Clipboard,
-  Home,
-  Plus,
-} from "lucide-react";
+import { CalendarCheck, ChefHat, Clipboard, Home, Plus } from "lucide-react";
 import Link from "next/link";
 import { useLayoutEffect, useRef, useState } from "react";
 import { AddRecipeDrawer } from "./add-recipe-drawer";
@@ -20,7 +14,7 @@ export function Navbar() {
   useLayoutEffect(() => {
     document.body.style.setProperty(
       "--nav-height",
-      `${navRef.current?.clientHeight}px`,
+      `${navRef.current?.clientHeight}px`
     );
   }, []);
 
@@ -60,7 +54,7 @@ export function Navbar() {
           {/* Add Recipe - Primary action */}
           <Button
             size="icon"
-            className="h-14 w-14 rounded-full shadow-lg"
+            className="h-14 w-14 rounded-full shadow-lg mx-auto"
             onClick={() => setDrawerOpen(true)}
             aria-label="Add Recipe"
           >

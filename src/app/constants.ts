@@ -21,6 +21,9 @@ export const ROUTES = {
   CREATE_RECIPE: "/dashboard/create-recipe",
   MEAL_PLAN: "/dashboard/meal-plan",
   SHOPPING_LIST: "/dashboard/shopping-list",
+  /** URL for a specific shopping list (use with query param listId) */
+  shoppingListWithId: (listId: string) =>
+    `/dashboard/shopping-list?listId=${listId}`,
   HOUSEHOLDS: "/dashboard/households",
   CHALKBOARD: "/dashboard/chalkboard",
   SUPPORT: "/dashboard/support",
@@ -86,11 +89,14 @@ export function validateImageFile(file: File): {
   // Check file type against allowed types
   // Also check file extension for HEIC/HEIF since MIME type might not be set correctly
   const fileExtension = file.name.toLowerCase().split(".").pop();
-  const isHeicByExtension = fileExtension === "heic" || fileExtension === "heif";
+  const isHeicByExtension =
+    fileExtension === "heic" || fileExtension === "heif";
   const isHeicByType = file.type === "image/heic" || file.type === "image/heif";
-  
+
   if (
-    !IMAGE_LIMITS.ALLOWED_TYPES.includes(file.type as (typeof IMAGE_LIMITS.ALLOWED_TYPES)[number]) &&
+    !IMAGE_LIMITS.ALLOWED_TYPES.includes(
+      file.type as (typeof IMAGE_LIMITS.ALLOWED_TYPES)[number]
+    ) &&
     !isHeicByExtension &&
     !isHeicByType
   ) {

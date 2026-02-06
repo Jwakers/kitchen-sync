@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { titleCase } from "@/lib/utils";
+import { cn, titleCase } from "@/lib/utils";
 import { ArrowLeft, Calendar, Clock, ImageIcon, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -72,7 +72,7 @@ export function RecipeHeader({
         <div className="absolute top-2 right-2 z-10">
           <Badge
             variant="secondary"
-            className={`${categoryColor} border-0 font-medium text-sm px-3 py-1`}
+            className={cn(categoryColor, "border-0 font-medium text-sm px-3 py-1")}
           >
             {categoryLabel}
           </Badge>

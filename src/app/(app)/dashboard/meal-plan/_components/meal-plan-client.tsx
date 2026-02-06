@@ -100,7 +100,10 @@ export default function MealPlanClient() {
   const userRecipes = useQuery(api.recipes.getAllUserRecipes);
   const householdRecipes = useQuery(api.households.getAllHouseholdRecipes);
   const households = useQuery(api.households.getUserHouseholds);
-  const activeShoppingList = useQuery(api.shoppingLists.getActiveShoppingList);
+  const listsForPlan = useQuery(
+    api.shoppingLists.getShoppingListsByMealPlan,
+    currentPlan ? { mealPlanId: currentPlan._id } : "skip"
+  );
   const personalChalkboard = useQuery(api.chalkboard.getPersonalChalkboard);
   const householdChalkboards = useQuery(
     api.chalkboard.getAllHouseholdChalkboards
@@ -241,22 +244,15 @@ export default function MealPlanClient() {
 
   const handleGenerateList = useCallback(async () => {
     if (!currentPlan) return;
-    if (activeShoppingList) {
-      toast.error(
-        "You already have an active or draft shopping list. Complete or remove it first."
-      );
-      setShowGenerateDialog(false);
-      return;
-    }
     try {
-      await createShoppingListFromMealPlan({
+      const { listId } = await createShoppingListFromMealPlan({
         mealPlanId: currentPlan._id,
         chalkboardItemIds: Array.from(selectedChalkboardIds),
       });
       setShowGenerateDialog(false);
       setSelectedChalkboardIds(new Set());
       toast.success("Shopping list created from meal plan");
-      router.push(ROUTES.SHOPPING_LIST);
+      router.push(ROUTES.shoppingListWithId(listId));
     } catch (e) {
       toast.error(
         e instanceof Error ? e.message : "Failed to create shopping list"
@@ -264,7 +260,6 @@ export default function MealPlanClient() {
     }
   }, [
     currentPlan,
-    activeShoppingList,
     selectedChalkboardIds,
     createShoppingListFromMealPlan,
     router,
@@ -678,55 +673,66 @@ export default function MealPlanClient() {
 
         {/* Generate shopping list dialog */}
         <Dialog open={showGenerateDialog} onOpenChange={setShowGenerateDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Generate shopping list</DialogTitle>
-              <DialogDescription>
-                Create a shopping list from your meal plan ingredients.
-                Optionally include chalkboard items.
-              </DialogDescription>
-            </DialogHeader>
-            {chalkboardItemsForGenerate.length > 0 && (
-              <div className="space-y-2 py-2">
-                <Label>Include chalkboard items</Label>
-                <div className="max-h-40 overflow-y-auto space-y-2 border rounded-md p-2">
-                  {chalkboardItemsForGenerate.map((item) => (
-                    <label
-                      key={item.id}
-                      className="flex items-center gap-2 cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedChalkboardIds.has(item.id)}
-                        onChange={(e) => {
-                          setSelectedChalkboardIds((prev) => {
-                            const next = new Set(prev);
-                            if (e.target.checked) next.add(item.id);
-                            else next.delete(item.id);
-                            return next;
-                          });
-                        }}
-                      />
-                      <span className="text-sm truncate">{item.text}</span>
-                      <Badge variant="secondary" className="text-xs shrink-0">
-                        {item.source}
-                      </Badge>
-                    </label>
-                  ))}
+          <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col p-0">
+            <div className="flex-1 overflow-y-auto px-6 pt-6 space-y-4">
+              <DialogHeader>
+                <DialogTitle>Generate shopping list</DialogTitle>
+                <DialogDescription>
+                  Create a shopping list from your meal plan ingredients.
+                  Optionally include chalkboard items.
+                </DialogDescription>
+              </DialogHeader>
+              {listsForPlan && listsForPlan.length > 0 && (
+                <p className="text-sm text-muted-foreground">
+                  You have an existing list for this plan:{" "}
+                  <Link
+                    href={ROUTES.shoppingListWithId(listsForPlan[0]._id)}
+                    className="font-medium text-primary underline underline-offset-4"
+                    onClick={() => setShowGenerateDialog(false)}
+                  >
+                    View list
+                  </Link>
+                </p>
+              )}
+              {chalkboardItemsForGenerate.length > 0 && (
+                <div className="space-y-2 py-2">
+                  <Label>Include chalkboard items</Label>
+                  <div className="max-h-40 overflow-y-auto space-y-2 border rounded-md p-2">
+                    {chalkboardItemsForGenerate.map((item) => (
+                      <label
+                        key={item.id}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedChalkboardIds.has(item.id)}
+                          onChange={(e) => {
+                            setSelectedChalkboardIds((prev) => {
+                              const next = new Set(prev);
+                              if (e.target.checked) next.add(item.id);
+                              else next.delete(item.id);
+                              return next;
+                            });
+                          }}
+                        />
+                        <span className="text-sm truncate">{item.text}</span>
+                        <Badge variant="secondary" className="text-xs shrink-0">
+                          {item.source}
+                        </Badge>
+                      </label>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-            <DialogFooter>
+              )}
+            </div>
+            <DialogFooter className="flex-shrink-0 border-t px-6 py-4">
               <Button
                 variant="outline"
                 onClick={() => setShowGenerateDialog(false)}
               >
                 Cancel
               </Button>
-              <Button
-                onClick={handleGenerateList}
-                disabled={!!activeShoppingList}
-              >
+              <Button onClick={handleGenerateList}>
                 Create shopping list
               </Button>
             </DialogFooter>

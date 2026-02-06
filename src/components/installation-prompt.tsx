@@ -1,6 +1,7 @@
 "use client";
 
 import { APP_NAME } from "@/app/constants";
+import { cn } from "@/lib/utils";
 import { Check, Download, Share, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -180,9 +181,10 @@ export default function InstallPrompt() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div
-                className={`w-2 h-2 rounded-full ${
+                className={cn(
+                  "w-2 h-2 rounded-full",
                   deferredPrompt ? "bg-success" : "bg-yellow-500"
-                }`}
+                )}
               ></div>
               <span className="text-sm text-muted-foreground">
                 {deferredPrompt

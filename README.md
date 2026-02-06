@@ -4,28 +4,14 @@
 
 ### Next Immediate Steps
 
-- [x] Complete technical debt remediation in one sprint.
-- [x] Refactor to use [Vercel AI SDK](https://ai-sdk.dev/docs/introduction).
-- [ ] Identify features that will increase my app usage
-  - [x] Photograph a recipe book and import.
-  - [x] Remove/expand free plan limits during beta
-  - [x] Take reddit users feedback and turn it into actionable feedback points
-  - [x] Import type should be a part of each recipe. This should be added to the schema.
-  - [x] Recipe mode. Screen stays on, full screen, next and previous arrows etc
-    - [x] Need safe are inset considered (including close button)
-    - [x] Landscape should be full width dialog. Increase the max width
-  - [x] Update the home page with clear messaging on these features.
-- [x] URGENT: remove create your own recipe from drawer and onto its own page. It is fundamentally broken and does not work on actual devices.
-- [ ] Try the post on Reddit and IH again and see if we can get any active users.
-- [ ] Try out [Indie App Circle](https://www.indieappcircle.com/) too
-- [ ] Try out [User Finder](https://usersfinder.com/)
-- [ ] Change shopping list to meal planning. Add additional features whereby the meal plan is preserved for the week, or until an end date set by the user, easy access to then processing a shopping list. Use AI plan to make this feature better. Meal plan should be a new table.
-- [ ] The app is supposed to make meal planning and weekly shops easier. Does it do that? If not yet, what are the next steps?
-- [ ] Weekly meal planning features
-- [ ] Set up notifications and decide what to notify users on and when to notify
-      them. Add settings so users can control what they get notified about. Add to agents.md that when new relevant features get added, a notification should be considered for it too.
+- [ ] Summarize competitors, including their features, price points, and our competitive edge.
+- [ ] Try out [Indie App Circle](https://www.indieappcircle.com/) too.
+- [ ] Try out [User Finder](https://usersfinder.com/).
+- [ ] Set up the blog for the site (infrastructure).
+- [ ] Set up notifications (what and when), add user-controllable settings, and note in agents.md to consider notifications when new relevant features are added.
 
 Meal planning notes
+
 - [x] need to fix nav alignment
 - [ ] On opening the meal plan page the nav raises up
 - [x] Auto select date field on iOS needs to be disabled
@@ -43,6 +29,21 @@ Feedback: Import feels reliable and the edit page is clear, but the biggest oppo
 - [ ] **Post-import guidance**: Add guidance on the import confirmation/edit screen that highlights which fields usually matter most to review (e.g. servings, total time, category). Help users know what to check so they feel confident moving on.
 - [ ] **Post-import emotional payoff**: Improve the moment right after import so it reinforces that the user has saved time and added something valuable (e.g. light celebration, clear “you’ve captured this” or “ready to cook later” messaging). The experience should match the excitement of capturing a recipe they’re keen to cook.
 - [ ] **Reduce friction to Save**: Optimise the flow so users can feel comfortable hitting Save quickly—through the above guidance and payoff, so it’s less about re-checking everything and more about feeling ready.
+
+### User feedback – Additional (Feb 2025)
+
+Feedback: Users like the recent image-to-diagram and weekly plan features. Strong interest in food-sharing community and AI enhancements.
+
+**Features / ideas**
+
+- [ ] **Food-sharing community**: Users expressed interest in a community layer; consider for roadmap.
+- [ ] **AI enhancements**: Nutrition analysis, cooking suggestions, personalized recipe recommendations.
+
+**Bugs / improvements**
+
+- [ ] **Web import accuracy**: Import quality varies by site structure; occasionally small errors. Improve parser robustness for edge cases.
+- [ ] **Recipe image quality**: Images sometimes render less clearly than on the source site; review image handling/compression/resolution.
+- [ ] **404 on login**: Intermittent 404 seen when logging in; investigate and fix.
 
 ### Social, SEO and AEO
 

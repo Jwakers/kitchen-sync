@@ -1,6 +1,11 @@
 import { ConvexError, v } from "convex/values";
-import { Doc } from "./_generated/dataModel";
-import { internalMutation, mutation, query } from "./_generated/server";
+import { Doc, Id } from "./_generated/dataModel";
+import {
+  internalMutation,
+  mutation,
+  query,
+  QueryCtx,
+} from "./_generated/server";
 import { isHouseholdMember } from "./households";
 import { canAccessMealPlan } from "./mealPlans";
 import {
@@ -8,6 +13,38 @@ import {
   getCurrentUserOrThrow,
   getUserSubscription,
 } from "./users";
+
+// ============================================================================
+// ACCESS HELPER
+// ============================================================================
+
+/**
+ * User can access a shopping list if they own it or have access to its linked meal plan.
+ */
+export async function canAccessShoppingList(
+  ctx: QueryCtx,
+  userId: Id<"users">,
+  list: Doc<"shoppingLists">
+): Promise<boolean> {
+  if (list.userId === userId) return true;
+  if (list.mealPlanId) {
+    const plan = await ctx.db.get(list.mealPlanId);
+    if (!plan) return false;
+    return await canAccessMealPlan(ctx, userId, plan);
+  }
+  return false;
+}
+
+/**
+ * User can modify or perform destructive actions on a shopping list only if they own it.
+ * Use this for delete, finalise, complete, and unfinalise; use canAccessShoppingList for view/edit items.
+ */
+function canModifyShoppingList(
+  userId: Id<"users">,
+  list: Doc<"shoppingLists">
+): boolean {
+  return list.userId === userId;
+}
 
 // ============================================================================
 // HELPERS (ingredient aggregation for meal plan → shopping list)
@@ -27,10 +64,20 @@ function normaliseIngredientKey(ing: {
 
 function aggregateIngredientsFromRecipes(
   recipes: { ingredients?: Doc<"recipes">["ingredients"] }[]
-): { name: string; amount: number | string | null; unit?: string; preparation?: string }[] {
+): {
+  name: string;
+  amount: number | string | null;
+  unit?: string;
+  preparation?: string;
+}[] {
   const combined = new Map<
     string,
-    { name: string; unit?: string; preparation?: string; amount: number | string | null }
+    {
+      name: string;
+      unit?: string;
+      preparation?: string;
+      amount: number | string | null;
+    }
   >();
 
   for (const recipe of recipes) {
@@ -39,31 +86,39 @@ function aggregateIngredientsFromRecipes(
       if (!ingredient?.name) continue;
       const key = normaliseIngredientKey(ingredient);
       const existing = combined.get(key);
+      const rawAmount = ingredient.amount;
       const amountValue =
-        ingredient.amount === undefined
+        rawAmount === undefined
           ? null
-          : typeof ingredient.amount === "number"
-            ? ingredient.amount
-            : Number(ingredient.amount);
+          : typeof rawAmount === "number"
+            ? rawAmount
+            : Number(rawAmount);
+      const parsedNumeric =
+        amountValue !== null && Number.isFinite(amountValue as number);
+      const storedAmount: number | string | null = parsedNumeric
+        ? (amountValue as number)
+        : typeof rawAmount === "string"
+          ? rawAmount
+          : rawAmount ?? null;
 
       if (!existing) {
         combined.set(key, {
           name: ingredient.name,
           unit: ingredient.unit,
           preparation: ingredient.preparation,
-          amount: Number.isFinite(amountValue as number) ? (amountValue as number) : null,
+          amount: storedAmount,
         });
         continue;
       }
       if (
         typeof existing.amount === "number" &&
-        typeof amountValue === "number" &&
-        Number.isFinite(amountValue)
+        parsedNumeric &&
+        amountValue !== null
       ) {
-        existing.amount += amountValue;
-      } else if (ingredient.amount !== undefined) {
-        const parts = [existing.amount, ingredient.amount]
-          .filter((v) => v !== null)
+        existing.amount += amountValue as number;
+      } else if (rawAmount !== undefined) {
+        const parts = [existing.amount, storedAmount]
+          .filter((v) => v !== null && v !== undefined)
           .map(String);
         existing.amount = parts.length > 0 ? parts.join(" + ") : null;
       }
@@ -80,19 +135,49 @@ function aggregateIngredientsFromRecipes(
 // ============================================================================
 
 /**
- * Get the user's active or draft shopping list (most recent one)
+ * Return meal plan IDs the user can access (owned or shared with their households).
+ * Used to fetch only those lists via by_meal_plan index instead of scanning all lists.
  */
-export const getActiveShoppingList = query({
+async function getAccessibleMealPlanIds(
+  ctx: QueryCtx,
+  userId: Id<"users">
+): Promise<Id<"mealPlans">[]> {
+  const owned = await ctx.db
+    .query("mealPlans")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .collect();
+  const memberships = await ctx.db
+    .query("householdMembers")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .collect();
+  const seen = new Set(owned.map((p) => p._id));
+  const ids: Id<"mealPlans">[] = [...owned.map((p) => p._id)];
+  for (const m of memberships) {
+    const shared = await ctx.db
+      .query("mealPlans")
+      .withIndex("by_household", (q) => q.eq("householdId", m.householdId))
+      .collect();
+    for (const p of shared) {
+      if (!seen.has(p._id)) {
+        seen.add(p._id);
+        ids.push(p._id);
+      }
+    }
+  }
+  return ids;
+}
+
+/**
+ * Get all draft/active shopping lists the current user can access (owned or via linked meal plan), ordered by recency.
+ */
+export const getAccessibleShoppingLists = query({
   args: {},
   handler: async (ctx) => {
     const user = await getCurrentUser(ctx);
-    // Return null if user doesn't exist yet (race condition on sign-in)
-    if (!user) {
-      return null;
-    }
+    if (!user) return [];
 
-    // Get the most recent draft or active list
-    const list = await ctx.db
+    // Own lists (draft or active)
+    const ownLists = await ctx.db
       .query("shoppingLists")
       .withIndex("by_user_and_status", (q) => q.eq("userId", user._id))
       .filter((q) =>
@@ -101,23 +186,128 @@ export const getActiveShoppingList = query({
           q.eq(q.field("status"), "active")
         )
       )
-      .order("desc")
-      .first();
-
-    if (!list) return null;
-
-    // Get all items for this list
-    const items = await ctx.db
-      .query("shoppingListItems")
-      .withIndex("by_shopping_list", (q) => q.eq("shoppingListId", list._id))
       .collect();
 
-    // Sort by order
+    // Lists linked to meal plans the user can access (bounded by accessible plans, not all lists)
+    const accessiblePlanIds = await getAccessibleMealPlanIds(ctx, user._id);
+    const linkedLists: Doc<"shoppingLists">[] = [];
+    const seen = new Set(ownLists.map((l) => l._id));
+    for (const planId of accessiblePlanIds) {
+      const lists = await ctx.db
+        .query("shoppingLists")
+        .withIndex("by_meal_plan", (q) => q.eq("mealPlanId", planId))
+        .collect();
+      for (const list of lists) {
+        if (seen.has(list._id)) continue;
+        if (list.status !== "draft" && list.status !== "active") continue;
+        seen.add(list._id);
+        linkedLists.push(list);
+      }
+    }
+
+    const accessible = [...ownLists, ...linkedLists];
+    accessible.sort((a, b) => (b._creationTime ?? 0) - (a._creationTime ?? 0));
+    return accessible;
+  },
+});
+
+/**
+ * Get a single shopping list by ID with items. Returns null if not found or no access.
+ */
+export const getShoppingListById = query({
+  args: { listId: v.id("shoppingLists") },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    if (!user) return null;
+
+    const list = await ctx.db.get(args.listId);
+    if (!list) return null;
+
+    const allowed = await canAccessShoppingList(ctx, user._id, list);
+    if (!allowed) return null;
+
+    const items = await ctx.db
+      .query("shoppingListItems")
+      .withIndex("by_shopping_list", (q) => q.eq("shoppingListId", args.listId))
+      .collect();
+
     const sortedItems = items.sort((a, b) => a.order - b.order);
+    return { ...list, items: sortedItems };
+  },
+});
+
+/**
+ * Get draft/active shopping lists linked to a meal plan that the current user can access.
+ */
+export const getShoppingListsByMealPlan = query({
+  args: { mealPlanId: v.id("mealPlans") },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    if (!user) return [];
+
+    const plan = await ctx.db.get(args.mealPlanId);
+    if (!plan) return [];
+    const allowed = await canAccessMealPlan(ctx, user._id, plan);
+    if (!allowed) return [];
+
+    const lists = await ctx.db
+      .query("shoppingLists")
+      .withIndex("by_meal_plan", (q) => q.eq("mealPlanId", args.mealPlanId))
+      .collect();
+
+    return lists.filter((l) => l.status === "draft" || l.status === "active");
+  },
+});
+
+/**
+ * Get the user's default active/draft shopping list (most recent accessible one).
+ */
+export const getActiveShoppingList = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUser(ctx);
+    if (!user) return null;
+
+    const ownLists = await ctx.db
+      .query("shoppingLists")
+      .withIndex("by_user_and_status", (q) => q.eq("userId", user._id))
+      .filter((q) =>
+        q.or(
+          q.eq(q.field("status"), "draft"),
+          q.eq(q.field("status"), "active")
+        )
+      )
+      .collect();
+
+    const accessiblePlanIds = await getAccessibleMealPlanIds(ctx, user._id);
+    const seen = new Set(ownLists.map((l) => l._id));
+    const linkedLists: Doc<"shoppingLists">[] = [];
+    for (const planId of accessiblePlanIds) {
+      const lists = await ctx.db
+        .query("shoppingLists")
+        .withIndex("by_meal_plan", (q) => q.eq("mealPlanId", planId))
+        .collect();
+      for (const list of lists) {
+        if (seen.has(list._id)) continue;
+        if (list.status !== "draft" && list.status !== "active") continue;
+        seen.add(list._id);
+        linkedLists.push(list);
+      }
+    }
+
+    const accessible = [...ownLists, ...linkedLists];
+    accessible.sort((a, b) => (b._creationTime ?? 0) - (a._creationTime ?? 0));
+    const first = accessible[0];
+    if (!first) return null;
+
+    const items = await ctx.db
+      .query("shoppingListItems")
+      .withIndex("by_shopping_list", (q) => q.eq("shoppingListId", first._id))
+      .collect();
 
     return {
-      ...list,
-      items: sortedItems,
+      ...first,
+      items: items.sort((a, b) => a.order - b.order),
     };
   },
 });
@@ -233,9 +423,7 @@ export const createShoppingListFromMealPlan = mutation({
       .collect();
 
     const recipeIds = [...new Set(entries.map((e) => e.recipeId))];
-    const recipes = await Promise.all(
-      recipeIds.map((id) => ctx.db.get(id))
-    );
+    const recipes = await Promise.all(recipeIds.map((id) => ctx.db.get(id)));
     const validRecipes = recipes.filter(
       (r): r is NonNullable<typeof r> => r != null
     );
@@ -264,6 +452,7 @@ export const createShoppingListFromMealPlan = mutation({
       status: "draft",
       expiresAt: now + oneWeek,
       chalkboardItemIds: args.chalkboardItemIds,
+      mealPlanId: args.mealPlanId,
     });
 
     await Promise.all(
@@ -308,8 +497,9 @@ export const updateItems = mutation({
       throw new ConvexError("Shopping list not found");
     }
 
-    if (list.userId !== user._id) {
-      throw new ConvexError("You can only update your own shopping lists");
+    const allowed = await canAccessShoppingList(ctx, user._id, list);
+    if (!allowed) {
+      throw new ConvexError("You do not have access to this shopping list");
     }
 
     if (list.status !== "draft") {
@@ -385,8 +575,9 @@ export const toggleItemChecked = mutation({
       throw new ConvexError("Shopping list not found");
     }
 
-    if (list.userId !== user._id) {
-      throw new ConvexError("You can only update your own shopping lists");
+    const allowed = await canAccessShoppingList(ctx, user._id, list);
+    if (!allowed) {
+      throw new ConvexError("You do not have access to this shopping list");
     }
 
     await ctx.db.patch(args.itemId, {
@@ -418,8 +609,9 @@ export const updateItemAmount = mutation({
       throw new ConvexError("Shopping list not found");
     }
 
-    if (list.userId !== user._id) {
-      throw new ConvexError("You can only update your own shopping lists");
+    const allowed = await canAccessShoppingList(ctx, user._id, list);
+    if (!allowed) {
+      throw new ConvexError("You do not have access to this shopping list");
     }
 
     if (list.status !== "draft") {
@@ -454,8 +646,9 @@ export const removeItem = mutation({
       throw new ConvexError("Shopping list not found");
     }
 
-    if (list.userId !== user._id) {
-      throw new ConvexError("You can only update your own shopping lists");
+    const allowed = await canAccessShoppingList(ctx, user._id, list);
+    if (!allowed) {
+      throw new ConvexError("You do not have access to this shopping list");
     }
 
     if (list.status !== "draft") {
@@ -489,8 +682,9 @@ export const addChalkboardItems = mutation({
       throw new ConvexError("Shopping list not found");
     }
 
-    if (list.userId !== user._id) {
-      throw new ConvexError("You can only update your own shopping lists");
+    const allowed = await canAccessShoppingList(ctx, user._id, list);
+    if (!allowed) {
+      throw new ConvexError("You do not have access to this shopping list");
     }
 
     if (list.status !== "draft") {
@@ -510,7 +704,7 @@ export const addChalkboardItems = mutation({
 
     // Add new items
     await Promise.all(
-      args.items.map((item, i) => {
+      args.items.map((item) => {
         maxOrder++;
         return ctx.db.insert("shoppingListItems", {
           shoppingListId: args.listId,
@@ -549,8 +743,10 @@ export const completeShoppingList = mutation({
       throw new ConvexError("Shopping list not found");
     }
 
-    if (list.userId !== user._id) {
-      throw new ConvexError("You can only complete your own shopping lists");
+    if (!canModifyShoppingList(user._id, list)) {
+      throw new ConvexError(
+        "Only the list owner can complete this shopping list"
+      );
     }
 
     if (list.status !== "active") {
@@ -582,8 +778,10 @@ export const deleteShoppingList = mutation({
       throw new ConvexError("Shopping list not found");
     }
 
-    if (list.userId !== user._id) {
-      throw new ConvexError("You can only delete your own shopping lists");
+    if (!canModifyShoppingList(user._id, list)) {
+      throw new ConvexError(
+        "Only the list owner can delete this shopping list"
+      );
     }
 
     // Delete all items
@@ -618,12 +816,14 @@ export const unfinaliseShoppingList = mutation({
       throw new ConvexError("Shopping list not found");
     }
 
-    if (list.userId !== user._id) {
-      throw new ConvexError("You can only edit your own shopping lists");
+    if (!canModifyShoppingList(user._id, list)) {
+      throw new ConvexError(
+        "Only the list owner can un-finalise this shopping list"
+      );
     }
 
     if (list.status !== "active") {
-      throw new ConvexError("Can only unfinalize active shopping lists");
+      throw new ConvexError("Can only un-finalise active shopping lists");
     }
 
     // Mark list as draft
@@ -637,7 +837,7 @@ export const unfinaliseShoppingList = mutation({
 });
 
 /**
- * Finalize a draft shopping list, checking the active list limit
+ * Finalize a draft shopping list, checking the active list limit (creator's limit)
  */
 export const finaliseShoppingList = mutation({
   args: {
@@ -645,26 +845,31 @@ export const finaliseShoppingList = mutation({
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
-    const subscription = await getUserSubscription(user, ctx);
 
     const list = await ctx.db.get(args.listId);
     if (!list) {
       throw new ConvexError("Shopping list not found");
     }
 
-    if (list.userId !== user._id) {
-      throw new ConvexError("You can only finalize your own shopping lists");
+    if (!canModifyShoppingList(user._id, list)) {
+      throw new ConvexError(
+        "Only the list owner can finalize this shopping list"
+      );
     }
 
     if (list.status !== "draft") {
       throw new ConvexError("Shopping list is already finalized");
     }
 
-    // Check active shopping list limit before finalizing
+    // Check active list limit for the list creator (subscription is per creator)
+    const creator = await ctx.db.get(list.userId);
+    const subscription = creator
+      ? await getUserSubscription(creator, ctx)
+      : { maxActiveShoppingLists: -1 };
     const activeLists = await ctx.db
       .query("shoppingLists")
       .withIndex("by_user_and_status", (q) =>
-        q.eq("userId", user._id).eq("status", "active")
+        q.eq("userId", list.userId).eq("status", "active")
       )
       .collect();
 
@@ -673,7 +878,7 @@ export const finaliseShoppingList = mutation({
       activeLists.length >= subscription.maxActiveShoppingLists
     ) {
       throw new ConvexError(
-        `You've reached the limit of ${subscription.maxActiveShoppingLists} active shopping lists. Complete an existing list before finalizing this one.`
+        `The list owner has reached their limit of ${subscription.maxActiveShoppingLists} active shopping lists. Complete an existing list before finalizing this one.`
       );
     }
 

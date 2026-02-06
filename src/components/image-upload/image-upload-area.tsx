@@ -147,11 +147,14 @@ export function ImageUploadArea({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`relative block w-full ${aspectRatio} bg-gradient-to-br from-primary/20 to-primary/5 overflow-hidden rounded-lg border-2 transition-colors cursor-pointer ${
+        className={cn(
+          "relative block w-full bg-gradient-to-br from-primary/20 to-primary/5 overflow-hidden rounded-lg border-2 transition-colors cursor-pointer",
+          aspectRatio,
           isDragging
             ? "border-primary bg-primary/10"
-            : "border-dashed border-muted-foreground/25 hover:border-primary/50"
-        } ${disabled || upload.isUploading ? "opacity-50 cursor-not-allowed" : ""}`}
+            : "border-dashed border-muted-foreground/25 hover:border-primary/50",
+          (disabled || upload.isUploading) && "opacity-50 cursor-not-allowed"
+        )}
       >
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           {upload.isUploading ? (

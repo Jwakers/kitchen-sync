@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import useSubscription from "@/lib/hooks/use-subscription";
-import { titleCase } from "@/lib/utils";
+import { cn, titleCase } from "@/lib/utils";
 import { api } from "convex/_generated/api";
 import { RECIPE_CATEGORIES } from "convex/lib/constants";
 import { useQuery } from "convex/react";
@@ -54,7 +54,7 @@ function RecipeCard({
           <div className="absolute top-4 right-4">
             <Badge
               variant="secondary"
-              className={`${categoryColor} border-0 font-medium`}
+              className={cn(categoryColor, "border-0 font-medium")}
             >
               {categoryLabel}
             </Badge>

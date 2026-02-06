@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -290,7 +291,7 @@ export default function ShoppingList({
                     )}
                   </div>
                   <div className="flex-1">
-                    <span className={item.checked ? "line-through" : ""}>
+                    <span className={cn(item.checked && "line-through")}>
                       {item.name}
                     </span>
                     <span className="ml-2">
@@ -412,11 +413,12 @@ export default function ShoppingList({
                 return (
                   <div
                     key={item._id}
-                    className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
+                    className={cn(
+                      "flex items-center gap-3 p-3 rounded-lg border transition-all",
                       isFinalised && item.checked
                         ? "bg-muted/50 opacity-60"
                         : "hover:bg-muted/30 hover:border-primary/30"
-                    }`}
+                    )}
                   >
                     {/* Checkbox (only in finalized state) */}
                     {isFinalised && (
@@ -431,9 +433,10 @@ export default function ShoppingList({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <p
-                          className={`font-medium capitalize ${
-                            isFinalised && item.checked ? "line-through" : ""
-                          }`}
+                          className={cn(
+                            "font-medium capitalize",
+                            isFinalised && item.checked && "line-through"
+                          )}
                         >
                           {item.name}
                         </p>
