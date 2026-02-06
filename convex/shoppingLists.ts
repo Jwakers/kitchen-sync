@@ -86,33 +86,39 @@ function aggregateIngredientsFromRecipes(
       if (!ingredient?.name) continue;
       const key = normaliseIngredientKey(ingredient);
       const existing = combined.get(key);
+      const rawAmount = ingredient.amount;
       const amountValue =
-        ingredient.amount === undefined
+        rawAmount === undefined
           ? null
-          : typeof ingredient.amount === "number"
-            ? ingredient.amount
-            : Number(ingredient.amount);
+          : typeof rawAmount === "number"
+            ? rawAmount
+            : Number(rawAmount);
+      const parsedNumeric =
+        amountValue !== null && Number.isFinite(amountValue as number);
+      const storedAmount: number | string | null = parsedNumeric
+        ? (amountValue as number)
+        : typeof rawAmount === "string"
+          ? rawAmount
+          : rawAmount ?? null;
 
       if (!existing) {
         combined.set(key, {
           name: ingredient.name,
           unit: ingredient.unit,
           preparation: ingredient.preparation,
-          amount: Number.isFinite(amountValue as number)
-            ? (amountValue as number)
-            : null,
+          amount: storedAmount,
         });
         continue;
       }
       if (
         typeof existing.amount === "number" &&
-        typeof amountValue === "number" &&
-        Number.isFinite(amountValue)
+        parsedNumeric &&
+        amountValue !== null
       ) {
-        existing.amount += amountValue;
-      } else if (ingredient.amount !== undefined) {
-        const parts = [existing.amount, ingredient.amount]
-          .filter((v) => v !== null)
+        existing.amount += amountValue as number;
+      } else if (rawAmount !== undefined) {
+        const parts = [existing.amount, storedAmount]
+          .filter((v) => v !== null && v !== undefined)
           .map(String);
         existing.amount = parts.length > 0 ? parts.join(" + ") : null;
       }
@@ -127,6 +133,39 @@ function aggregateIngredientsFromRecipes(
 // ============================================================================
 // QUERIES
 // ============================================================================
+
+/**
+ * Return meal plan IDs the user can access (owned or shared with their households).
+ * Used to fetch only those lists via by_meal_plan index instead of scanning all lists.
+ */
+async function getAccessibleMealPlanIds(
+  ctx: QueryCtx,
+  userId: Id<"users">
+): Promise<Id<"mealPlans">[]> {
+  const owned = await ctx.db
+    .query("mealPlans")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .collect();
+  const memberships = await ctx.db
+    .query("householdMembers")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .collect();
+  const seen = new Set(owned.map((p) => p._id));
+  const ids: Id<"mealPlans">[] = [...owned.map((p) => p._id)];
+  for (const m of memberships) {
+    const shared = await ctx.db
+      .query("mealPlans")
+      .withIndex("by_household", (q) => q.eq("householdId", m.householdId))
+      .collect();
+    for (const p of shared) {
+      if (!seen.has(p._id)) {
+        seen.add(p._id);
+        ids.push(p._id);
+      }
+    }
+  }
+  return ids;
+}
 
 /**
  * Get all draft/active shopping lists the current user can access (owned or via linked meal plan), ordered by recency.
@@ -149,27 +188,24 @@ export const getAccessibleShoppingLists = query({
       )
       .collect();
 
-    // Lists linked to meal plans (any list with mealPlanId set)
-    const linkedLists = await ctx.db
-      .query("shoppingLists")
-      .filter((q) => q.neq(q.field("mealPlanId"), undefined))
-      .collect();
-
-    const accessible: Doc<"shoppingLists">[] = [];
+    // Lists linked to meal plans the user can access (bounded by accessible plans, not all lists)
+    const accessiblePlanIds = await getAccessibleMealPlanIds(ctx, user._id);
+    const linkedLists: Doc<"shoppingLists">[] = [];
     const seen = new Set(ownLists.map((l) => l._id));
-    for (const list of ownLists) {
-      accessible.push(list);
-    }
-    for (const list of linkedLists) {
-      if (seen.has(list._id)) continue;
-      if (list.status !== "draft" && list.status !== "active") continue;
-      const allowed = await canAccessShoppingList(ctx, user._id, list);
-      if (allowed) {
+    for (const planId of accessiblePlanIds) {
+      const lists = await ctx.db
+        .query("shoppingLists")
+        .withIndex("by_meal_plan", (q) => q.eq("mealPlanId", planId))
+        .collect();
+      for (const list of lists) {
+        if (seen.has(list._id)) continue;
+        if (list.status !== "draft" && list.status !== "active") continue;
         seen.add(list._id);
-        accessible.push(list);
+        linkedLists.push(list);
       }
     }
 
+    const accessible = [...ownLists, ...linkedLists];
     accessible.sort((a, b) => (b._creationTime ?? 0) - (a._creationTime ?? 0));
     return accessible;
   },
@@ -243,23 +279,23 @@ export const getActiveShoppingList = query({
       )
       .collect();
 
-    const linkedLists = await ctx.db
-      .query("shoppingLists")
-      .filter((q) => q.neq(q.field("mealPlanId"), undefined))
-      .collect();
-
+    const accessiblePlanIds = await getAccessibleMealPlanIds(ctx, user._id);
     const seen = new Set(ownLists.map((l) => l._id));
-    const accessible: Doc<"shoppingLists">[] = [...ownLists];
-    for (const list of linkedLists) {
-      if (seen.has(list._id)) continue;
-      if (list.status !== "draft" && list.status !== "active") continue;
-      const allowed = await canAccessShoppingList(ctx, user._id, list);
-      if (allowed) {
+    const linkedLists: Doc<"shoppingLists">[] = [];
+    for (const planId of accessiblePlanIds) {
+      const lists = await ctx.db
+        .query("shoppingLists")
+        .withIndex("by_meal_plan", (q) => q.eq("mealPlanId", planId))
+        .collect();
+      for (const list of lists) {
+        if (seen.has(list._id)) continue;
+        if (list.status !== "draft" && list.status !== "active") continue;
         seen.add(list._id);
-        accessible.push(list);
+        linkedLists.push(list);
       }
     }
 
+    const accessible = [...ownLists, ...linkedLists];
     accessible.sort((a, b) => (b._creationTime ?? 0) - (a._creationTime ?? 0));
     const first = accessible[0];
     if (!first) return null;
@@ -668,7 +704,7 @@ export const addChalkboardItems = mutation({
 
     // Add new items
     await Promise.all(
-      args.items.map((item, i) => {
+      args.items.map((item) => {
         maxOrder++;
         return ctx.db.insert("shoppingListItems", {
           shoppingListId: args.listId,

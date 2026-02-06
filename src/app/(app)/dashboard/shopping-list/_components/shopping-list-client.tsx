@@ -90,8 +90,8 @@ export default function ShoppingListClient() {
   const displayList = useMemo(() => {
     // Loading: list lookup in-flight for this URL list
     if (listIdFromUrl && listFromUrl === undefined) return undefined;
-    // Loading: accessible lists not yet loaded (needed to decide default)
-    if (accessibleLists === undefined) return undefined;
+    // Loading: accessible lists not yet loaded (only when no URL list — needed to decide default)
+    if (!listIdFromUrl && accessibleLists === undefined) return undefined;
     if (listIdFromUrl && listFromUrl !== undefined) {
       if (listFromUrl) return listFromUrl;
       return null;
@@ -279,9 +279,9 @@ export default function ShoppingListClient() {
     }
   }, [displayList, listIdFromUrl, listFromUrl, router]);
 
-  const isLoading =
-    (listIdFromUrl && listFromUrl === undefined) ||
-    accessibleLists === undefined;
+  const isLoading = listIdFromUrl
+    ? listFromUrl === undefined
+    : accessibleLists === undefined;
   const showListView = Boolean(listIdFromUrl && displayList);
   const showListPicker =
     !listIdFromUrl &&
