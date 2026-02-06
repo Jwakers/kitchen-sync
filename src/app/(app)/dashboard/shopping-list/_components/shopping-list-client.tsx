@@ -22,6 +22,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import useSubscription from "@/lib/hooks/use-subscription";
 import { titleCase } from "@/lib/utils";
@@ -34,15 +41,19 @@ import {
   Check,
   CheckCircle2,
   ChefHat,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   Home,
   ListChecks,
+  Plus,
   Search,
   ShoppingCart,
   Users,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import ShoppingList from "./shopping-list";
@@ -56,19 +67,41 @@ type HouseholdRecipe = FunctionReturnType<
 type Recipe = UserRecipe | HouseholdRecipe;
 
 export default function ShoppingListClient() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const listIdFromUrl = searchParams.get("listId");
+
   const userRecipes = useQuery(api.recipes.getAllUserRecipes);
   const householdRecipes = useQuery(api.households.getAllHouseholdRecipes);
+  const accessibleLists = useQuery(
+    api.shoppingLists.getAccessibleShoppingLists
+  );
+  const listFromUrl = useQuery(
+    api.shoppingLists.getShoppingListById,
+    listIdFromUrl ? { listId: listIdFromUrl as Id<"shoppingLists"> } : "skip"
+  );
   const activeShoppingList = useQuery(api.shoppingLists.getActiveShoppingList);
   const allActiveShoppingLists = useQuery(
     api.shoppingLists.getAllActiveShoppingLists
   );
   const subscription = useSubscription();
 
+  // Display list: prefer URL list if loaded and accessible, else default (most recent accessible)
+  const displayList = useMemo(() => {
+    if (listIdFromUrl && listFromUrl !== undefined) {
+      if (listFromUrl) return listFromUrl;
+      return null;
+    }
+    return activeShoppingList ?? null;
+  }, [listIdFromUrl, listFromUrl, activeShoppingList]);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRecipeIds, setSelectedRecipeIds] = useState<
     Set<Id<"recipes">>
   >(new Set());
   const [showShoppingList, setShowShoppingList] = useState(false);
+  /** When true, show recipe selection to create a new list (from list picker) */
+  const [showRecipeSelection, setShowRecipeSelection] = useState(false);
 
   // Combine user and household recipes into one list
   const allRecipes = useMemo(() => {
@@ -129,20 +162,13 @@ export default function ShoppingListClient() {
   };
 
   const handleGenerateList = async () => {
-    // Wait for query to load to avoid creating while loading
-    if (activeShoppingList === undefined) {
-      toast.info("Loading your current shopping list…");
-      return;
-    }
-    // If there's already a draft/active list, just show it
-    if (activeShoppingList) {
-      setShowShoppingList(true);
+    if (accessibleLists === undefined) {
+      toast.info("Loading your shopping lists…");
       return;
     }
 
-    // Create new shopping list
     try {
-      await createShoppingList({
+      const { listId } = await createShoppingList({
         items: flatIngredients.map((item) => ({
           name: item.name,
           amount: item.amount ?? null,
@@ -153,6 +179,7 @@ export default function ShoppingListClient() {
       });
       setShowShoppingList(true);
       toast.success("Shopping list created!");
+      router.push(ROUTES.shoppingListWithId(listId));
     } catch (error) {
       console.error("Failed to create shopping list:", error);
       toast.error(
@@ -164,16 +191,16 @@ export default function ShoppingListClient() {
   };
 
   const handleConfirm = async () => {
-    if (!activeShoppingList) return;
+    if (!displayList) return;
 
-    if (activeShoppingList.status === "active") {
+    if (displayList.status === "active") {
       setShowDoneDialog(true);
       return;
     }
 
     // Finalise the shopping list (this will delete chalkboard items)
     try {
-      await finaliseShoppingList({ listId: activeShoppingList._id });
+      await finaliseShoppingList({ listId: displayList._id });
 
       if (selectedChalkboardItems.size > 0) {
         toast.success(
@@ -191,15 +218,16 @@ export default function ShoppingListClient() {
   };
 
   const handleDoneShopping = async () => {
-    if (!activeShoppingList) return;
+    if (!displayList) return;
 
     try {
-      await completeShoppingList({ listId: activeShoppingList._id });
+      await completeShoppingList({ listId: displayList._id });
       setShowDoneDialog(false);
       setShowShoppingList(false);
       setSelectedRecipeIds(new Set());
       setSelectedChalkboardItems(new Set());
       toast.success("Shopping complete! Happy cooking!");
+      router.push(ROUTES.SHOPPING_LIST);
     } catch (error) {
       console.error("Failed to complete shopping list:", error);
       toast.error("Failed to complete shopping");
@@ -207,10 +235,10 @@ export default function ShoppingListClient() {
   };
 
   const handleEditList = async () => {
-    if (!activeShoppingList) return;
+    if (!displayList) return;
 
     try {
-      await unfinaliseShoppingList({ listId: activeShoppingList._id });
+      await unfinaliseShoppingList({ listId: displayList._id });
     } catch (error) {
       console.error("Failed to edit shopping list:", error);
       toast.error("Failed to edit shopping list");
@@ -218,12 +246,12 @@ export default function ShoppingListClient() {
   };
 
   const handleBack = async () => {
-    if (!activeShoppingList) return;
+    if (!displayList) return;
 
     // If it's a draft list, delete it so user can start fresh
-    if (activeShoppingList.status === "draft") {
+    if (displayList.status === "draft") {
       try {
-        await deleteShoppingList({ listId: activeShoppingList._id });
+        await deleteShoppingList({ listId: displayList._id });
         toast.success("Shopping list cancelled");
       } catch (error) {
         console.error("Failed to delete shopping list:", error);
@@ -231,41 +259,159 @@ export default function ShoppingListClient() {
       }
     }
 
-    // Go back to recipe selection
+    router.push(ROUTES.SHOPPING_LIST);
     setShowShoppingList(false);
     setSelectedRecipeIds(new Set());
     setSelectedChalkboardItems(new Set());
   };
 
-  // Show shopping list view if there's an active list
+  // Only auto-show list view when we have listId in URL (deep link to a list)
   useEffect(() => {
-    if (!activeShoppingList) return;
-    setShowShoppingList(true);
-    // Pre-populate selected chalkboard items from the list
-    if (!activeShoppingList.chalkboardItemIds.length) return;
-    setSelectedChalkboardItems(new Set(activeShoppingList.chalkboardItemIds));
-  }, [activeShoppingList]);
+    if (listIdFromUrl && listFromUrl === null) {
+      router.replace(ROUTES.SHOPPING_LIST);
+      return;
+    }
+    if (listIdFromUrl && displayList) {
+      setShowShoppingList(true);
+      if (displayList.chalkboardItemIds.length > 0) {
+        setSelectedChalkboardItems(new Set(displayList.chalkboardItemIds));
+      }
+    }
+  }, [displayList, listIdFromUrl, listFromUrl, router]);
+
+  const showListView = Boolean(listIdFromUrl && displayList);
+  const showListPicker =
+    !listIdFromUrl &&
+    (accessibleLists?.length ?? 0) >= 1 &&
+    !showRecipeSelection;
+  const showRecipeSelectionView =
+    !listIdFromUrl &&
+    ((accessibleLists?.length ?? 0) === 0 || showRecipeSelection);
 
   return (
     <>
       <div className="bg-background">
         <div className="container mx-auto px-4 py-8">
-          {showShoppingList && activeShoppingList ? (
-            /* Shopping List View */
-            <ShoppingList
-              shoppingList={activeShoppingList}
-              onConfirm={handleConfirm}
-              onDone={() => setShowDoneDialog(true)}
-              onBack={handleBack}
-              onEdit={handleEditList}
-              selectedChalkboardItems={selectedChalkboardItems}
-              setSelectedChalkboardItems={setSelectedChalkboardItems}
-            />
+          {showListView ? (
+            /* Shopping List View (specific list from URL) */
+            <div className="space-y-4">
+              {accessibleLists && accessibleLists.length > 1 && (
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-muted-foreground shrink-0">
+                    List:
+                  </label>
+                  <Select
+                    value={displayList._id}
+                    onValueChange={(id) =>
+                      router.push(ROUTES.shoppingListWithId(id))
+                    }
+                  >
+                    <SelectTrigger className="w-[220px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {accessibleLists.map((list) => (
+                        <SelectItem key={list._id} value={list._id}>
+                          {list.status === "draft" ? "Draft" : "Active"} ·{" "}
+                          {new Date(list._creationTime).toLocaleDateString()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              <ShoppingList
+                shoppingList={displayList}
+                onConfirm={handleConfirm}
+                onDone={() => setShowDoneDialog(true)}
+                onBack={handleBack}
+                onEdit={handleEditList}
+                selectedChalkboardItems={selectedChalkboardItems}
+                setSelectedChalkboardItems={setSelectedChalkboardItems}
+              />
+            </div>
+          ) : showListPicker ? (
+            /* List Picker: choose a list or create new */
+            <div className="mb-8">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div>
+                  <h1 className="text-4xl font-bold text-foreground mb-2">
+                    Your shopping lists
+                  </h1>
+                  <p className="text-muted-foreground text-lg">
+                    Open a list or create a new one from your recipes
+                  </p>
+                </div>
+                <LimitIndicator
+                  current={allActiveShoppingLists?.length ?? 0}
+                  max={subscription?.maxActiveShoppingLists ?? 0}
+                  label="active lists"
+                />
+              </div>
+              <div className="grid gap-3 mb-8">
+                {accessibleLists?.map((list) => (
+                  <Link
+                    key={list._id}
+                    href={ROUTES.shoppingListWithId(list._id)}
+                    className="block"
+                  >
+                    <Card className="transition-colors hover:bg-muted/50">
+                      <CardContent className="flex flex-row items-center justify-between p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                            <ListChecks className="size-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-medium">
+                              {list.status === "draft" ? "Draft" : "Active"}{" "}
+                              list
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {new Date(list._creationTime).toLocaleDateString(
+                                undefined,
+                                {
+                                  weekday: "short",
+                                  month: "short",
+                                  day: "numeric",
+                                  year:
+                                    new Date(list._creationTime).getFullYear() !==
+                                    new Date().getFullYear()
+                                      ? "numeric"
+                                      : undefined,
+                                }
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                        <ChevronRight className="size-5 text-muted-foreground shrink-0" />
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+              <Button
+                size="lg"
+                className="w-full sm:w-auto"
+                onClick={() => setShowRecipeSelection(true)}
+              >
+                <Plus className="size-5 mr-2" />
+                Create new shopping list
+              </Button>
+            </div>
           ) : (
-            /* Recipe Selection View */
+            /* Recipe Selection View (no lists yet, or "Create new" from picker) */
             <>
-              {/* Header Section */}
               <div className="mb-8">
+                {showRecipeSelection && (accessibleLists?.length ?? 0) >= 1 && (
+                  <Button
+                    variant="ghost"
+                    className="mb-4 -ml-2"
+                    onClick={() => setShowRecipeSelection(false)}
+                  >
+                    <ChevronLeft className="size-4 mr-1" />
+                    Back to my lists
+                  </Button>
+                )}
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h1 className="text-4xl font-bold text-foreground mb-2">

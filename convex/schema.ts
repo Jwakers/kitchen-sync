@@ -161,10 +161,13 @@ export default defineSchema({
     expiresAt: v.number(), // Auto-delete after 1 week
     // Track chalkboard items to delete on finalization
     chalkboardItemIds: v.array(v.id("chalkboardItems")),
+    // Optional link to meal plan; users with meal plan access can access this list
+    mealPlanId: v.optional(v.id("mealPlans")),
   })
     .index("by_user", ["userId"])
     .index("by_user_and_status", ["userId", "status"])
-    .index("by_expires", ["expiresAt"]),
+    .index("by_expires", ["expiresAt"])
+    .index("by_meal_plan", ["mealPlanId"]),
 
   shoppingListItems: defineTable({
     shoppingListId: v.id("shoppingLists"),

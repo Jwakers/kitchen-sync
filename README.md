@@ -4,28 +4,15 @@
 
 ### Next Immediate Steps
 
-- [x] Complete technical debt remediation in one sprint.
-- [x] Refactor to use [Vercel AI SDK](https://ai-sdk.dev/docs/introduction).
-- [ ] Identify features that will increase my app usage
-  - [x] Photograph a recipe book and import.
-  - [x] Remove/expand free plan limits during beta
-  - [x] Take reddit users feedback and turn it into actionable feedback points
-  - [x] Import type should be a part of each recipe. This should be added to the schema.
-  - [x] Recipe mode. Screen stays on, full screen, next and previous arrows etc
-    - [x] Need safe are inset considered (including close button)
-    - [x] Landscape should be full width dialog. Increase the max width
-  - [x] Update the home page with clear messaging on these features.
-- [x] URGENT: remove create your own recipe from drawer and onto its own page. It is fundamentally broken and does not work on actual devices.
-- [ ] Try the post on Reddit and IH again and see if we can get any active users.
+- [ ] Make a summary of competitors. What features do they offer. What are their price points. What is our edge?
 - [ ] Try out [Indie App Circle](https://www.indieappcircle.com/) too
 - [ ] Try out [User Finder](https://usersfinder.com/)
-- [ ] Change shopping list to meal planning. Add additional features whereby the meal plan is preserved for the week, or until an end date set by the user, easy access to then processing a shopping list. Use AI plan to make this feature better. Meal plan should be a new table.
-- [ ] The app is supposed to make meal planning and weekly shops easier. Does it do that? If not yet, what are the next steps?
-- [ ] Weekly meal planning features
+- [ ] Set up the blog for the site (infrastructure)
 - [ ] Set up notifications and decide what to notify users on and when to notify
       them. Add settings so users can control what they get notified about. Add to agents.md that when new relevant features get added, a notification should be considered for it too.
 
 Meal planning notes
+
 - [x] need to fix nav alignment
 - [ ] On opening the meal plan page the nav raises up
 - [x] Auto select date field on iOS needs to be disabled

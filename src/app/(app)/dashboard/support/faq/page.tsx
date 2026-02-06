@@ -215,8 +215,7 @@ export const faqSections = [
       },
       {
         question: `Can I use ${APP_NAME} on my phone?`,
-        answer:
-          `Yes! ${APP_NAME} is a web app that works great on mobile devices. You can add it to your home screen for easy access.`,
+        answer: `Yes! ${APP_NAME} is a web app that works great on mobile devices. You can add it to your home screen for easy access.`,
       },
     ],
   },

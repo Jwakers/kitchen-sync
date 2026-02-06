@@ -36,8 +36,7 @@ export default function HowToUsePage() {
     {
       step: 1,
       title: "Sign up for an account",
-      description:
-        `Create your ${APP_NAME} account to start organising your recipes and meal planning.`,
+      description: `Create your ${APP_NAME} account to start organising your recipes and meal planning.`,
       icon: <Users className="h-5 w-5" />,
     },
     {
