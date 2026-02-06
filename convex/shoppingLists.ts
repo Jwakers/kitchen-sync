@@ -35,6 +35,17 @@ export async function canAccessShoppingList(
   return false;
 }
 
+/**
+ * User can modify or perform destructive actions on a shopping list only if they own it.
+ * Use this for delete, finalise, complete, and unfinalise; use canAccessShoppingList for view/edit items.
+ */
+function canModifyShoppingList(
+  userId: Id<"users">,
+  list: Doc<"shoppingLists">
+): boolean {
+  return list.userId === userId;
+}
+
 // ============================================================================
 // HELPERS (ingredient aggregation for meal plan → shopping list)
 // ============================================================================
@@ -159,9 +170,7 @@ export const getAccessibleShoppingLists = query({
       }
     }
 
-    accessible.sort(
-      (a, b) => (b._creationTime ?? 0) - (a._creationTime ?? 0)
-    );
+    accessible.sort((a, b) => (b._creationTime ?? 0) - (a._creationTime ?? 0));
     return accessible;
   },
 });
@@ -210,9 +219,7 @@ export const getShoppingListsByMealPlan = query({
       .withIndex("by_meal_plan", (q) => q.eq("mealPlanId", args.mealPlanId))
       .collect();
 
-    return lists.filter(
-      (l) => l.status === "draft" || l.status === "active"
-    );
+    return lists.filter((l) => l.status === "draft" || l.status === "active");
   },
 });
 
@@ -253,9 +260,7 @@ export const getActiveShoppingList = query({
       }
     }
 
-    accessible.sort(
-      (a, b) => (b._creationTime ?? 0) - (a._creationTime ?? 0)
-    );
+    accessible.sort((a, b) => (b._creationTime ?? 0) - (a._creationTime ?? 0));
     const first = accessible[0];
     if (!first) return null;
 
@@ -702,9 +707,10 @@ export const completeShoppingList = mutation({
       throw new ConvexError("Shopping list not found");
     }
 
-    const allowed = await canAccessShoppingList(ctx, user._id, list);
-    if (!allowed) {
-      throw new ConvexError("You do not have access to this shopping list");
+    if (!canModifyShoppingList(user._id, list)) {
+      throw new ConvexError(
+        "Only the list owner can complete this shopping list"
+      );
     }
 
     if (list.status !== "active") {
@@ -736,9 +742,10 @@ export const deleteShoppingList = mutation({
       throw new ConvexError("Shopping list not found");
     }
 
-    const allowed = await canAccessShoppingList(ctx, user._id, list);
-    if (!allowed) {
-      throw new ConvexError("You do not have access to this shopping list");
+    if (!canModifyShoppingList(user._id, list)) {
+      throw new ConvexError(
+        "Only the list owner can delete this shopping list"
+      );
     }
 
     // Delete all items
@@ -773,13 +780,14 @@ export const unfinaliseShoppingList = mutation({
       throw new ConvexError("Shopping list not found");
     }
 
-    const allowed = await canAccessShoppingList(ctx, user._id, list);
-    if (!allowed) {
-      throw new ConvexError("You do not have access to this shopping list");
+    if (!canModifyShoppingList(user._id, list)) {
+      throw new ConvexError(
+        "Only the list owner can un-finalise this shopping list"
+      );
     }
 
     if (list.status !== "active") {
-      throw new ConvexError("Can only unfinalize active shopping lists");
+      throw new ConvexError("Can only un-finalise active shopping lists");
     }
 
     // Mark list as draft
@@ -807,9 +815,10 @@ export const finaliseShoppingList = mutation({
       throw new ConvexError("Shopping list not found");
     }
 
-    const allowed = await canAccessShoppingList(ctx, user._id, list);
-    if (!allowed) {
-      throw new ConvexError("You do not have access to this shopping list");
+    if (!canModifyShoppingList(user._id, list)) {
+      throw new ConvexError(
+        "Only the list owner can finalize this shopping list"
+      );
     }
 
     if (list.status !== "draft") {

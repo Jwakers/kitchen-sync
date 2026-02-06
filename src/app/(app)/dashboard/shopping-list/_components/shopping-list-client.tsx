@@ -86,20 +86,23 @@ export default function ShoppingListClient() {
   );
   const subscription = useSubscription();
 
-  // Display list: prefer URL list if loaded and accessible, else default (most recent accessible)
+  // Display list: prefer URL list if loaded and accessible, else default (most recent accessible). Return undefined when loading.
   const displayList = useMemo(() => {
+    // Loading: list lookup in-flight for this URL list
+    if (listIdFromUrl && listFromUrl === undefined) return undefined;
+    // Loading: accessible lists not yet loaded (needed to decide default)
+    if (accessibleLists === undefined) return undefined;
     if (listIdFromUrl && listFromUrl !== undefined) {
       if (listFromUrl) return listFromUrl;
       return null;
     }
     return activeShoppingList ?? null;
-  }, [listIdFromUrl, listFromUrl, activeShoppingList]);
+  }, [listIdFromUrl, listFromUrl, accessibleLists, activeShoppingList]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRecipeIds, setSelectedRecipeIds] = useState<
     Set<Id<"recipes">>
   >(new Set());
-  const [showShoppingList, setShowShoppingList] = useState(false);
   /** When true, show recipe selection to create a new list (from list picker) */
   const [showRecipeSelection, setShowRecipeSelection] = useState(false);
 
@@ -158,7 +161,6 @@ export default function ShoppingListClient() {
       }
       return newSet;
     });
-    setShowShoppingList(false);
   };
 
   const handleGenerateList = async () => {
@@ -177,7 +179,6 @@ export default function ShoppingListClient() {
         })),
         chalkboardItemIds: Array.from(selectedChalkboardItems),
       });
-      setShowShoppingList(true);
       toast.success("Shopping list created!");
       router.push(ROUTES.shoppingListWithId(listId));
     } catch (error) {
@@ -223,7 +224,6 @@ export default function ShoppingListClient() {
     try {
       await completeShoppingList({ listId: displayList._id });
       setShowDoneDialog(false);
-      setShowShoppingList(false);
       setSelectedRecipeIds(new Set());
       setSelectedChalkboardItems(new Set());
       toast.success("Shopping complete! Happy cooking!");
@@ -260,7 +260,6 @@ export default function ShoppingListClient() {
     }
 
     router.push(ROUTES.SHOPPING_LIST);
-    setShowShoppingList(false);
     setSelectedRecipeIds(new Set());
     setSelectedChalkboardItems(new Set());
   };
@@ -272,27 +271,31 @@ export default function ShoppingListClient() {
       return;
     }
     if (listIdFromUrl && displayList) {
-      setShowShoppingList(true);
-      if (displayList.chalkboardItemIds.length > 0) {
-        setSelectedChalkboardItems(new Set(displayList.chalkboardItemIds));
-      }
+      setSelectedChalkboardItems(
+        displayList.chalkboardItemIds.length > 0
+          ? new Set(displayList.chalkboardItemIds)
+          : new Set()
+      );
     }
   }, [displayList, listIdFromUrl, listFromUrl, router]);
 
+  const isLoading =
+    (listIdFromUrl && listFromUrl === undefined) ||
+    accessibleLists === undefined;
   const showListView = Boolean(listIdFromUrl && displayList);
   const showListPicker =
     !listIdFromUrl &&
-    (accessibleLists?.length ?? 0) >= 1 &&
+    accessibleLists !== undefined &&
+    accessibleLists.length >= 1 &&
     !showRecipeSelection;
-  const showRecipeSelectionView =
-    !listIdFromUrl &&
-    ((accessibleLists?.length ?? 0) === 0 || showRecipeSelection);
 
   return (
     <>
       <div className="bg-background">
         <div className="container mx-auto px-4 py-8">
-          {showListView ? (
+          {isLoading ? (
+            <LoadingState />
+          ) : showListView && displayList ? (
             /* Shopping List View (specific list from URL) */
             <div className="space-y-4">
               {accessibleLists && accessibleLists.length > 1 && (

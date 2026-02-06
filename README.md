@@ -4,12 +4,11 @@
 
 ### Next Immediate Steps
 
-- [ ] Make a summary of competitors. What features do they offer. What are their price points. What is our edge?
-- [ ] Try out [Indie App Circle](https://www.indieappcircle.com/) too
-- [ ] Try out [User Finder](https://usersfinder.com/)
-- [ ] Set up the blog for the site (infrastructure)
-- [ ] Set up notifications and decide what to notify users on and when to notify
-      them. Add settings so users can control what they get notified about. Add to agents.md that when new relevant features get added, a notification should be considered for it too.
+- [ ] Summarize competitors, including their features, price points, and our competitive edge.
+- [ ] Try out [Indie App Circle](https://www.indieappcircle.com/) too.
+- [ ] Try out [User Finder](https://usersfinder.com/).
+- [ ] Set up the blog for the site (infrastructure).
+- [ ] Set up notifications (what and when), add user-controllable settings, and note in agents.md to consider notifications when new relevant features are added.
 
 Meal planning notes
 
